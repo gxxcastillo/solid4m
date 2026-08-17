@@ -79,14 +79,41 @@ export type ValidationConstraints = {
   minLength?: number;
   pattern?: string | RegExp;
   required?: boolean;
+  // `'any'` is the spec's own opt-out, and it is spelled exactly that way in
+  // HTML — keeping it here means `step='any'` type-checks as the escape hatch
+  // rather than as a mistake.
+  step?: number | 'any';
+  // Not a constraint the caller writes — it is the field's own `type` attribute,
+  // read as one so that `type='email'`/`type='url'` are format-checked and
+  // `step` knows what units it is counting in. See the `type` and `step` entries
+  // in constraintConfigs.ts for why this has to exist at all.
+  type?: string;
 };
 
 export type ConstraintName = keyof ValidationConstraints;
 export type Constraint = ValidationConstraints[ConstraintName];
 
 export type ConstraintConfig = {
-  validate: <M extends object>(v: FieldValue, c: Constraint | undefined, s: FormState<M>) => boolean;
-  message: <M extends object>(n: string, c: Constraint, s: FormState<M>) => string;
+  // `siblings` is the field's other constraints. Most validators ignore it —
+  // a constraint that can be decided from its own value alone should — but
+  // `step` is meaningless without `type` (one `step` unit is one integer on a
+  // number input, one *day* on a date, one *second* on a time) and anchors its
+  // ladder on `min`. This was left undone deliberately while `multiple` was the
+  // only candidate; `step` is the second constraint to need it, which is what
+  // the backlog set as the bar for widening the signature rather than special-
+  // casing one constraint inside validate().
+  validate: <M extends object>(
+    v: FieldValue,
+    c: Constraint | undefined,
+    s: FormState<M>,
+    siblings: ValidationConstraints
+  ) => boolean;
+  message: <M extends object>(
+    n: string,
+    c: Constraint,
+    s: FormState<M>,
+    siblings: ValidationConstraints
+  ) => string;
 };
 
 export type ConstraintConfigs = {

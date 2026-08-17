@@ -29,6 +29,30 @@ describe('InputField', () => {
     expect(screen.getByRole('textbox')).toHaveAttribute('id', 'username');
   });
 
+  it('omits the context container when no context is supplied', () => {
+    // Regression: the guard tested the accessor function (always truthy) rather
+    // than calling it, so every input rendered an empty context <div>.
+    const { store } = makeStore();
+    const { container } = render(() => (
+      <FormContextProvider store={store}>
+        <InputField<TestForm, 'username'> name='username' label='Username' />
+      </FormContextProvider>
+    ));
+
+    expect(container.querySelector(`.${styles.context}`)).toBeNull();
+  });
+
+  it('renders the context container when context is supplied', () => {
+    const { store } = makeStore();
+    const { container } = render(() => (
+      <FormContextProvider store={store}>
+        <InputField<TestForm, 'username'> name='username' label='Username' context={<span>Hint</span>} />
+      </FormContextProvider>
+    ));
+
+    expect(container.querySelector(`.${styles.context}`)).toHaveTextContent('Hint');
+  });
+
   it('associates the default placeholder-style input with its label', () => {
     const { store } = makeStore();
     render(() => (

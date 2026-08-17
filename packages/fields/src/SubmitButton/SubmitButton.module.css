@@ -5,6 +5,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  /* Containing block for the in-flight spinner below. */
+  position: relative;
   box-sizing: border-box;
   min-height: var(--sf-control-height);
   padding: 0 1.25rem;
@@ -25,11 +27,14 @@
     box-shadow var(--sf-transition-duration) var(--sf-transition-easing),
     transform var(--sf-transition-duration) var(--sf-transition-easing);
 
-  &:hover:not(:disabled) {
+  /* An in-flight submit is marked `aria-disabled`, not `disabled`, so that the
+     button keeps focus (see SubmitButton.tsx). Every rule that keys off the
+     unavailable state therefore has to match both. */
+  &:hover:not(:disabled, [aria-disabled='true']) {
     background-color: var(--sf-color-primary-hover);
   }
 
-  &:active:not(:disabled) {
+  &:active:not(:disabled, [aria-disabled='true']) {
     background-color: var(--sf-color-primary-active);
     transform: translateY(1px);
   }
@@ -41,9 +46,52 @@
       0 0 0 var(--sf-focus-ring-width) var(--sf-color-focus-ring);
   }
 
-  &:disabled {
+  &:disabled,
+  &[aria-disabled='true'] {
     opacity: 0.55;
     cursor: not-allowed;
+  }
+}
+
+/* In-flight spinner. Deliberately out of flow and parked inside the button's own
+   1.25rem inline padding: the label lives in the content box and the spinner in
+   the padding box, so the two can never collide and the button neither grows nor
+   re-centers its label when a submit starts. A spinner added as a flex child
+   would resize the button mid-submit, which is a layout shift under the user's
+   cursor at the exact moment they are waiting on it.
+
+   `currentColor` rather than a token, so the approve variant and any consumer
+   theme get a spinner that matches their own label color for free. */
+.spinner {
+  position: absolute;
+  inset-inline-start: 0.4rem;
+  top: 50%;
+  box-sizing: border-box;
+  width: 0.85rem;
+  height: 0.85rem;
+  margin-top: -0.425rem;
+  border: 2px solid currentColor;
+  border-inline-end-color: transparent;
+  border-radius: 50%;
+  animation: sf-submit-spin 0.6s linear infinite;
+}
+
+@keyframes sf-submit-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Spinning is the only thing that carries meaning here, so with motion reduced
+   there is nothing to degrade to — fall back to a static dot. It marks the
+   button as busy without animating; the dimmed state and the live-region
+   announcement carry the rest. */
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+    border-color: transparent;
+    background-color: currentColor;
+    opacity: 0.7;
   }
 }
 
@@ -53,11 +101,11 @@
   border-color: var(--sf-color-secondary-border);
   color: var(--sf-color-on-secondary);
 
-  &:hover:not(:disabled) {
+  &:hover:not(:disabled, [aria-disabled='true']) {
     background-color: var(--sf-color-secondary-hover);
   }
 
-  &:active:not(:disabled) {
+  &:active:not(:disabled, [aria-disabled='true']) {
     background-color: var(--sf-color-secondary-hover);
   }
 }

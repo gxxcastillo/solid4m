@@ -26,7 +26,7 @@ import { Form, InputField, PasswordField, SubmitButton } from '@gxxc/solid-forms
 function LoginForm() {
   return (
     <Form onSubmit={(values) => console.log(values)}>
-      <InputField name='email' label='Email' required />
+      <InputField name='email' type='email' label='Email' required />
       <PasswordField name='password' label='Password' required minLength={8} />
       <SubmitButton>Log in</SubmitButton>
     </Form>
@@ -57,7 +57,7 @@ function LoginForm() {
 
   return (
     <form.Form onSubmit={onSubmit}>
-      <InputField name='email' label='Email' required />
+      <InputField name='email' type='email' label='Email' required />
       <PasswordField name='password' label='Password' required minLength={8} />
       <SubmitButton>Log in</SubmitButton>
     </form.Form>

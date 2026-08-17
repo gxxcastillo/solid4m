@@ -27,7 +27,7 @@ input props, event handlers, validation state, and store synchronization for you
 You still declare normal JSX:
 
 ```tsx
-<InputField name='email' label='Email' required />
+<InputField name='email' type='email' label='Email' required />
 ```
 
 The field reads the nearest form context and initializes its form-state entry when it is rendered.

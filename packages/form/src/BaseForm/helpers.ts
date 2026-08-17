@@ -114,6 +114,72 @@ export function getSubmitErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+// Reported when async schema validation finishes against a value snapshot the
+// form has since moved past. Phrased as an instruction rather than a diagnosis
+// because the only thing the user can do about it — and the only thing they need
+// to know — is that the submit did not happen and pressing it again will work.
+// Hardcoded English, consistent with every other message this library emits
+// (see constraintConfigs.ts); it moves behind a prop when i18n arrives.
+export const STALE_SUBMIT_MESSAGE = 'The form changed while it was being submitted. Please submit again.';
+
+// Scoped to the submitted form rather than document.getElementById, because a
+// field's id is its name and two forms on the same page routinely register the
+// same name (the docs demo page renders four). Keyed on `el.id` instead of a
+// selector lookup per field, which avoids escaping entirely — a field array's
+// name contains dots (`items.0.title`), which are selector syntax — and walks
+// the form's controls once rather than once per errored field.
+function indexFieldElementsById(formElement: Element) {
+  const byId = new Map<string, HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>();
+  const candidates = formElement.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
+    'input, select, textarea'
+  );
+
+  for (const candidate of candidates) {
+    // First match wins, matching the old top-down scan: a duplicate id is
+    // invalid HTML, but if one shows up the earlier (DOM-order) control is the
+    // one the user would reach first.
+    if (candidate.id && !byId.has(candidate.id)) byId.set(candidate.id, candidate);
+  }
+
+  return byId;
+}
+
+/**
+ * Moves focus to the first field carrying an error after a failed submit, so
+ * the user lands on the thing they have to fix instead of having to hunt for
+ * it. Fields are walked in registration order, which is mount order and
+ * therefore DOM order for any ordinary form.
+ *
+ * Disabled and missing elements are skipped rather than aborting the walk: a
+ * disabled field cannot take focus, so stopping there would leave focus
+ * wherever it was with no indication anything happened.
+ */
+export function focusFirstInvalidField<M extends object>(
+  formElement: Element | null | undefined,
+  formFields: FormFields<M>
+) {
+  if (!formElement) return;
+
+  const elementsById = indexFieldElementsById(formElement);
+
+  for (const field of formFields) {
+    if (!field.errors?.length) continue;
+
+    const element = elementsById.get(field.name);
+    if (!element || element.disabled) continue;
+
+    element.focus();
+    // `disabled` is only the *detectable* reason focus can't land. focus() is
+    // also a silent no-op on a field that is present but not rendered — inside a
+    // collapsed accordion step, a `display: none` branch, or `type='hidden'` —
+    // and it reports nothing back. Comparing activeElement is the only check
+    // that works without measuring layout (which happy-dom can't do anyway), and
+    // it lets the walk fall through to the next offender instead of stopping on
+    // a field that never took focus and leaving the user on the submit button.
+    if (element.ownerDocument.activeElement === element) return;
+  }
+}
+
 export function createBaseFormOnSubmitHandler<
   FieldValues extends RequestProps,
   SubmitValues extends RequestProps = FieldValues,
@@ -126,6 +192,9 @@ export function createBaseFormOnSubmitHandler<
   return async (event: BaseFormElementSubmitEvent) => {
     event.preventDefault();
     const buttonName = (event.submitter as HTMLButtonElement | HTMLInputElement | null)?.name ?? '';
+    // Captured synchronously: `currentTarget` is only valid during dispatch, and
+    // the schema-failure path below needs the form element after an `await`.
+    const formElement = event.currentTarget as Element | null;
 
     if (formState.isProcessing) {
       return;
@@ -134,8 +203,12 @@ export function createBaseFormOnSubmitHandler<
     if (!formState.isFormValid) {
       // Nothing may have been touched yet (e.g. a pristine required field), so
       // an invalid submit attempt must mark every field blurred to make its
-      // errors visible instead of silently doing nothing.
+      // errors visible instead of silently doing nothing. Focus then moves to
+      // the first offender so the reveal is actionable rather than just visible
+      // — SubmitButton stays enabled for an invalid form precisely so this path
+      // is reachable.
       formStateMutations.setBlurredFields();
+      focusFirstInvalidField(formElement, formState.fields);
       return;
     }
 
@@ -171,6 +244,13 @@ export function createBaseFormOnSubmitHandler<
         props.schema &&
         haveFieldValuesChangedSinceSnapshot(formState.fields, submitValueSnapshot, submitGenerations)
       ) {
+        // Discarding the result is correct — it was validated against values the
+        // form no longer holds — but returning bare made it invisible: the
+        // `finally` below clears isProcessing, so the button un-dims and nothing
+        // else happens. The user watched their submit evaporate with no error,
+        // no handler call, and no indication that pressing submit again is what
+        // they need to do. Say so instead.
+        formStateMutations.setErrors([STALE_SUBMIT_MESSAGE]);
         return;
       }
 
@@ -179,6 +259,9 @@ export function createBaseFormOnSubmitHandler<
           applySchemaValidationFailure(formState.fields, formStateMutations, schemaResult);
           formStateMutations.setBlurredFields();
         });
+        // Read after the batch commits, so the walk sees the errors the schema
+        // failure just attributed rather than the pre-submit state.
+        focusFirstInvalidField(formElement, formState.fields);
         return;
       }
 

@@ -29,13 +29,13 @@ function LineItemFields() {
           <>
             <fields.InputField name='description' label='Description' defaultValue={item.description} required />
             <fields.InputField name='quantity' label='Quantity' defaultValue={item.quantity} required />
-            <SubmitButton variant='approve' isDisabled={false} onClick={remove}>
+            <SubmitButton variant='approve' onClick={remove}>
               Remove
             </SubmitButton>
           </>
         )}
       </FieldArray>
-      <SubmitButton variant='approve' isDisabled={false} onClick={() => itemsArray.append({ ...emptyItem })}>
+      <SubmitButton variant='approve' onClick={() => itemsArray.append({ ...emptyItem })}>
         Add line item
       </SubmitButton>
     </>

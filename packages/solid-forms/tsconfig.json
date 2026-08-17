@@ -3,7 +3,7 @@
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./dist",
-    "types": ["vite/client"],
+    "types": ["vite/client", "@testing-library/jest-dom/vitest"],
     "jsx": "preserve",
     "jsxImportSource": "solid-js"
   },

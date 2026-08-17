@@ -88,7 +88,7 @@ export function InputField<M extends object = FieldValueMapping, N extends Strin
           aria-describedby={props.errors?.length ? errorId : undefined}
         />
         {withIcon() && <div class={styles.icon}>{icon()}</div>}
-        {context && <div class={styles.context}>{context()}</div>}
+        {context() && <div class={styles.context}>{context()}</div>}
         {initialLabel() && (
           <label for={props.id} class={withLabel() ? styles.label : styles.screenReaderOnly}>
             {initialLabel()}

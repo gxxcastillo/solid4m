@@ -5,8 +5,13 @@ export const fixtureThemes = [
 ] as const;
 
 export const fixtureForms = [
-  { id: 'login', label: 'Login' },
-  { id: 'signup', label: 'Signup' }
+  { id: 'login', label: 'Login', title: 'Log in' },
+  { id: 'signup', label: 'Signup', title: 'Create your account' },
+  // Repeating rows are the most a11y-hazardous UI the library renders — fields
+  // are inserted and removed dynamically and are addressed by generated
+  // `items.<index>.*` names — so the FieldArray example carries its own routes.
+  { id: 'lineItems', label: 'Line items', title: 'Line items' },
+  { id: 'settings', label: 'Settings', title: 'User settings' }
 ] as const;
 
 export type FixtureTheme = (typeof fixtureThemes)[number]['id'];
@@ -17,6 +22,7 @@ export interface FixtureRoute {
   theme: FixtureTheme;
   form: FixtureForm;
   heading: string;
+  title: string;
 }
 
 export const fixtureRoutes = fixtureThemes.flatMap((theme) =>
@@ -24,7 +30,8 @@ export const fixtureRoutes = fixtureThemes.flatMap((theme) =>
     path: `/${theme.id}/${form.id}` as const,
     theme: theme.id,
     form: form.id,
-    heading: `${theme.label} ${form.label}`
+    heading: `${theme.label} ${form.label}`,
+    title: form.title
   }))
 );
 

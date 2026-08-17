@@ -30,7 +30,14 @@ function MailIcon(): JSX.Element {
 export function SignupForm(props: SignupFormProps) {
   return (
     <Form onSubmit={props.onSubmit ?? (() => undefined)}>
-      <InputField name='email' label='Email' leadingIcon={<MailIcon />} showLabel={() => true} required />
+      <InputField
+        name='email'
+        type='email'
+        label='Email'
+        leadingIcon={<MailIcon />}
+        showLabel={() => true}
+        required
+      />
       <InputField name='username' label='Username' required minLength={3} />
       <PasswordField name='password' label='Password' required minLength={8} />
       <PasswordField name='confirm' label='Confirm password' required match='password' />
@@ -38,9 +45,15 @@ export function SignupForm(props: SignupFormProps) {
       <CheckboxField name='terms' label='I accept the terms of service' required />
       <div class={props.actionsClass}>
         <SubmitButton>Sign up</SubmitButton>
-        <SubmitButton variant='approve' isDisabled={false}>
-          Save draft
-        </SubmitButton>
+        {/*
+          `isDisabled={false}` used to be load bearing here: SubmitButton
+          defaulted to `isDisabled ?? !isFormValid`, and saving a draft of a
+          half-filled signup form has to stay available while that form is
+          invalid. The button no longer disables itself for invalidity, so the
+          prop is dropped rather than kept as a no-op that reads like it is
+          doing something.
+        */}
+        <SubmitButton variant='approve'>Save draft</SubmitButton>
       </div>
     </Form>
   );

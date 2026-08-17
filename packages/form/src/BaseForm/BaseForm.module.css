@@ -19,6 +19,30 @@
   align-items: stretch;
 }
 
+/* The form-level error region is in the DOM even when empty so that assistive
+   tech has a live region to announce into (see BaseForm.tsx). That makes it a
+   flex item, and `gap` reserves a row for it regardless of its height, so pull
+   the empty state back by exactly the gap it introduced. Only the empty state is
+   offset — a region with errors in it keeps normal spacing. */
+.formErrorsEmpty {
+  margin-block-start: calc(-1 * var(--sf-field-gap));
+}
+
+/* The in-flight status region is announced, never seen — the submit button
+   already carries the visual signal. `position: absolute` also keeps it out of
+   the flex flow, so unlike the error region it needs no gap correction. */
+.screenReaderOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Stretch every button to the form width when `fullWidthButtons` is set. */
 .fullWidthButtons button {
   width: 100%;

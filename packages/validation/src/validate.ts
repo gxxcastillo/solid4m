@@ -12,16 +12,28 @@ export interface ValidateFieldArgs<M extends object, N extends StringKeyOf<M>, C
   formState: FormState<M>;
   constraintName: C;
   constraint: ValidationConstraints[C];
+  // The field's full constraint set, so a validator that cannot be decided from
+  // its own value alone can reach the others — `step` needs `type` for its units
+  // and `min` for its base. Optional so that calling this with a single
+  // constraint stays possible; validators must treat every sibling as absent.
+  siblings?: ValidationConstraints;
 }
 
 export function validateAgainstConstraint<
   M extends object,
   N extends StringKeyOf<M>,
   C extends ConstraintName
->({ fieldName, fieldValue, formState, constraintName, constraint }: ValidateFieldArgs<M, N, C>) {
+>({
+  fieldName,
+  fieldValue,
+  formState,
+  constraintName,
+  constraint,
+  siblings = {}
+}: ValidateFieldArgs<M, N, C>) {
   const validator = constraintConfigs[constraintName];
-  const isValid = validator.validate(fieldValue, constraint, formState);
-  return isValid ? '' : validator.message(fieldName, constraint, formState);
+  const isValid = validator.validate(fieldValue, constraint, formState, siblings);
+  return isValid ? '' : validator.message(fieldName, constraint, formState, siblings);
 }
 
 export function validate<M extends object, N extends StringKeyOf<M>>(
@@ -40,7 +52,8 @@ export function validate<M extends object, N extends StringKeyOf<M>>(
         fieldValue,
         formState,
         constraintName,
-        constraint
+        constraint,
+        siblings: constraints
       });
     })
     .filter(Boolean);

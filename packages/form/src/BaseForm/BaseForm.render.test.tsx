@@ -6,6 +6,32 @@ import { FormContextProvider, createFormStore } from '@gxxc/solid-forms-state';
 
 import { BaseForm } from './BaseForm';
 import styles from './BaseForm.module.css';
+import { STALE_SUBMIT_MESSAGE } from './helpers';
+
+// A Standard Schema whose validation is held open by the test, so a field can be
+// edited while the submit is genuinely mid-flight. Nothing else reproduces the
+// stale-snapshot race: it only exists in the window between an async schema
+// resolving and the handler reading values back.
+function makeHeldSchema() {
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+
+  return {
+    release,
+    schema: {
+      '~standard': {
+        version: 1 as const,
+        vendor: 'test',
+        validate: async (value: unknown) => {
+          await gate;
+          return { value };
+        }
+      }
+    }
+  };
+}
 
 type TestForm = { [key: string]: string; email: string };
 
@@ -107,6 +133,256 @@ describe('BaseForm (rendered)', () => {
 
     expect(screen.getByText('Server error')).toBeInTheDocument();
     expect(screen.getByText('State error')).toBeInTheDocument();
+  });
+
+  it('moves focus to the first invalid field on a failed submit', () => {
+    const { store } = makeStore();
+    const [, mutations] = store;
+    mutations.initializeField('email', 'a@b.com', []);
+    mutations.initializeField('username', '', ['Required']);
+
+    render(() => (
+      <FormContextProvider store={store}>
+        <BaseForm onSubmit={vi.fn()}>
+          <input id='email' />
+          <input id='username' />
+          <button type='submit'>Submit</button>
+        </BaseForm>
+      </FormContextProvider>
+    ));
+
+    fireEvent.click(screen.getByRole('button'));
+
+    expect(document.activeElement).toBe(document.getElementById('username'));
+  });
+
+  it('skips a disabled invalid field and focuses the next focusable one', () => {
+    const { store } = makeStore();
+    const [, mutations] = store;
+    mutations.initializeField('email', '', ['Required']);
+    mutations.initializeField('username', '', ['Required']);
+
+    render(() => (
+      <FormContextProvider store={store}>
+        <BaseForm onSubmit={vi.fn()}>
+          <input id='email' disabled />
+          <input id='username' />
+          <button type='submit'>Submit</button>
+        </BaseForm>
+      </FormContextProvider>
+    ));
+
+    fireEvent.click(screen.getByRole('button'));
+
+    expect(document.activeElement).toBe(document.getElementById('username'));
+  });
+
+  it('renders the form-level error container as a live region even when empty', () => {
+    const { store } = makeStore();
+    const [, mutations] = store;
+    mutations.initializeField('email', 'a@b.com', []);
+
+    const { container } = render(() => (
+      <FormContextProvider store={store}>
+        <BaseForm onSubmit={vi.fn()}>
+          <button type='submit'>Submit</button>
+        </BaseForm>
+      </FormContextProvider>
+    ));
+
+    // Present before any error lands in it — a live region added at the same
+    // time as its content is not reliably announced.
+    const region = container.querySelector('.sf-form-errors');
+    expect(region).not.toBeNull();
+    expect(region).toHaveAttribute('aria-live', 'assertive');
+    expect(region).toBeEmptyDOMElement();
+    // Being permanent makes it a flex item, so the form's `gap` reserves a row
+    // for it; the empty-state class cancels exactly that gap. Without it every
+    // errorless form grows a stray field-gap of trailing space.
+    expect(region).toHaveClass(styles.formErrorsEmpty);
+  });
+
+  it('drops the empty-state offset once the region has content', () => {
+    const { store } = makeStore();
+    const [, mutations] = store;
+    mutations.initializeField('email', 'a@b.com', []);
+
+    const { container } = render(() => (
+      <FormContextProvider store={store}>
+        <BaseForm onSubmit={vi.fn()} errors={['Server error']}>
+          <button type='submit'>Submit</button>
+        </BaseForm>
+      </FormContextProvider>
+    ));
+
+    expect(container.querySelector('.sf-form-errors')).not.toHaveClass(styles.formErrorsEmpty);
+  });
+
+  it('announces form-level errors through the live region', () => {
+    const { store } = makeStore();
+    const [, mutations] = store;
+    mutations.initializeField('email', 'a@b.com', []);
+
+    const { container } = render(() => (
+      <FormContextProvider store={store}>
+        <BaseForm onSubmit={vi.fn()} errors={['Server error']}>
+          <button type='submit'>Submit</button>
+        </BaseForm>
+      </FormContextProvider>
+    ));
+
+    expect(container.querySelector('.sf-form-errors')).toHaveTextContent('Server error');
+  });
+
+  // The in-flight submit was communicated only visually: the submit button dims.
+  // A screen-reader user pressed submit and heard nothing until it settled.
+  it('renders the status region before there is anything to announce', () => {
+    const { store } = makeStore();
+
+    const { container } = render(() => (
+      <FormContextProvider store={store}>
+        <BaseForm onSubmit={vi.fn()}>
+          <button type='submit'>Submit</button>
+        </BaseForm>
+      </FormContextProvider>
+    ));
+
+    const region = container.querySelector('.sf-form-status');
+    expect(region).not.toBeNull();
+    // Polite, unlike the assertive error region: a progress note waits its turn
+    // rather than interrupting whatever the user is reading.
+    expect(region).toHaveAttribute('aria-live', 'polite');
+    expect(region).toHaveAttribute('aria-atomic', 'true');
+    expect(region).toHaveTextContent('');
+  });
+
+  it('announces the in-flight state and stops once the submit settles', () => {
+    const { store } = makeStore();
+    const [, mutations] = store;
+
+    const { container } = render(() => (
+      <FormContextProvider store={store}>
+        <BaseForm onSubmit={vi.fn()}>
+          <button type='submit'>Submit</button>
+        </BaseForm>
+      </FormContextProvider>
+    ));
+    const region = container.querySelector('.sf-form-status');
+
+    mutations.setIsProcessing(true);
+    expect(region).toHaveTextContent('Submitting…');
+
+    mutations.setIsProcessing(false);
+    expect(region).toHaveTextContent('');
+  });
+
+  it('lets the announcement be reworded for the action', () => {
+    const { store } = makeStore();
+    const [, mutations] = store;
+    mutations.setIsProcessing(true);
+
+    const { container } = render(() => (
+      <FormContextProvider store={store}>
+        <BaseForm onSubmit={vi.fn()} processingLabel='Signing in…'>
+          <button type='submit'>Submit</button>
+        </BaseForm>
+      </FormContextProvider>
+    ));
+
+    expect(container.querySelector('.sf-form-status')).toHaveTextContent('Signing in…');
+  });
+
+  it('stays silent when the label is emptied', () => {
+    const { store } = makeStore();
+    const [, mutations] = store;
+    mutations.setIsProcessing(true);
+
+    const { container } = render(() => (
+      <FormContextProvider store={store}>
+        <BaseForm onSubmit={vi.fn()} processingLabel=''>
+          <button type='submit'>Submit</button>
+        </BaseForm>
+      </FormContextProvider>
+    ));
+
+    // The region itself stays in the DOM — removing it would break the *next*
+    // announcement, since a live region must pre-exist its content.
+    const region = container.querySelector('.sf-form-status');
+    expect(region).not.toBeNull();
+    expect(region).toHaveTextContent('');
+  });
+
+  // aria-busy on an ancestor tells assistive tech to withhold live-region
+  // updates until it clears, which would suppress both regions below it.
+  it('never marks the form aria-busy while processing', () => {
+    const { store } = makeStore();
+    const [, mutations] = store;
+    mutations.setIsProcessing(true);
+
+    const { container } = render(() => (
+      <FormContextProvider store={store}>
+        <BaseForm onSubmit={vi.fn()}>
+          <button type='submit'>Submit</button>
+        </BaseForm>
+      </FormContextProvider>
+    ));
+
+    expect(container.querySelector('form')).not.toHaveAttribute('aria-busy');
+  });
+
+  // Regression: the stale-snapshot guard is right to discard a result validated
+  // against values the form has moved past, but it used to `return` bare — the
+  // finally cleared isProcessing, the button un-dimmed, and the submit
+  // evaporated with no error, no handler call, and nothing telling the user to
+  // press it again.
+  it('reports when a submit is discarded because values changed mid-flight', async () => {
+    const { store } = makeStore();
+    const [state, mutations] = store;
+    mutations.initializeField('email', 'a@b.com', []);
+    const onSubmit = vi.fn();
+    const { schema, release } = makeHeldSchema();
+
+    render(() => (
+      <FormContextProvider store={store}>
+        <BaseForm onSubmit={onSubmit} schema={schema}>
+          <button type='submit'>Submit</button>
+        </BaseForm>
+      </FormContextProvider>
+    ));
+
+    fireEvent.click(screen.getByRole('button'));
+    expect(state.isProcessing).toBe(true);
+
+    // The edit lands while schema validation is still awaiting.
+    mutations.setFieldValue('email', 'changed@b.com');
+    release();
+
+    await vi.waitFor(() => expect(state.isProcessing).toBe(false));
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(state.errors).toEqual([STALE_SUBMIT_MESSAGE]);
+  });
+
+  it('leaves an untouched in-flight submit alone', async () => {
+    const { store } = makeStore();
+    const [state, mutations] = store;
+    mutations.initializeField('email', 'a@b.com', []);
+    const onSubmit = vi.fn();
+    const { schema, release } = makeHeldSchema();
+
+    render(() => (
+      <FormContextProvider store={store}>
+        <BaseForm onSubmit={onSubmit} schema={schema}>
+          <button type='submit'>Submit</button>
+        </BaseForm>
+      </FormContextProvider>
+    ));
+
+    fireEvent.click(screen.getByRole('button'));
+    release();
+
+    await vi.waitFor(() => expect(state.isProcessing).toBe(false));
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    expect(state.errors).toEqual([]);
   });
 
   it('surfaces a rejected onSubmit into form.state.errors', async () => {

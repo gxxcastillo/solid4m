@@ -4,6 +4,7 @@ import {
   createBaseFormOnSubmitHandler,
   fieldsToProps,
   fieldsToValueSnapshot,
+  focusFirstInvalidField,
   getSubmitErrorMessage,
   resolveSubmitHandler
 } from './helpers';
@@ -679,6 +680,46 @@ describe('getSubmitErrorMessage', () => {
   it('stringifies non-Error values', () => {
     expect(getSubmitErrorMessage('boom')).toBe('boom');
     expect(getSubmitErrorMessage(404)).toBe('404');
+  });
+});
+
+describe('focusFirstInvalidField', () => {
+  function makeForm(ids: string[]) {
+    const form = document.createElement('form');
+    for (const id of ids) {
+      const input = document.createElement('input');
+      input.id = id;
+      form.append(input);
+    }
+    document.body.append(form);
+    return form;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const invalid = (name: string) => ({ name, errors: ['Required'] }) as any;
+
+  it('focuses the first errored field', () => {
+    const form = makeForm(['email', 'username']);
+    focusFirstInvalidField(form, [invalid('email'), invalid('username')]);
+    expect(document.activeElement).toBe(document.getElementById('email'));
+    form.remove();
+  });
+
+  // `disabled` is the only reason focus can't land that is readable up front. A
+  // field that is present but not rendered — a collapsed accordion step, a
+  // `display: none` branch, `type='hidden'` — accepts focus() and silently
+  // ignores it. happy-dom focuses anything, so the no-op is stubbed here; the
+  // point is that the walk continues instead of stopping on a field that never
+  // took focus and leaving the user stranded on the submit button.
+  it('continues past a field whose focus() does not take', () => {
+    const form = makeForm(['email', 'username']);
+    const hidden = document.getElementById('email') as HTMLInputElement;
+    hidden.focus = () => undefined;
+
+    focusFirstInvalidField(form, [invalid('email'), invalid('username')]);
+
+    expect(document.activeElement).toBe(document.getElementById('username'));
+    form.remove();
   });
 });
 

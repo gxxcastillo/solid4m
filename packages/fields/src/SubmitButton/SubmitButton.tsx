@@ -1,4 +1,4 @@
-import { createMemo, children as prepareChildren, splitProps } from 'solid-js';
+import { type JSX, Show, createMemo, children as prepareChildren, splitProps } from 'solid-js';
 import { type StringKeyOf } from 'type-fest';
 
 import { Button, type ButtonElementProps } from '@gxxc/solid-forms-elements';
@@ -42,7 +42,58 @@ export function SubmitButton<M extends object = FieldValueMapping, N extends Str
         ? () => parsedProps.setValue?.(parsedProps.parse?.(parsedProps.value))
         : undefined
   );
-  const isDisabled = createMemo(() => localProps.isDisabled ?? !formState.isFormValid);
+  // Deliberately NOT disabled for an invalid form. A disabled button is removed
+  // from the tab order entirely (so a screen reader user may never learn a
+  // submit button exists), fires no pointer events (so it cannot explain
+  // itself), and — the case that actually bit us — turns any bug in our own
+  // validity computation into an unrecoverable dead end with no diagnostic.
+  // Submitting an invalid form instead runs the reveal path in
+  // createBaseFormOnSubmitHandler: every field is marked blurred so its errors
+  // become visible, and focus moves to the first invalid one. This follows
+  // current form-accessibility guidance (GOV.UK Design System, NN/g).
+  //
+  // `isProcessing` is the case that genuinely warrants signalling unavailable,
+  // but it is signalled with `aria-disabled` rather than `disabled`, because the
+  // user who started the submit is by definition focused on this button. A
+  // focused element that becomes `disabled` leaves the tab order, so the browser
+  // drops focus to <body> — and nothing puts it back when the submit settles,
+  // leaving a keyboard or screen-reader user at the top of the document with no
+  // announcement of what happened. `aria-disabled` conveys the same
+  // unavailability while keeping focus, tab position, and hover/focus events.
+  //
+  // An explicit `isDisabled` is still a real `disabled` attribute: that is the
+  // consumer asserting the action is unavailable for a reason of their own. A
+  // hard-disabled button needs no in-flight treatment layered on top — it is
+  // already unavailable, already unclickable, and already dimmed.
+  //
+  // Gated on the *value*, not on whether the prop was passed. `isDisabled` is
+  // ordinarily bound to a signal (`isDisabled={!termsAccepted()}`), so testing
+  // for `undefined` here stripped the spinner, the `aria-disabled`, and the
+  // activation block from every form that gates its submit button — at exactly
+  // the moment the gate opens and a submit becomes possible. That test was
+  // carried over unexamined from the old `localProps.isDisabled ??
+  // !formState.isFormValid` default, where `undefined` selected the fallback and
+  // therefore meant something; with the fallback gone it distinguished nothing
+  // worth distinguishing.
+  const isBusy = createMemo(() => !localProps.isDisabled && formState.isProcessing);
+  // The flip side of aria-disabled is that it is advisory only — the browser
+  // still activates the button and still submits the form — so the block has to
+  // happen here. createBaseFormOnSubmitHandler guards the submit path
+  // independently; this additionally covers `variant='approve'`, whose
+  // `type='button'` never reaches that handler.
+  const handleClick: JSX.EventHandler<HTMLButtonElement, MouseEvent> = (event) => {
+    if (isBusy()) {
+      event.preventDefault();
+      return;
+    }
+
+    const handler = onClick();
+    if (!handler) return;
+    // Solid unwraps the bound `[handler, data]` form of an event handler when it
+    // binds one to an element; invoking one ourselves means unwrapping it here.
+    if (typeof handler === 'function') handler(event);
+    else handler[0](handler[1], event);
+  };
 
   return createField(
     'SubmitButton',
@@ -50,14 +101,30 @@ export function SubmitButton<M extends object = FieldValueMapping, N extends Str
       <Button
         type={buttonType()}
         name={parsedProps.name}
-        disabled={isDisabled()}
-        onClick={onClick()}
+        disabled={localProps.isDisabled}
+        aria-disabled={isBusy() || undefined}
+        onClick={handleClick}
         classList={{
           [styles.button]: true,
           [styles.approve]: localProps.variant === 'approve',
           [styles.fullWidth]: !!localProps.isFullWidth
         }}
       >
+        {/*
+          Purely decorative, hence aria-hidden: the in-flight state is announced
+          by the form's own polite live region (BaseForm's `.sf-form-status`),
+          and a spinner contributing to the button's accessible name would both
+          duplicate that and corrupt the name callers query by.
+
+          It is absolutely positioned inside the button's own inline padding, so
+          it costs nothing in layout: the label lives in the content box, the
+          spinner in the padding box, and the button does not change size or
+          re-center its label when a submit starts. That is why the label can
+          stay exactly where it is rather than being swapped or shifted.
+        */}
+        <Show when={isBusy()}>
+          <span class={styles.spinner} aria-hidden='true' />
+        </Show>
         {label()}
       </Button>
     </div>

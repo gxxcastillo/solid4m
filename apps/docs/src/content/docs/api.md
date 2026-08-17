@@ -46,6 +46,7 @@ A self-contained form that creates its own internal store.
 | `errors`           | `string[]`                             | Form-level errors to display                                                             |
 | `isLoading`        | `boolean`                              | Disables all fields while loading                                                        |
 | `isProcessing`     | `boolean`                              | Controlled override for processing state                                                 |
+| `processingLabel`  | `string`                               | Screen-reader announcement while a submit is in flight; defaults to `'Submitting…'`, `''` to disable |
 | `className`        | `string`                               | CSS class on the form element                                                            |
 | `align`            | `'left' \| 'center'`                   | Button alignment, defaults to `'left'`                                                   |
 | `fullWidthButtons` | `boolean`                              | Stretch buttons to full width                                                            |
@@ -63,7 +64,7 @@ to bind `M` for `Form` and all field components together:
 const { Form, InputField, PasswordField } = createForm<LoginValues>();
 
 <Form onSubmit={(values) => values.email}>
-  <InputField name='email' label='Email' required />
+  <InputField name='email' type='email' label='Email' required />
   <PasswordField name='password' label='Password' required minLength={8} />
 </Form>;
 ```
@@ -81,7 +82,7 @@ Pass a Standard Schema-compatible schema instead of a type argument to infer `M`
 const { Form, InputField, PasswordField } = createForm({ schema: loginSchema });
 
 <Form onSubmit={(values) => values.email}>
-  <InputField name='email' label='Email' required />
+  <InputField name='email' type='email' label='Email' required />
   <PasswordField name='password' label='Password' required />
 </Form>;
 ```
@@ -102,23 +103,23 @@ The field-only half of `createForm<M>()`, for when the fields don't own their `F
 ```tsx
 const { InputField, PasswordField } = createFields<LoginValues>();
 
-<InputField name='email' label='Email' required />
+<InputField name='email' type='email' label='Email' required />
 <PasswordField name='password' label='Password' required minLength={8} />
 ```
 
 ## `InputField`
 
-Renders a labeled `<input type="text">`.
+Renders a labeled `<input>`, defaulting to `type="text"`.
 
 ```tsx
-<InputField<M, 'email'>
-  name='email'
-  label='Email address'
-  defaultValue='user@example.com'
-  required
-  pattern={/^[^@]+@[^@]+$/}
-/>
+<InputField<M, 'email'> name='email' type='email' label='Email address' defaultValue='user@example.com' required />
+
+<InputField<M, 'slug'> name='slug' label='Slug' pattern={/^[a-z0-9-]+$/} />
 ```
+
+Prefer `type='email'` over a hand-written `pattern` — it drives the on-screen keyboard and is
+format-checked against the HTML specification. See
+[validation](/validation/#format-checking-from-the-input-type).
 
 | Prop                                                                   | Type                    | Description                                         |
 | ---------------------------------------------------------------------- | ----------------------- | --------------------------------------------------- |
@@ -130,7 +131,8 @@ Renders a labeled `<input type="text">`.
 | `parse`                                                                | `(raw: string) => M[N]` | Convert DOM string to typed value                   |
 | `format`                                                               | `(val: M[N]) => string` | Convert typed value back to display string          |
 | `validator`                                                            | `CustomValidator<M, N>` | Custom validation function                          |
-| `required`, `minLength`, `maxLength`, `pattern`, `min`, `max`, `match` | Constraint props        | Built-in validation constraints                     |
+| `required`, `minLength`, `maxLength`, `pattern`, `min`, `max`, `match`, `step` | Constraint props | Built-in validation constraints              |
+| `type`                                                                 | `string`                | Standard input type; `email` and `url` are also format-checked |
 
 All standard HTML input attributes are also accepted.
 
@@ -165,7 +167,36 @@ Renders a labeled checkbox. The field value in form state is a boolean.
 
 ## `SubmitButton`
 
-Renders a submit button. It is disabled automatically when the form has validation errors.
+Renders a submit button. It stays enabled while the form is invalid, and marks itself
+`aria-disabled` while a submit is in flight.
+
+Submitting an invalid form reveals every field's errors and moves focus to the first invalid field,
+rather than silently doing nothing. A disabled submit button would leave the tab order entirely and
+give no way to discover what is missing, so validity gates the *result* of the submit, not access to
+it.
+
+An in-flight submit is marked with `aria-disabled` rather than the `disabled` attribute for a
+related reason: the user who pressed the button is focused on it, and disabling a focused element
+removes it from the tab order, so the browser drops focus to `<body>` and nothing restores it when
+the submit settles. `aria-disabled` announces the same unavailability while keeping focus and tab
+position; the component blocks activation itself, since `aria-disabled` is advisory.
+
+While in flight the button also shows a spinner. It is decorative (`aria-hidden`), because the form's
+live region does the announcing, and it is positioned inside the button's own padding so the button
+neither grows nor re-centers its label mid-submit. Under `prefers-reduced-motion` it renders as a
+static dot.
+
+Pass `isDisabled` when the action is genuinely unavailable for a reason of your own — it renders a
+real `disabled` attribute, unlike the in-flight state. It is read as a value, not as a presence, so
+binding it to a signal works the way you would expect:
+
+```tsx
+<SubmitButton isDisabled={!termsAccepted()}>Sign up</SubmitButton>
+```
+
+While that reads `false` the button behaves exactly as if the prop were absent, in-flight spinner
+included; while it reads `true` the button is hard-disabled and gets no in-flight treatment, since a
+disabled button cannot be the one submitting.
 
 ```tsx
 <SubmitButton>Log in</SubmitButton>
@@ -180,7 +211,7 @@ Named submit buttons select a handler from an object-style `onSubmit` map, for e
 | Prop          | Type                     | Description                                       |
 | ------------- | ------------------------ | ------------------------------------------------- |
 | `children`    | `JSX.Element`            | Button label                                      |
-| `isDisabled`  | `boolean`                | Override disabled state                           |
+| `isDisabled`  | `boolean`                | Hard-disable the button with a real `disabled`    |
 | `isFullWidth` | `boolean`                | Stretch to container width                        |
 | `name`        | `string`                 | Optional field name for multi-button forms        |
 | `variant`     | `'primary' \| 'approve'` | Visual variant; `approve` renders `type="button"` |
