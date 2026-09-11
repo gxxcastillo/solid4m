@@ -9,13 +9,16 @@ export interface UserSettingsValues {
 
 export interface UserSettingsFormProps {
   onSubmit?: (values: UserSettingsValues) => void | Promise<void>;
+  // Forwarded straight to <Form>, so the docs demo can exercise the documented
+  // isLoading channel rather than reaching into the store behind it.
+  isLoading?: boolean;
 }
 
 const { Form, InputField, TextAreaField } = createForm<UserSettingsValues>();
 
 export function UserSettingsForm(props: UserSettingsFormProps) {
   return (
-    <Form onSubmit={props.onSubmit ?? (() => undefined)}>
+    <Form onSubmit={props.onSubmit ?? (() => undefined)} isLoading={props.isLoading}>
       <InputField name='username' label='Username' />
       {/* Optional but format-constrained, the same shape as `bio` below and for
           the same reason: an empty value must stay valid (emptiness is

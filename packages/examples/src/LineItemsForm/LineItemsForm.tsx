@@ -11,6 +11,9 @@ export interface LineItemsValues {
 
 export interface LineItemsFormProps {
   onSubmit?: (values: LineItemsValues) => void | Promise<void>;
+  // Forwarded straight to <Form>, so the docs demo can exercise the documented
+  // isLoading channel rather than reaching into the store behind it.
+  isLoading?: boolean;
 }
 
 const emptyItem: LineItem = { description: '', quantity: '1' };
@@ -50,7 +53,7 @@ export function LineItemsForm(props: LineItemsFormProps) {
     // known, still-open gap (see strategic-backlog.md T2), so onSubmit's real
     // runtime shape ({ items: [...] }, built by fieldsToProps' nested
     // submit-value construction) has to be asserted here rather than inferred.
-    <Form onSubmit={(props.onSubmit ?? (() => undefined)) as (values: object) => void}>
+    <Form onSubmit={(props.onSubmit ?? (() => undefined)) as (values: object) => void} isLoading={props.isLoading}>
       <LineItemFields />
       <SubmitButton>Submit</SubmitButton>
     </Form>

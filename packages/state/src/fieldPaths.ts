@@ -10,11 +10,11 @@ function hasUnsafePathSegment(segments: readonly string[]): boolean {
   return segments.some((segment) => unsafePathSegments.has(segment));
 }
 
-function isObjectLike(value: unknown): value is Record<string, unknown> {
+export function isObjectLike(value: unknown): value is Record<string, unknown> {
   return value != null && typeof value === 'object';
 }
 
-function setOwnEnumerableProperty(target: Record<string, unknown>, name: string, value: unknown) {
+export function setOwnEnumerableProperty(target: Record<string, unknown>, name: string, value: unknown) {
   Object.defineProperty(target, name, {
     configurable: true,
     enumerable: true,

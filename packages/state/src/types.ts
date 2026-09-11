@@ -47,11 +47,50 @@ export type BaseFormState<M extends object = FieldValueMapping> = {
   fields: FormFields<M>;
   errors: ErrorMessages;
   isReady: boolean;
+  /**
+   * True while work such as loading initial values means registered fields
+   * should not accept input. Unlike `isProcessing`, this does not represent a
+   * submit in flight or block a new submit.
+   */
   isLoading: boolean;
+  /**
+   * True while the form has submission work in flight, whether it runs that
+   * work itself or a caller declares equivalent work. Drives the in-flight UI
+   * and guards against concurrent submissions. Unlike `isLoading`, it does not
+   * disable registered fields.
+   */
   isProcessing: boolean;
 };
 
 export type FormState<M extends object = FieldValueMapping> = BaseFormState<M> & FormStateGetters<M>;
+
+/**
+* The store's real backing shape: `BaseFormState` plus the bookkeeping that
+ * `BaseForm` and `SubmitButton` share but consumers have no reason to read.
+ * Deliberately not re-exported from the `@gxxc/solid-forms` facade, so it is
+ * reachable inside the workspace and invisible in the published surface.
+ *
+ * `processingSubmitter` identifies which submit button started the in-flight
+ * submit, or `undefined` when no button did — a caller-declared
+ * `<Form isProcessing>`, or a programmatic submit. It exists because
+ * `isProcessing` is form-level while a spinner is a claim about one action: a
+ * multi-button form ("Sign up" / "Save draft") spun both buttons at once,
+ * asserting two things were running when one was. Unavailability really is
+ * form-wide, so `aria-disabled` still applies to every submit button — only the
+ * running-right-now affordance is scoped by this.
+ *
+ * An opaque string stamped by `SubmitButton`, **not** the submitter element,
+ * even though the submit event hands us that element directly. A DOM node here
+ * would be a live object that solid mutates in place — `aria-disabled` toggling,
+ * the spinner child appearing and vanishing — inside a store that tracks none of
+ * it, since only plain objects and arrays are proxied. It would also put the
+ * first DOM type into this otherwise DOM-free package, and hold a node that
+ * cannot exist under SSR. A string is inert, survives hydration, and cannot go
+ * stale.
+ */
+export type InternalFormState<M extends object = FieldValueMapping> = BaseFormState<M> & {
+  processingSubmitter?: string;
+};
 
 export type FormStateGetters<M extends object = FieldValueMapping> = {
   haveValuesChanged: boolean;
@@ -132,5 +171,28 @@ export type FormStateMutations<M extends object = FieldValueMapping> = {
   setErrors: (errors?: ErrorMessages) => void;
   setIsReady: (isReady: boolean) => void;
   setIsLoading: (isLoading: boolean) => void;
-  setIsProcessing: (isProcessing: boolean) => void;
+  /**
+   * `submitter` identifies the button that initiated this submit, recorded so
+   * that a multi-button form can show its in-flight spinner on the one button
+   * actually running rather than on all of them. Omit it when no button did — a
+   * caller-declared `<Form isProcessing>`, or a programmatic submit — in which
+   * case every submit button shows the in-flight state. Ignored entirely when
+   * `isProcessing` is false, which clears the recorded button.
+   */
+  setIsProcessing: (isProcessing: boolean, submitter?: string) => void;
+  /**
+   * The `<Form isLoading>` / `<Form isProcessing>` channel. Kept separate from
+   * `setIsLoading`/`setIsProcessing` because the two have different owners: the
+   * submit handler drives `isProcessing` around every submit, and a prop that
+   * wrote the same slot would be a second writer whose value silently sticks or
+   * gets clobbered depending on which fired last. Each channel owns its own
+   * source; the published flag is their OR.
+   *
+   * OR, not override: a caller passing `false` must never be able to un-busy a
+   * submit the form is actually running, because `isProcessing` is also the
+   * submit handler's re-entrancy guard and clearing it would admit a concurrent
+   * second submit.
+   */
+  setIsLoadingFromProps: (isLoading: boolean) => void;
+  setIsProcessingFromProps: (isProcessing: boolean) => void;
 };

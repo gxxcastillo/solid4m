@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   createBaseFormOnSubmitHandler,
@@ -9,10 +9,17 @@ import {
   resolveSubmitHandler
 } from './helpers';
 
+// resolveSubmitHandler warns on an unresolvable submit, so several tests mute
+// console.warn. Nothing here configures restoreMocks, so restore explicitly —
+// a spy left installed would silently swallow the warning a later test asserts.
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
 function makeEvent(name = '') {
   return {
     preventDefault: vi.fn(),
-    submitter: { name }
+    submitter: { name, dataset: {} as Record<string, string> }
   } as unknown as Event & { submitter: HTMLElement };
 }
 
@@ -192,7 +199,37 @@ describe('createBaseFormOnSubmitHandler', () => {
 
     await handler(makeEvent());
 
-    expect(mutations.setIsProcessing.mock.calls).toEqual([[true], [false]]);
+    expect(mutations.setIsProcessing.mock.calls.map((call: unknown[]) => call[0])).toEqual([true, false]);
+  });
+
+  // The token SubmitButton stamps on itself, forwarded so it can scope its
+  // spinner to the one action actually running. Not `name`, which cannot
+  // identify a button and is already public API (it reaches the consumer as
+  // `buttonName`).
+  it('forwards the submitter token to setIsProcessing', async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    const state = makeState();
+    const mutations = makeMutations();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handler = createBaseFormOnSubmitHandler({ onSubmit } as any, state, mutations);
+
+    const event = makeEvent();
+    (event.submitter as unknown as { dataset: Record<string, string> }).dataset.sfSubmitter = 'sf-7';
+    await handler(event);
+
+    expect(mutations.setIsProcessing.mock.calls).toEqual([[true, 'sf-7'], [false]]);
+  });
+
+  it('reports no submitter for a submit no button initiated', async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    const state = makeState();
+    const mutations = makeMutations();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handler = createBaseFormOnSubmitHandler({ onSubmit } as any, state, mutations);
+
+    await handler({ preventDefault: vi.fn(), submitter: null } as unknown as Parameters<typeof handler>[0]);
+
+    expect(mutations.setIsProcessing.mock.calls).toEqual([[true, undefined], [false]]);
   });
 
   it('surfaces a failed async submit into form state instead of rejecting', async () => {
@@ -206,7 +243,7 @@ describe('createBaseFormOnSubmitHandler', () => {
     // rejecting the handler's promise, but isProcessing is always cleared via finally.
     await expect(handler(makeEvent())).resolves.toBeUndefined();
 
-    expect(mutations.setIsProcessing.mock.calls).toEqual([[true], [false]]);
+    expect(mutations.setIsProcessing.mock.calls.map((call: unknown[]) => call[0])).toEqual([true, false]);
     expect(mutations.setErrors).toHaveBeenCalledWith(['submit failed']);
   });
 
@@ -303,7 +340,7 @@ describe('createBaseFormOnSubmitHandler', () => {
     expect(onSubmit).not.toHaveBeenCalled();
     expect(mutations.setFieldsErrors).toHaveBeenCalledWith(new Map([['email', ['Email is invalid']]]));
     expect(mutations.setBlurredFields).toHaveBeenCalledOnce();
-    expect(mutations.setIsProcessing.mock.calls).toEqual([[true], [false]]);
+    expect(mutations.setIsProcessing.mock.calls.map((call: unknown[]) => call[0])).toEqual([true, false]);
   });
 
   it('validates via schema and surfaces field errors even when onSubmit is not provided', async () => {
@@ -341,7 +378,7 @@ describe('createBaseFormOnSubmitHandler', () => {
 
     expect(schema['~standard'].validate).toHaveBeenCalledWith({ email: 'not-an-email' });
     expect(mutations.setFieldsErrors).toHaveBeenCalledWith(new Map([['email', ['Email is invalid']]]));
-    expect(mutations.setIsProcessing.mock.calls).toEqual([[true], [false]]);
+    expect(mutations.setIsProcessing.mock.calls.map((call: unknown[]) => call[0])).toEqual([true, false]);
   });
 
   it('surfaces pathless schema issues as form-level errors', async () => {
@@ -446,7 +483,7 @@ describe('createBaseFormOnSubmitHandler', () => {
     expect(onSubmit).not.toHaveBeenCalled();
     expect(mutations.setFieldsErrors).not.toHaveBeenCalled();
     expect(mutations.setBlurredFields).not.toHaveBeenCalled();
-    expect(mutations.setIsProcessing.mock.calls).toEqual([[true], [false]]);
+    expect(mutations.setIsProcessing.mock.calls.map((call: unknown[]) => call[0])).toEqual([true, false]);
   });
 
   it('does not submit stale async schema output when field values change before validation resolves', async () => {
@@ -481,7 +518,7 @@ describe('createBaseFormOnSubmitHandler', () => {
     await submitted;
 
     expect(onSubmit).not.toHaveBeenCalled();
-    expect(mutations.setIsProcessing.mock.calls).toEqual([[true], [false]]);
+    expect(mutations.setIsProcessing.mock.calls.map((call: unknown[]) => call[0])).toEqual([true, false]);
   });
 
   it('does not submit stale async schema output when a field is reset to its own value while validation is pending', async () => {
@@ -522,7 +559,7 @@ describe('createBaseFormOnSubmitHandler', () => {
     await submitted;
 
     expect(onSubmit).not.toHaveBeenCalled();
-    expect(mutations.setIsProcessing.mock.calls).toEqual([[true], [false]]);
+    expect(mutations.setIsProcessing.mock.calls.map((call: unknown[]) => call[0])).toEqual([true, false]);
   });
 
   it('still submits when an unrelated field mounts or unmounts while validation is pending', async () => {
@@ -604,10 +641,13 @@ describe('createBaseFormOnSubmitHandler', () => {
 
     expect(onSubmit).not.toHaveBeenCalled();
     expect(mutations.setErrors).toHaveBeenCalledWith(['validator unreachable']);
-    expect(mutations.setIsProcessing.mock.calls).toEqual([[true], [false]]);
+    expect(mutations.setIsProcessing.mock.calls.map((call: unknown[]) => call[0])).toEqual([true, false]);
   });
 
   it('does not validate or touch fields when a named submit handler is ambiguous, even with a schema present', async () => {
+    // Expected to warn: an ambiguous map is exactly the misconfiguration
+    // resolveSubmitHandler reports. Muted so the suite output stays clean.
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     const saveDraft = vi.fn();
     const publish = vi.fn();
     const schema = {
@@ -656,7 +696,7 @@ describe('createBaseFormOnSubmitHandler', () => {
 
     await handler(makeEvent());
 
-    expect(mutations.setIsProcessing.mock.calls).toEqual([[true], [false]]);
+    expect(mutations.setIsProcessing.mock.calls.map((call: unknown[]) => call[0])).toEqual([true, false]);
   });
 
   it('invokes the sole object handler when submitted without a named button (Enter key)', async () => {
@@ -744,9 +784,59 @@ describe('resolveSubmitHandler', () => {
   });
 
   it('returns undefined for an ambiguous map with no submitter name', () => {
+    // Expected to warn — that is asserted below; muted here to keep the run readable.
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     const saveDraft = vi.fn();
     const publish = vi.fn();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(resolveSubmitHandler({ saveDraft, publish } as any, undefined)).toBeUndefined();
+  });
+});
+
+// The one remaining silent no-op in the submit path: a handler map plus a button
+// that cannot select from it means nothing runs at all — no handler, no error,
+// no visible change. Measured before adding this: clicking either of two unnamed
+// buttons against `{ saveDraft, publish }` called neither of them.
+describe('resolveSubmitHandler — unresolvable submits are reported', () => {
+  const handlers = { saveDraft: vi.fn(), publish: vi.fn() };
+
+  it('warns when the submitting button has no name', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+    expect(resolveSubmitHandler(handlers, '')).toBeUndefined();
+
+    expect(warn).toHaveBeenCalledOnce();
+    const message = warn.mock.calls[0][0] as string;
+    // Names the fix, and lists the keys a name has to match.
+    expect(message).toContain('has no `name`');
+    expect(message).toContain('"saveDraft", "publish"');
+  });
+
+  it('warns when the name matches no handler', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+    expect(resolveSubmitHandler(handlers, 'archive')).toBeUndefined();
+
+    expect(warn).toHaveBeenCalledOnce();
+    expect(warn.mock.calls[0][0]).toContain('no handler named "archive"');
+  });
+
+  it('stays quiet when a handler is selected', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+    expect(resolveSubmitHandler(handlers, 'publish')).toBe(handlers.publish);
+
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  // The unambiguous fallback is not a misconfiguration — a single-handler map
+  // needs no name, so warning there would train people to ignore the warning.
+  it('stays quiet when a lone handler resolves it unambiguously', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const only = { publish: vi.fn() };
+
+    expect(resolveSubmitHandler(only, '')).toBe(only.publish);
+
+    expect(warn).not.toHaveBeenCalled();
   });
 });

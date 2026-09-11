@@ -75,7 +75,15 @@ export type ValidationConstraints = {
   match?: string;
   max?: number;
   maxLength?: number;
-  min?: number;
+  // Usually numeric, but `step`'s date/time ladder anchors on `min` as the DOM
+  // string a date/month/week/time input reports (e.g. '2026-01-01') — see
+  // `resolveStepBase` in constraintConfigs.ts. Narrowing this to `number` would
+  // make that documented, tested behavior unreachable through the typed
+  // `InputField` API: intersecting with the native `min?: string | number`
+  // attribute collapses to `number` only, rejecting a valid date string at
+  // compile time. `min.validate` already ignores a non-number value, so
+  // widening this doesn't change numeric min/max behavior.
+  min?: number | string;
   minLength?: number;
   pattern?: string | RegExp;
   required?: boolean;

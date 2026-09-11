@@ -4,7 +4,9 @@ import {
   buildObjectFromFieldEntries,
   type FormFields,
   type FormState,
-  type FormStateMutations
+  type FormStateMutations,
+  isObjectLike,
+  setOwnEnumerableProperty
 } from '@gxxc/solid-forms-state';
 import { validateWithSchema } from '@gxxc/solid-forms-validation';
 
@@ -20,10 +22,6 @@ import {
 import { type BaseFormPropsWithSubmit } from './BaseForm';
 import { applySchemaValidationFailure } from './schema';
 
-export function isObject(o: unknown) {
-  return o != null && typeof o === 'object';
-}
-
 export function isSubmitHandlerFn<P extends RequestProps, R extends SubmitResponse>(
   onSubmit: unknown
 ): onSubmit is OnSubmitHandler<P, R> {
@@ -33,16 +31,7 @@ export function isSubmitHandlerFn<P extends RequestProps, R extends SubmitRespon
 export function isSubmitHandlersObject<P extends RequestProps, R extends SubmitResponse | SubmitResponseMapping<P>>(
   onSubmit: BaseFormOnSubmit<P, R>
 ): onSubmit is R extends SubmitResponseMapping<P> ? OnSubmitHandlers<P, R> : never {
-  return isObject(onSubmit);
-}
-
-function setOwnEnumerableProperty(target: Record<string, unknown>, name: string, value: unknown) {
-  Object.defineProperty(target, name, {
-    configurable: true,
-    enumerable: true,
-    value,
-    writable: true
-  });
+  return isObjectLike(onSubmit);
 }
 
 export function fieldsToProps<M extends object>(formFields: FormFields<M>) {
@@ -66,12 +55,7 @@ export function fieldsToValueSnapshot<M extends object>(formFields: FormFields<M
 // were rewritten out from under the in-flight validation.
 export function fieldsToGenerationSnapshot<M extends object>(formFields: FormFields<M>) {
   return formFields.reduce<Record<string, number>>((obj, field) => {
-    Object.defineProperty(obj, field.name, {
-      configurable: true,
-      enumerable: true,
-      value: field.generation,
-      writable: true
-    });
+    setOwnEnumerableProperty(obj, field.name, field.generation);
     return obj;
   }, {});
 }
@@ -103,11 +87,36 @@ export function resolveSubmitHandler<P extends RequestProps, R extends SubmitRes
   const matched = buttonName ? handlers[buttonName] : undefined;
   if (matched) return matched;
 
-  // No named submitter (e.g. the form was submitted via the Enter key) or an
-  // unmatched name. If the map has a single handler it is unambiguous, so use it
-  // rather than silently doing nothing; with multiple handlers we can't guess.
+  // No usable submitter name, or one that matches nothing. If the map has a
+  // single handler it is unambiguous, so use it rather than silently doing
+  // nothing; with multiple handlers we can't guess.
+  //
+  // (The old comment here offered "submitted via the Enter key" as the example
+  // of a nameless submitter. That is wrong, and worth not repeating: Chromium
+  // populates `event.submitter` for implicit submission too, attributing it to
+  // the first submit button. The real nameless cases are buttons rendered
+  // without a `name` and forms with no submit button at all.)
   const handlerList = Object.values(handlers);
-  return handlerList.length === 1 ? handlerList[0] : undefined;
+  if (handlerList.length === 1) return handlerList[0];
+
+  // Returning undefined here means the submit does nothing whatsoever: no
+  // handler runs, no error is set, no field changes, and the button looks like
+  // it worked. That silence is exactly the failure mode this library exists to
+  // avoid elsewhere, so say something at the one point where it is detectable.
+  //
+  // Not gated behind a DEV flag: this codebase has no env-detection convention
+  // to follow, and the condition is always a misconfiguration — a correctly
+  // wired form never reaches it, so there is nothing to suppress in production.
+  const available = Object.keys(handlers)
+    .map((key) => `"${key}"`)
+    .join(', ');
+  console.warn(
+    buttonName
+      ? `[solid-forms] Submit did nothing: onSubmit has no handler named "${buttonName}". Available handlers: ${available}.`
+      : `[solid-forms] Submit did nothing: onSubmit is a map of handlers (${available}) but the button that submitted the form has no \`name\`, so none of them could be selected. Give each SubmitButton a \`name\` matching one of those keys.`
+  );
+
+  return undefined;
 }
 
 export function getSubmitErrorMessage(error: unknown): string {
@@ -191,7 +200,19 @@ export function createBaseFormOnSubmitHandler<
 ) {
   return async (event: BaseFormElementSubmitEvent) => {
     event.preventDefault();
-    const buttonName = (event.submitter as HTMLButtonElement | HTMLInputElement | null)?.name ?? '';
+    const submitter = event.submitter as HTMLButtonElement | HTMLInputElement | null;
+    const buttonName = submitter?.name ?? '';
+    // Recorded so SubmitButton can scope its spinner to the one button actually
+    // running. Read off the token SubmitButton stamps rather than off `name`,
+    // which cannot identify a button — `name` is optional, a form may hold
+    // several unnamed submit buttons that all report `''`, and it is already
+    // public API here (it selects the handler from an object-style `onSubmit`
+    // map and reaches the consumer as `buttonName`). Not the element either,
+    // even though we are holding it: see `InternalFormState`. Verified in
+    // Chromium that `event.submitter` is populated for a click *and* for
+    // Enter-key implicit submission, which the browser attributes to the first
+    // submit button.
+    const submitterId = submitter?.dataset?.sfSubmitter;
     // Captured synchronously: `currentTarget` is only valid during dispatch, and
     // the schema-failure path below needs the form element after an `await`.
     const formElement = event.currentTarget as Element | null;
@@ -227,7 +248,7 @@ export function createBaseFormOnSubmitHandler<
     // Set the processing flag before invoking schema validation or the submit
     // handler so a rapid second submit cannot slip past the guard while async
     // work is still awaited.
-    formStateMutations.setIsProcessing(true);
+    formStateMutations.setIsProcessing(true, submitterId);
     formStateMutations.setErrors([]);
     try {
       // A thrown/rejected validate() call is a genuine error (network failure,
@@ -242,7 +263,17 @@ export function createBaseFormOnSubmitHandler<
 
       if (
         props.schema &&
-        haveFieldValuesChangedSinceSnapshot(formState.fields, submitValueSnapshot, submitGenerations)
+        (haveFieldValuesChangedSinceSnapshot(formState.fields, submitValueSnapshot, submitGenerations) ||
+          // A field's value and generation can stay exactly as snapshotted while
+          // its *errors* change underneath the await: an async per-field
+          // validator (createFormField's commit()) writes errors through
+          // setFieldErrors without bumping generation when the value it
+          // resolved against hasn't changed. That leaves the two checks above
+          // blind to a field that flipped from valid to invalid during
+          // validateWithSchema's own await window. formState.isFormValid was
+          // last checked before that await (further up this function); checking
+          // it again here is what actually catches that case.
+          !formState.isFormValid)
       ) {
         // Discarding the result is correct — it was validated against values the
         // form no longer holds — but returning bare made it invisible: the

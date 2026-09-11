@@ -58,6 +58,22 @@ the announcing, and a spinner in the accessible name would break
 custom themes and the `approve` variant get a matching spinner for free, and
 collapses to a static dot under `prefers-reduced-motion`.
 
+The spinner is scoped to the button that was actually pressed. `isProcessing` is
+form-level, so a form with several submit buttons ("Sign up" / "Save draft") spun
+all of them at once, claiming several actions were running when one was. Only the
+spinner is scoped: every submit button keeps `aria-disabled`, because a second
+submit genuinely is unavailable while the first is in flight. When no button
+initiated the work — a caller-declared `<Form isProcessing>`, or a programmatic
+submit — every submit button shows the spinner, since there is no single action
+to attribute it to.
+
+Each `SubmitButton` carries a `data-sf-submitter` token so the form can tell
+which one was pressed. It is deliberately not keyed on `name`: `name` already
+selects the handler from an object-style `onSubmit` map and is handed to your
+handler as `buttonName`, so a generated value would leak into your code — and it
+cannot identify a button anyway, since it is optional and several unnamed submit
+buttons all report `''`.
+
 **A submit discarded for stale values now says so.** With a `schema`, editing a
 field while async validation is in flight causes the result to be discarded — it
 describes values the form no longer holds. That was correct but silent: the
@@ -109,3 +125,10 @@ sanitization already reads non-numeric text back as `''` before this library see
 it, so `noValidate` never affected it and `required` covers the empty result. A
 `multiple` email input's comma-separated list is not supported — use a custom
 `validator`.
+
+**An unresolvable submit now says so.** A form whose `onSubmit` is a map of
+several handlers, submitted by a button with no `name` (or a name matching none
+of the keys), previously did nothing at all — no handler, no error, no visible
+change, from a button that looked like it worked. It now logs a console warning
+naming the available handlers and how to select one. Unchanged otherwise: a
+single-handler map still resolves without a name.

@@ -1,4 +1,4 @@
-import { For, type JSX, children, createMemo, mergeProps } from 'solid-js';
+import { For, type JSX, children, createMemo, createRenderEffect, mergeProps, onCleanup } from 'solid-js';
 
 import {
   type ErrorMessages,
@@ -24,6 +24,17 @@ export type BaseFormPropsWithSubmit<
   className?: string;
   fullWidthButtons?: boolean;
   align?: 'center' | 'left';
+  // Both are *additional* sources of the form-state flag they name, OR'd with
+  // whatever the form determines itself — not overrides of it. `isProcessing`
+  // in particular can only add: it also gates the submit handler's re-entrancy
+  // check, so letting a `false` here win would let a consumer accidentally
+  // admit a second submit on top of one already in flight.
+  //
+  // `isLoading` disables every registered field; `isProcessing` dims and
+  // aria-disables the submit button, blocks its activation, and announces
+  // `processingLabel`. Reach for `isProcessing` when the in-flight work is not
+  // running through this form's `onSubmit` (a router action, a mutation, a
+  // resource) — work that *is* awaited by `onSubmit` already sets the flag.
   isLoading?: boolean;
   isProcessing?: boolean;
   errors?: ErrorMessages;
@@ -97,6 +108,33 @@ export function BaseForm<
     formState,
     formStateMutations
   );
+
+  // Routed through the dedicated props channel rather than
+  // setIsLoading/setIsProcessing, which the form's own machinery owns. See the
+  // comment on FormStateMutations.setIsProcessingFromProps for why one shared
+  // setter cannot work here.
+  //
+  // Coerced with `!!` rather than guarded on `!== undefined`: an absent prop
+  // contributes `false` to the OR, which is already exactly "no opinion", so
+  // there is nothing for a guard to protect.
+  //
+  // createRenderEffect, not createEffect, for two reasons. On the client it runs
+  // before paint rather than a tick after it, so a form mounted with
+  // `isLoading` renders its fields already disabled instead of flashing them
+  // enabled for a frame. And Solid's server build stubs createEffect out
+  // entirely while aliasing createRenderEffect to createComputed, which does
+  // run — so this is also the only one of the two that survives SSR, where a
+  // flash is not something hydration can paper over.
+  createRenderEffect(() => formStateMutations.setIsLoadingFromProps(!!props.isLoading));
+  createRenderEffect(() => formStateMutations.setIsProcessingFromProps(!!props.isProcessing));
+
+  // The store can outlive this form — useForm reuses an enclosing store when it
+  // finds one, so an unmounting BaseForm would otherwise leave its last prop
+  // value latched on a store that is still in use.
+  onCleanup(() => {
+    formStateMutations.setIsLoadingFromProps(false);
+    formStateMutations.setIsProcessingFromProps(false);
+  });
 
   // `sf-form` is a stable, un-hashed hook consumers/themes can target, the rest
   // are hashed module classes that own the layout.

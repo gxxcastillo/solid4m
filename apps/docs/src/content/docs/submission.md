@@ -49,6 +49,26 @@ the discard is visible instead of looking like a button that did nothing.
 Without a `schema` there is no async gap to race, and the handler receives the values captured at
 press time.
 
+## Work the form does not run itself
+
+Everything above happens automatically for work awaited by `onSubmit`. When the async work is
+somewhere else — a router action, a mutation, a resource loading the form's initial values — tell
+the form about it with `isProcessing` and `isLoading`:
+
+```tsx
+<Form onSubmit={onSubmit} isLoading={user.loading} isProcessing={saveUser.pending}>
+```
+
+`isLoading` disables every registered field. `isProcessing` gives you the same treatment a real
+submit gets: the spinner, `aria-disabled`, the blocked activation, and the live-region
+announcement. Because no button initiated that work, every submit button shows the spinner — a real
+submit shows it only on the button that was pressed.
+
+Both are *additional* sources rather than overrides — the form is processing when you say so **or**
+when it is running a submit of its own. Passing `isProcessing={false}` therefore cannot cut a real
+submit short. That is deliberate: the same flag guards against a second submit starting on top of
+one already in flight, so a `false` that won outright would let a double submit through.
+
 ## Reading processing state
 
 Use `useForm` when you want to show state outside the form.

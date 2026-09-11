@@ -14,6 +14,9 @@ export interface SignupValues {
 export interface SignupFormProps {
   actionsClass?: string;
   onSubmit?: (values: SignupValues) => void | Promise<void>;
+  // Forwarded straight to <Form>, so the docs demo can exercise the documented
+  // isLoading channel rather than reaching into the store behind it.
+  isLoading?: boolean;
 }
 
 const { CheckboxField, Form, InputField, PasswordField, TextAreaField } = createForm<SignupValues>();
@@ -29,7 +32,7 @@ function MailIcon(): JSX.Element {
 
 export function SignupForm(props: SignupFormProps) {
   return (
-    <Form onSubmit={props.onSubmit ?? (() => undefined)}>
+    <Form onSubmit={props.onSubmit ?? (() => undefined)} isLoading={props.isLoading}>
       <InputField
         name='email'
         type='email'

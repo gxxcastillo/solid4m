@@ -180,3 +180,159 @@ describe('type-derived format validation', () => {
     expect(onSubmit).toHaveBeenCalledTimes(1);
   });
 });
+
+// `<Form isProcessing>` and `<Form isLoading>` were declared and documented but
+// read by nothing. The behaviors they are supposed to drive live in
+// SubmitButton and createFormField, which is why proving them takes the whole
+// facade: packages/fields cannot import packages/form.
+describe('declaring in-flight work through Form props', () => {
+  afterEach(cleanup);
+
+  it('gives the submit button the in-flight treatment', () => {
+    render(() => (
+      <Form<LoginValues> onSubmit={vi.fn()} isProcessing>
+        <InputField<LoginValues, 'email'> name='email' label='Email' />
+        <SubmitButton>Go</SubmitButton>
+      </Form>
+    ));
+
+    const button = screen.getByRole('button');
+    // aria-disabled rather than disabled: the user who started the work is by
+    // definition focused here, and a focused element that becomes `disabled`
+    // drops focus to <body> with nothing to put it back.
+    expect(button).toHaveAttribute('aria-disabled', 'true');
+    expect(button).not.toBeDisabled();
+    expect(button.querySelector('[aria-hidden="true"]')).not.toBeNull();
+  });
+
+  // aria-disabled is advisory — the browser still activates the button — so the
+  // block has to be enforced in the click handler too.
+  it('blocks the button from acting on a click while processing', () => {
+    const onSubmit = vi.fn();
+    render(() => (
+      <Form<LoginValues> onSubmit={onSubmit} isProcessing>
+        <InputField<LoginValues, 'email'> name='email' label='Email' />
+        <SubmitButton>Go</SubmitButton>
+      </Form>
+    ));
+
+    fireEvent.click(screen.getByRole('button'));
+
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('announces the declared work in the form status region', () => {
+    const { container } = render(() => (
+      <Form<LoginValues> onSubmit={vi.fn()} isProcessing processingLabel='Signing in…'>
+        <InputField<LoginValues, 'email'> name='email' label='Email' />
+        <SubmitButton>Go</SubmitButton>
+      </Form>
+    ));
+
+    expect(container.querySelector('.sf-form-status')).toHaveTextContent('Signing in…');
+  });
+
+  // api.md has promised "Disables all fields while loading" the whole time. The
+  // reader in createFormField was written and correct; nothing could reach it,
+  // because no code path in the library ever set the flag.
+  it('disables every field while loading', () => {
+    render(() => (
+      <Form<LoginValues> onSubmit={vi.fn()} isLoading>
+        <InputField<LoginValues, 'email'> name='email' label='Email' />
+        <InputField<LoginValues, 'password'> name='password' label='Password' />
+        <SubmitButton>Go</SubmitButton>
+      </Form>
+    ));
+
+    expect(document.getElementById('email')).toBeDisabled();
+    expect(document.getElementById('password')).toBeDisabled();
+  });
+
+  it('leaves fields alone when not loading', () => {
+    render(() => (
+      <Form<LoginValues> onSubmit={vi.fn()}>
+        <InputField<LoginValues, 'email'> name='email' label='Email' />
+        <SubmitButton>Go</SubmitButton>
+      </Form>
+    ));
+
+    expect(document.getElementById('email')).not.toBeDisabled();
+  });
+});
+
+describe('a form with more than one submit button', () => {
+  afterEach(cleanup);
+
+  // Reported from the docs demo: pressing "Sign up" spun the "Save draft"
+  // spinner too. `isProcessing` is form-level, so every SubmitButton showed one
+  // — asserting two actions were running when one was. Note neither button here
+  // carries a `name`, which is why matching on the submitter's name could not
+  // have fixed it; each instance is stamped with its own token instead.
+  it('spins only the button that was pressed', async () => {
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+
+    render(() => (
+      <Form<LoginValues, void> onSubmit={() => gate}>
+        <InputField<LoginValues, 'email'> name='email' type='email' label='Email' />
+        <SubmitButton>Sign up</SubmitButton>
+        <SubmitButton>Save draft</SubmitButton>
+      </Form>
+    ));
+
+    const [signUp, saveDraft] = screen.getAllByRole('button');
+    fireEvent.click(signUp);
+    await vi.waitFor(() => expect(signUp.querySelector('[aria-hidden="true"]')).not.toBeNull());
+
+    expect(saveDraft.querySelector('[aria-hidden="true"]')).toBeNull();
+
+    // Unavailability is still form-wide: a second submit must not start while
+    // the first is in flight, so both buttons report it.
+    expect(signUp).toHaveAttribute('aria-disabled', 'true');
+    expect(saveDraft).toHaveAttribute('aria-disabled', 'true');
+
+    release();
+    await vi.waitFor(() => expect(signUp.querySelector('[aria-hidden="true"]')).toBeNull());
+  });
+
+  it('spins the other button when that is the one pressed', async () => {
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+
+    render(() => (
+      <Form<LoginValues, void> onSubmit={() => gate}>
+        <InputField<LoginValues, 'email'> name='email' type='email' label='Email' />
+        <SubmitButton>Sign up</SubmitButton>
+        <SubmitButton>Save draft</SubmitButton>
+      </Form>
+    ));
+
+    const [signUp, saveDraft] = screen.getAllByRole('button');
+    fireEvent.click(saveDraft);
+    await vi.waitFor(() => expect(saveDraft.querySelector('[aria-hidden="true"]')).not.toBeNull());
+
+    expect(signUp.querySelector('[aria-hidden="true"]')).toBeNull();
+    release();
+  });
+
+  // `<Form isProcessing>` names no button, and submission.md promises it the
+  // same treatment a real submit gets — so the fallback is every busy button,
+  // not none.
+  it('spins every button when processing was declared rather than pressed', () => {
+    render(() => (
+      <Form<LoginValues> onSubmit={vi.fn()} isProcessing>
+        <InputField<LoginValues, 'email'> name='email' type='email' label='Email' />
+        <SubmitButton>Sign up</SubmitButton>
+        <SubmitButton>Save draft</SubmitButton>
+      </Form>
+    ));
+
+    for (const button of screen.getAllByRole('button')) {
+      expect(button.querySelector('[aria-hidden="true"]')).not.toBeNull();
+    }
+  });
+});

@@ -68,8 +68,12 @@ function toNumber(val: unknown): number | undefined {
 // The HTML spec's normative "valid e-mail address" production, copied verbatim.
 // Using the spec's own regex rather than a hand-rolled one is the entire point:
 // this exists to reproduce what the browser used to check, so agreeing with the
-// browser on the awkward cases (`a@b`, which is valid; leading dots, which are
-// not) matters more than agreeing with anyone's intuition about email addresses.
+// browser on the awkward cases matters more than agreeing with anyone's
+// intuition about email addresses — including `a@b`, which is valid, and a
+// leading/trailing/doubled dot in the local part (`.user@example.com`), which
+// this production also accepts even though RFC 5322 would not. That looseness
+// is the spec's, not a bug in this copy: verified against real Chromium
+// `type='email'` input validation, which accepts it too.
 const VALID_EMAIL =
   /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
 
@@ -111,13 +115,16 @@ const TYPE_FORMATS: Record<string, { test: (val: string) => boolean; expected: s
   }
 };
 
-// `type` is a free-form string off the field's own props, so a bare
-// `TYPE_FORMATS[type]` lookup would resolve `type='constructor'`/`'toString'` to
-// an inherited Object.prototype member — truthy, so it slips past a `!format`
-// guard and then throws on `format.test`, taking that field's validation (and
-// every keystroke after it) down with it.
-function getTypeFormat(type: string) {
-  return Object.hasOwn(TYPE_FORMATS, type) ? TYPE_FORMATS[type] : undefined;
+// `type` is a free-form string off the field's own props, so a bare table
+// lookup would resolve `type='constructor'`/`'toString'` to an inherited
+// Object.prototype member — truthy, so it slips past a `!format`/`!scale`
+// guard and then throws on the assumed shape, taking that field's validation
+// (and every keystroke after it) down with it. The `typeof key === 'string'`
+// half means a caller can pass the constraint's raw, not-yet-narrowed value
+// straight through rather than narrowing it first — shared by both of this
+// file's string-keyed constraint tables (`TYPE_FORMATS`, `STEP_SCALES`).
+function safeLookup<T>(table: Record<string, T>, key: unknown): T | undefined {
+  return typeof key === 'string' && Object.hasOwn(table, key) ? table[key] : undefined;
 }
 
 const MS_PER_SECOND = 1000;
@@ -271,11 +278,17 @@ const STEP_SCALES: Record<string, StepScale> = {
   }
 };
 
-// Same `Object.hasOwn` guard as `getTypeFormat`, for the same reason: `type` is
-// a free-form public string, so a bare index would resolve `'constructor'` to an
-// inherited member and then throw on `scale.toNumber`.
-function getStepScale(type: unknown) {
-  return typeof type === 'string' && Object.hasOwn(STEP_SCALES, type) ? STEP_SCALES[type] : undefined;
+// The step amount as written by the caller, in the field's own units (a date's
+// `step={7}` is 7, not 7 days-in-milliseconds) — `undefined` when `step` isn't
+// a usable positive number. Shared by `resolveAllowedStep` (which still has to
+// scale this) and `step.message` (which must not: it displays this amount
+// verbatim), so a numeric-string `step` resolves identically in both instead
+// of `message` re-deriving it with a narrower `typeof step === 'number'` check
+// that silently fell back to the default step for `step='5'`.
+function parseStepAmount(step: unknown): number | undefined {
+  const parsed =
+    typeof step === 'number' ? step : typeof step === 'string' ? parseSpecNumber(step.trim()) : undefined;
+  return parsed !== undefined && parsed > 0 ? parsed : undefined;
 }
 
 // The allowed value step, in the units `StepScale.toNumber` returns, or
@@ -285,12 +298,10 @@ function resolveAllowedStep(step: unknown, scale: StepScale): number | undefined
   // check outright.
   if (typeof step === 'string' && step.trim().toLowerCase() === 'any') return undefined;
 
-  const parsed =
-    typeof step === 'number' ? step : typeof step === 'string' ? parseSpecNumber(step.trim()) : undefined;
-  // A step that is unparseable or not positive falls back to the type's default
-  // step rather than disabling the check, per spec — `step={0}` on a number
-  // input still rejects 1.5, exactly as a browser does.
-  const stepValue = parsed !== undefined && parsed > 0 ? parsed : scale.defaultStep;
+  // An unparseable or non-positive step falls back to the type's default step
+  // rather than disabling the check, per spec — `step={0}` on a number input
+  // still rejects 1.5, exactly as a browser does.
+  const stepValue = parseStepAmount(step) ?? scale.defaultStep;
   return stepValue * scale.scaleFactor;
 }
 
@@ -444,7 +455,7 @@ export const constraintConfigs: ConstraintConfigs = {
   // opt-out for a field that renders the attribute but wants no checking.
   step: {
     validate: (val, step, _formState, siblings) => {
-      const scale = getStepScale(siblings.type);
+      const scale = safeLookup(STEP_SCALES, siblings.type);
       // No type, or a type with no allowed value step (text, email, checkbox…):
       // the attribute renders and means nothing, exactly as in a browser.
       if (!scale) return true;
@@ -467,8 +478,8 @@ export const constraintConfigs: ConstraintConfigs = {
       return isStepAligned(value, resolveStepBase(siblings.min, scale), allowedStep);
     },
     message: (fieldName, step, _formState, siblings) => {
-      const scale = getStepScale(siblings.type);
-      const amount = typeof step === 'number' && step > 0 ? step : (scale?.defaultStep ?? 1);
+      const scale = safeLookup(STEP_SCALES, siblings.type);
+      const amount = parseStepAmount(step) ?? (scale?.defaultStep ?? 1);
       // The unit appears only for the types where `step` is not counted in the
       // field's own units: `step={7}` on a date is seven *days*, and a message
       // that said just "7" would read as seven of whatever the user typed.
@@ -485,8 +496,7 @@ export const constraintConfigs: ConstraintConfigs = {
   // browser's behavior worth keeping, reimplemented so it survives.
   type: {
     validate: (val, type) => {
-      if (typeof type !== 'string') return true;
-      const format = getTypeFormat(type);
+      const format = safeLookup(TYPE_FORMATS, type);
       if (!format) return true;
       // Emptiness is `required`'s concern, consistent with every other
       // constraint here — an absent value has no format to be wrong about.
@@ -494,7 +504,7 @@ export const constraintConfigs: ConstraintConfigs = {
       return format.test(String(val));
     },
     message: (fieldName, type) => {
-      const format = typeof type === 'string' ? getTypeFormat(type) : undefined;
+      const format = safeLookup(TYPE_FORMATS, type);
       // Unreachable via validate() (an unknown type never fails), but message is
       // part of the public ConstraintConfig shape and callable on its own.
       return `"${fieldName}" must be ${format?.expected ?? 'valid'}`;

@@ -1,7 +1,7 @@
 import { createRoot } from 'solid-js';
 import { describe, expect, it } from 'vitest';
 
-import { createFormStore } from './FormState';
+import { createFormStore, initialFormState } from './FormState';
 
 type TestFields = { username: string; password: string };
 type DottedTestFields = { 'user.email': string };
@@ -870,6 +870,97 @@ describe('setErrors', () => {
     mutations.setErrors(['Server error']);
     mutations.setErrors();
     expect(state.errors).toEqual([]);
+    dispose();
+  });
+});
+
+// `isLoading`/`isProcessing` each publish the OR of two independently-owned
+// sources. The split exists because `<Form isProcessing>` and the submit
+// handler both describe in-flight work, and a single slot made whichever wrote
+// last silently win.
+describe('the two in-flight flag sources', () => {
+  it('publishes the OR of the form-owned and prop-owned sources', () => {
+    const { store, dispose } = makeStore();
+    const [state, mutations] = store;
+
+    mutations.setIsProcessingFromProps(true);
+    expect(state.isProcessing).toBe(true);
+
+    mutations.setIsProcessingFromProps(false);
+    expect(state.isProcessing).toBe(false);
+
+    mutations.setIsProcessing(true);
+    expect(state.isProcessing).toBe(true);
+    dispose();
+  });
+
+  // The bug the split exists to prevent. A single shared slot meant the submit
+  // handler's `finally` cleared a flag the prop was still asserting, and nothing
+  // re-asserted it: an effect watching a prop that never changed does not re-run.
+  it('keeps the prop source asserted when the form clears its own', () => {
+    const { store, dispose } = makeStore();
+    const [state, mutations] = store;
+
+    mutations.setIsProcessingFromProps(true);
+    mutations.setIsProcessing(true);
+    mutations.setIsProcessing(false);
+
+    expect(state.isProcessing).toBe(true);
+    dispose();
+  });
+
+  // The mirror case, and the reason this is an OR rather than the "controlled
+  // override" the prop was originally documented as: `isProcessing` gates the
+  // submit handler's re-entrancy check, so a prop of `false` must not be able to
+  // clear a submit that is genuinely in flight and admit a concurrent second one.
+  it('will not let the prop source clear the form-owned one', () => {
+    const { store, dispose } = makeStore();
+    const [state, mutations] = store;
+
+    mutations.setIsProcessing(true);
+    mutations.setIsProcessingFromProps(false);
+
+    expect(state.isProcessing).toBe(true);
+    dispose();
+  });
+
+  it('tracks isLoading through the same pair of sources', () => {
+    const { store, dispose } = makeStore();
+    const [state, mutations] = store;
+
+    mutations.setIsLoadingFromProps(true);
+    mutations.setIsLoading(true);
+    mutations.setIsLoading(false);
+    expect(state.isLoading).toBe(true);
+
+    mutations.setIsLoadingFromProps(false);
+    expect(state.isLoading).toBe(false);
+    dispose();
+  });
+
+  // The sources are seeded from the backing state, so a store created already
+  // processing does not get recomputed back to false by the first prop write.
+  it('preserves a seeded flag across a prop write', () => {
+    const { store, dispose } = makeStore({ ...initialFormState, isProcessing: true });
+    const [state, mutations] = store;
+
+    expect(state.isProcessing).toBe(true);
+    mutations.setIsProcessingFromProps(false);
+    expect(state.isProcessing).toBe(true);
+    dispose();
+  });
+
+  it('keeps the two flags independent of each other', () => {
+    const { store, dispose } = makeStore();
+    const [state, mutations] = store;
+
+    mutations.setIsProcessingFromProps(true);
+    expect(state.isLoading).toBe(false);
+
+    mutations.setIsLoadingFromProps(true);
+    mutations.setIsProcessingFromProps(false);
+    expect(state.isLoading).toBe(true);
+    expect(state.isProcessing).toBe(false);
     dispose();
   });
 });

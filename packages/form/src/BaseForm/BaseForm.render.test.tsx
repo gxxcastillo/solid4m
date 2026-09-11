@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen } from '@solidjs/testing-library';
-import { createRoot } from 'solid-js';
+import { createRoot, createSignal } from 'solid-js';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { FormContextProvider, createFormStore } from '@gxxc/solid-forms-state';
@@ -310,6 +310,159 @@ describe('BaseForm (rendered)', () => {
     const region = container.querySelector('.sf-form-status');
     expect(region).not.toBeNull();
     expect(region).toHaveTextContent('');
+  });
+
+  // `<Form isProcessing>` was declared, documented as a "controlled override",
+  // and read by nothing: a consumer driving their own async submit got no
+  // announcement, no spinner, and no click guard. The four behaviors hung off
+  // `formState.isProcessing` by the accessibility work all consulted the store
+  // and none consulted the prop.
+  describe('the isProcessing prop', () => {
+    it('announces in-flight work the form is not itself running', () => {
+      const { store } = makeStore();
+
+      const { container } = render(() => (
+        <FormContextProvider store={store}>
+          <BaseForm onSubmit={vi.fn()} isProcessing>
+            <button type='submit'>Submit</button>
+          </BaseForm>
+        </FormContextProvider>
+      ));
+
+      expect(container.querySelector('.sf-form-status')).toHaveTextContent('Submitting…');
+    });
+
+    it('tracks the prop rather than latching on its first value', () => {
+      const [isProcessing, setIsProcessing] = createSignal(false);
+      const { store } = makeStore();
+
+      const { container } = render(() => (
+        <FormContextProvider store={store}>
+          <BaseForm onSubmit={vi.fn()} isProcessing={isProcessing()}>
+            <button type='submit'>Submit</button>
+          </BaseForm>
+        </FormContextProvider>
+      ));
+      const region = container.querySelector('.sf-form-status');
+
+      expect(region).toHaveTextContent('');
+      setIsProcessing(true);
+      expect(region).toHaveTextContent('Submitting…');
+      setIsProcessing(false);
+      expect(region).toHaveTextContent('');
+    });
+
+    // The prop is an additional source, not an override: a consumer who says
+    // they are busy must not be able to start a submit on top of it.
+    it('blocks a submit while the prop says the consumer is busy', () => {
+      const { store } = makeStore();
+      const [, mutations] = store;
+      mutations.initializeField('email', 'a@b.com', []);
+      const onSubmit = vi.fn();
+
+      render(() => (
+        <FormContextProvider store={store}>
+          <BaseForm onSubmit={onSubmit} isProcessing>
+            <button type='submit'>Submit</button>
+          </BaseForm>
+        </FormContextProvider>
+      ));
+
+      fireEvent.click(screen.getByRole('button'));
+
+      expect(onSubmit).not.toHaveBeenCalled();
+    });
+
+    // The failure mode that ruled out wiring the prop through a single
+    // `setIsProcessing` effect. The handler's `finally` clears the flag, and an
+    // effect watching a prop whose value never changed does not re-run to put it
+    // back — so the form would quietly un-busy itself underneath a consumer who
+    // is still working.
+    it('stays asserted after the form finishes a submit of its own', async () => {
+      const [isProcessing, setIsProcessing] = createSignal(false);
+      const { store } = makeStore();
+      const [state, mutations] = store;
+      mutations.initializeField('email', 'a@b.com', []);
+      // The submit has to be genuinely held open. A synchronous onSubmit returns
+      // no promise, so the handler runs to its `finally` inside the click
+      // dispatch and there is no in-flight window to raise the prop during —
+      // which is the whole ordering under test.
+      let finishSubmit!: () => void;
+      const submitted = new Promise<void>((resolve) => {
+        finishSubmit = resolve;
+      });
+
+      const { container } = render(() => (
+        <FormContextProvider store={store}>
+          <BaseForm onSubmit={() => submitted} isProcessing={isProcessing()}>
+            <button type='submit'>Submit</button>
+          </BaseForm>
+        </FormContextProvider>
+      ));
+
+      fireEvent.click(screen.getByRole('button'));
+      expect(state.isProcessing).toBe(true);
+
+      // Raised mid-flight, exactly as a consumer kicking off their own follow-up
+      // work would. The prop's value does not change again after this.
+      setIsProcessing(true);
+      finishSubmit();
+
+      // Awaiting the same promise the handler awaits: its continuation was
+      // attached first, at click time, so by the time this one runs the handler
+      // has resumed and run its `finally` to completion.
+      await submitted;
+
+      // That `finally` has now cleared the form's own source. Sharing one slot
+      // would have cleared the published flag with it and never restored it —
+      // an effect watching a prop that never changed does not re-run.
+      expect(state.isProcessing).toBe(true);
+      expect(container.querySelector('.sf-form-status')).toHaveTextContent('Submitting…');
+
+      setIsProcessing(false);
+      expect(state.isProcessing).toBe(false);
+    });
+
+    // The store outlives the form whenever useForm reuses an enclosing one, so a
+    // form unmounting mid-flight must not latch its last value onto it forever.
+    it('releases its claim on the store when the form unmounts', () => {
+      const { store } = makeStore();
+      const [state] = store;
+
+      const { unmount } = render(() => (
+        <FormContextProvider store={store}>
+          <BaseForm onSubmit={vi.fn()} isProcessing isLoading>
+            <button type='submit'>Submit</button>
+          </BaseForm>
+        </FormContextProvider>
+      ));
+
+      expect(state.isProcessing).toBe(true);
+      expect(state.isLoading).toBe(true);
+
+      unmount();
+
+      expect(state.isProcessing).toBe(false);
+      expect(state.isLoading).toBe(false);
+    });
+
+    it('drives isLoading the same way', () => {
+      const [isLoading, setIsLoading] = createSignal(true);
+      const { store } = makeStore();
+      const [state] = store;
+
+      render(() => (
+        <FormContextProvider store={store}>
+          <BaseForm onSubmit={vi.fn()} isLoading={isLoading()}>
+            <button type='submit'>Submit</button>
+          </BaseForm>
+        </FormContextProvider>
+      ));
+
+      expect(state.isLoading).toBe(true);
+      setIsLoading(false);
+      expect(state.isLoading).toBe(false);
+    });
   });
 
   // aria-busy on an ancestor tells assistive tech to withhold live-region

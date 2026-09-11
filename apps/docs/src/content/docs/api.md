@@ -44,8 +44,8 @@ A self-contained form that creates its own internal store.
 | `schema`           | `StandardSchemaV1`                     | Optional Standard Schema-compatible validator; successful output is passed to `onSubmit` |
 | `children`         | `JSX.Element`                          | Field components and submit buttons                                                      |
 | `errors`           | `string[]`                             | Form-level errors to display                                                             |
-| `isLoading`        | `boolean`                              | Disables all fields while loading                                                        |
-| `isProcessing`     | `boolean`                              | Controlled override for processing state                                                 |
+| `isLoading`        | `boolean`                              | Disables every registered field while `true`                                             |
+| `isProcessing`     | `boolean`                              | Marks the form in flight for work of your own; OR'd with the form's own submit state     |
 | `processingLabel`  | `string`                               | Screen-reader announcement while a submit is in flight; defaults to `'Submitting…'`, `''` to disable |
 | `className`        | `string`                               | CSS class on the form element                                                            |
 | `align`            | `'left' \| 'center'`                   | Button alignment, defaults to `'left'`                                                   |
@@ -186,6 +186,12 @@ live region does the announcing, and it is positioned inside the button's own pa
 neither grows nor re-centers its label mid-submit. Under `prefers-reduced-motion` it renders as a
 static dot.
 
+In a form with more than one submit button, the spinner appears only on the button that was
+pressed — every other submit button is still marked `aria-disabled`, because a second submit really
+is unavailable while the first is running, but only one action is actually running. When nothing
+pressed a button — a caller-declared `<Form isProcessing>`, or a programmatic submit — every submit
+button shows the spinner, since there is no one action to attribute it to.
+
 Pass `isDisabled` when the action is genuinely unavailable for a reason of your own — it renders a
 real `disabled` attribute, unlike the in-flight state. It is read as a value, not as a presence, so
 binding it to a signal works the way you would expect:
@@ -208,6 +214,12 @@ disabled button cannot be the one submitting.
 Named submit buttons select a handler from an object-style `onSubmit` map, for example
 `onSubmit={{ saveDraft, publish }}`.
 
+When `onSubmit` is a map of more than one handler, each `SubmitButton` needs a `name` matching one
+of its keys — that name is what selects the handler. A button without one selects nothing, so the
+submit does nothing at all; the library logs a console warning naming the available handlers rather
+than failing silently. A single-handler map needs no name, since there is nothing to disambiguate,
+and a plain function `onSubmit` never needs one.
+
 | Prop          | Type                     | Description                                       |
 | ------------- | ------------------------ | ------------------------------------------------- |
 | `children`    | `JSX.Element`            | Button label                                      |
@@ -225,8 +237,8 @@ updates.
 | ------------------------------- | ----------------------- | -------------------------------------------------------------- |
 | `isFormValid`                   | `boolean`               | `true` when no registered field has errors                     |
 | `haveValuesChanged`             | `boolean`               | `true` when any field has changed from its initial value       |
-| `isLoading`                     | `boolean`               | Form is in a loading state                                     |
-| `isProcessing`                  | `boolean`               | Async submit handler is in flight                              |
+| `isLoading`                     | `boolean`               | `<Form isLoading>` is set; every field is disabled              |
+| `isProcessing`                  | `boolean`               | An async submit handler is in flight, or `<Form isProcessing>` is set |
 | `errors`                        | `string[]`              | Form-level errors, including thrown or rejected submit errors  |
 | `getFieldValue(name)`           | `M[N] \| undefined`     | Current parsed value for a field                               |
 | `getFieldErrors(name)`          | `string[] \| undefined` | Current errors for a field                                     |

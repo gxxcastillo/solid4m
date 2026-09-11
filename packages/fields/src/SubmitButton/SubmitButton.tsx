@@ -1,8 +1,8 @@
-import { type JSX, Show, createMemo, children as prepareChildren, splitProps } from 'solid-js';
+import { type JSX, Show, createMemo, createUniqueId, children as prepareChildren, splitProps } from 'solid-js';
 import { type StringKeyOf } from 'type-fest';
 
 import { Button, type ButtonElementProps } from '@gxxc/solid-forms-elements';
-import { type FieldValueMapping, useFormContext } from '@gxxc/solid-forms-state';
+import { type FieldValueMapping, type InternalFormState, useFormContext } from '@gxxc/solid-forms-state';
 
 import { createField } from '../hooks';
 import { type FormFieldProps } from '../types';
@@ -76,6 +76,37 @@ export function SubmitButton<M extends object = FieldValueMapping, N extends Str
   // therefore meant something; with the fallback gone it distinguished nothing
   // worth distinguishing.
   const isBusy = createMemo(() => !localProps.isDisabled && formState.isProcessing);
+  // Stamped onto the button so the submit handler can report which one started
+  // the submit. The submit event does hand us the element directly, and this is
+  // the deliberate cost of not keeping it: an element in the store is a live
+  // node solid mutates in place while the store tracks nothing about it (see
+  // `InternalFormState`). One inert attribute buys an inert store.
+  //
+  // Not `name`, which is already public API here — it picks the handler out of
+  // an object-style `onSubmit` map and is handed to the consumer as
+  // `buttonName`, so a generated value would leak into user code. `createUniqueId`
+  // is hydration-stable, so the token survives SSR.
+  const submitterId = createUniqueId();
+  // The spinner is scoped where `isBusy` is not, and the split is the point.
+  // Unavailability really is form-wide — while one submit is in flight every
+  // other submit action is blocked too, so every button stays `aria-disabled`.
+  // "Running right now" is a claim about a single action, and a form with
+  // "Sign up" and "Save draft" spun both at once, saying two things were
+  // happening when one was.
+  //
+  // Falls back to spinning every busy button when no submitter is recorded:
+  // `<Form isProcessing>` describes work the consumer is doing outside any
+  // button, and documentation promises that prop the same treatment a real
+  // submit gets. Showing nothing there would withdraw the feature for the
+  // caller-driven case; with the usual single button it is also exactly right.
+  const isSubmitter = createMemo(() => {
+    if (!isBusy()) return false;
+    // Read through the internal shape: which button is running is bookkeeping
+    // shared between BaseForm and this component, not part of the state surface
+    // consumers are handed.
+    const active = (formState as InternalFormState<M>).processingSubmitter;
+    return active === undefined || active === submitterId;
+  });
   // The flip side of aria-disabled is that it is advisory only — the browser
   // still activates the button and still submits the form — so the block has to
   // happen here. createBaseFormOnSubmitHandler guards the submit path
@@ -103,6 +134,7 @@ export function SubmitButton<M extends object = FieldValueMapping, N extends Str
         name={parsedProps.name}
         disabled={localProps.isDisabled}
         aria-disabled={isBusy() || undefined}
+        data-sf-submitter={submitterId}
         onClick={handleClick}
         classList={{
           [styles.button]: true,
@@ -122,7 +154,7 @@ export function SubmitButton<M extends object = FieldValueMapping, N extends Str
           re-center its label when a submit starts. That is why the label can
           stay exactly where it is rather than being swapped or shifted.
         */}
-        <Show when={isBusy()}>
+        <Show when={isSubmitter()}>
           <span class={styles.spinner} aria-hidden='true' />
         </Show>
         {label()}

@@ -121,3 +121,46 @@
     grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
   }
 }
+
+/* "Simulate" controls. A real <fieldset>/<legend> rather than a div + role,
+   because the two checkboxes are a genuine group and the legend is their label —
+   this demo is also the most-visited page in the docs, so it should not model
+   worse markup than the library it is showing off. */
+.simulate {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 1.5rem;
+  margin: 0 0 1.25rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--sf-color-border);
+  border-radius: 0.75rem;
+  background: var(--sf-color-surface);
+}
+
+.simulateLegend {
+  padding: 0 0.4rem;
+  color: var(--sf-color-text-muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.simulateOption {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.simulateOption input {
+  /* Nudges the box onto the text baseline the rest of the row sits on. */
+  transform: translateY(1px);
+  cursor: pointer;
+}
+
+.simulateHint {
+  color: var(--sf-color-text-muted);
+  font-size: 0.75rem;
+}

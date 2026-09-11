@@ -5,6 +5,7 @@ import type { StringKeyOf } from 'type-fest';
 import { getValueAtFieldPath } from './fieldPaths';
 import {
   type BaseFormState,
+  type InternalFormState,
   type FieldValueFor,
   type FieldValueMapping,
   type FormField,
@@ -38,7 +39,7 @@ function cloneBackingState<M extends object>(state?: BaseFormState<M>): BaseForm
 }
 
 export function createFormState<M extends object = FieldValueMapping>(state?: BaseFormState<M>) {
-  const [formState, setFormState] = createStore<BaseFormState<M>>(cloneBackingState(state));
+  const [formState, setFormState] = createStore<InternalFormState<M>>(cloneBackingState(state));
   const getters = {
     get haveValuesChanged() {
       return !!formState.fields.some((f) => f.hasChanged);
@@ -198,6 +199,33 @@ export function createFormStore<M extends object = FieldValueMapping>(
     setFormState('fields', (f) => f.name === name, (field) => computeFieldReset(field, value, initialValue));
   };
 
+  // `isLoading` and `isProcessing` each have two independent sources, tracked
+  // here and published as their OR. `isProcessing` is the one that forced this:
+  // createBaseFormOnSubmitHandler drives it around every submit, and
+  // `<Form isProcessing>` describes work the consumer is doing outside that
+  // handler entirely. Routing both through one setter meant two writers on one
+  // slot, and the failure was silent rather than loud — a prop of `true` held
+  // across an in-flight submit ends up `false` the moment the handler's
+  // `finally` runs, because nothing re-asserts a prop whose own value never
+  // changed. Splitting the sources makes each one's writer unambiguous.
+  //
+  // Plain closure variables, not signals: they are only ever read by
+  // `publish*` on the way to a store write, so the store field is the single
+  // reactive surface and there is nothing for a reader to subscribe to twice.
+  //
+  // Seeded from the caller's backing state so `createFormStore({ isProcessing:
+  // true })` survives the first publish instead of being recomputed away to
+  // `false`. Read off the argument rather than off `formState`, so seeding can
+  // never register a store dependency should this ever be called from inside a
+  // tracking scope.
+  let ownIsLoading = state?.isLoading ?? initialFormState.isLoading;
+  let ownIsProcessing = state?.isProcessing ?? initialFormState.isProcessing;
+  let propsIsLoading = false;
+  let propsIsProcessing = false;
+
+  const publishIsLoading = () => setFormState('isLoading', ownIsLoading || propsIsLoading);
+  const publishIsProcessing = () => setFormState('isProcessing', ownIsProcessing || propsIsProcessing);
+
   return [
     mergeProps(formState, getters),
     {
@@ -323,8 +351,34 @@ export function createFormStore<M extends object = FieldValueMapping>(
 
       setErrors: (errors: BaseFormState<M>['errors'] = []) => setFormState('errors', errors),
       setIsReady: (isReady: boolean) => setFormState('isReady', isReady),
-      setIsLoading: (isLoading: boolean) => setFormState('isLoading', isLoading),
-      setIsProcessing: (isProcessing: boolean) => setFormState('isProcessing', isProcessing)
+
+      setIsLoading: (isLoading: boolean) => {
+        ownIsLoading = isLoading;
+        publishIsLoading();
+      },
+      setIsProcessing: (isProcessing: boolean, submitter?: string) => {
+        ownIsProcessing = isProcessing;
+        // Batched: `processingSubmitter` and `isProcessing` are two store writes
+        // for one state transition, and consumers (SubmitButton's `isSubmitter`)
+        // read both. Writing them unbatched would recompute such consumers twice
+        // per submit start/stop instead of once.
+        batch(() => {
+          // Cleared on the way out rather than left stale: a later submit that no
+          // button initiated would otherwise inherit the previous submitter and
+          // spin a button that is not running anything.
+          setFormState('processingSubmitter', isProcessing ? submitter : undefined);
+          publishIsProcessing();
+        });
+      },
+
+      setIsLoadingFromProps: (isLoading: boolean) => {
+        propsIsLoading = isLoading;
+        publishIsLoading();
+      },
+      setIsProcessingFromProps: (isProcessing: boolean) => {
+        propsIsProcessing = isProcessing;
+        publishIsProcessing();
+      }
     }
   ] as const;
 }
