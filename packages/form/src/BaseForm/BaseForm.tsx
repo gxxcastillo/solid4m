@@ -30,11 +30,12 @@ export type BaseFormPropsWithSubmit<
   // check, so letting a `false` here win would let a consumer accidentally
   // admit a second submit on top of one already in flight.
   //
-  // `isLoading` disables every registered field; `isProcessing` dims and
-  // aria-disables the submit button, blocks its activation, and announces
-  // `processingLabel`. Reach for `isProcessing` when the in-flight work is not
-  // running through this form's `onSubmit` (a router action, a mutation, a
-  // resource) — work that *is* awaited by `onSubmit` already sets the flag.
+  // `isLoading` disables every registered field and makes submit actions
+  // unavailable; `isProcessing` does the same while an actual submit is in
+  // flight. Each has its own status label. Reach for `isProcessing` when the
+  // in-flight work is not running through this form's `onSubmit` (a router
+  // action, a mutation, a resource) — work that *is* awaited by `onSubmit`
+  // already sets the flag.
   isLoading?: boolean;
   isProcessing?: boolean;
   errors?: ErrorMessages;
@@ -42,6 +43,9 @@ export type BaseFormPropsWithSubmit<
   // wrong word for the action ("Signing in", "Publishing"); set it to '' to opt
   // out of the announcement entirely.
   processingLabel?: string;
+  // Announced while data needed to use the form is loading. Override it for
+  // domain wording; set it to '' to keep the loading state silent.
+  loadingLabel?: string;
   schema?: StandardSchemaV1<FieldValues, SubmitValues>;
   onSubmit?: BaseFormOnSubmit<SubmitValues, R>;
   children: JSX.Element;
@@ -55,7 +59,8 @@ export type BaseFormProps<
 export const baseFormDefaultProps = {
   align: 'left',
   fullWidthButtons: false,
-  processingLabel: 'Submitting…'
+  processingLabel: 'Submitting…',
+  loadingLabel: 'Loading…'
 } as const;
 
 export type ClassifiedBaseFormChild = {
@@ -230,7 +235,7 @@ export function BaseForm<
         a row for it.
       */}
       <div class={`sf-form-status ${styles.screenReaderOnly}`} aria-live='polite' aria-atomic='true'>
-        {formState.isProcessing ? props.processingLabel : ''}
+        {formState.isProcessing ? props.processingLabel : formState.isLoading ? props.loadingLabel : ''}
       </div>
     </form>
   );

@@ -59,10 +59,13 @@ the form about it with `isProcessing` and `isLoading`:
 <Form onSubmit={onSubmit} isLoading={user.loading} isProcessing={saveUser.pending}>
 ```
 
-`isLoading` disables every registered field. `isProcessing` gives you the same treatment a real
-submit gets: the spinner, `aria-disabled`, the blocked activation, and the live-region
-announcement. Because no button initiated that work, every submit button shows the spinner — a real
-submit shows it only on the button that was pressed.
+`isLoading` disables every registered field and gives every submit button the same unavailable
+treatment a real submit gets — the spinner, `aria-disabled`, the blocked activation — so partially
+loaded values can never reach `onSubmit`. It announces `Loading…` in the form's status region;
+override that with `loadingLabel` or pass `''` to stay silent. `isProcessing` gives you that same
+treatment while an actual submit is in flight, with its own `processingLabel` announcement. Because
+no button initiated either kind of work, every submit button shows the spinner — a real submit
+shows it only on the button that was pressed.
 
 Both are *additional* sources rather than overrides — the form is processing when you say so **or**
 when it is running a submit of its own. Passing `isProcessing={false}` therefore cannot cut a real

@@ -52,9 +52,9 @@ export function SubmitButton<M extends object = FieldValueMapping, N extends Str
   // become visible, and focus moves to the first invalid one. This follows
   // current form-accessibility guidance (GOV.UK Design System, NN/g).
   //
-  // `isProcessing` is the case that genuinely warrants signalling unavailable,
-  // but it is signalled with `aria-disabled` rather than `disabled`, because the
-  // user who started the submit is by definition focused on this button. A
+  // `isProcessing` and `isLoading` are the cases that genuinely warrant
+  // signalling unavailable. They use `aria-disabled` rather than `disabled`,
+  // because the user who started the submit is by definition focused on this button. A
   // focused element that becomes `disabled` leaves the tab order, so the browser
   // drops focus to <body> — and nothing puts it back when the submit settles,
   // leaving a keyboard or screen-reader user at the top of the document with no
@@ -75,7 +75,7 @@ export function SubmitButton<M extends object = FieldValueMapping, N extends Str
   // !formState.isFormValid` default, where `undefined` selected the fallback and
   // therefore meant something; with the fallback gone it distinguished nothing
   // worth distinguishing.
-  const isBusy = createMemo(() => !localProps.isDisabled && formState.isProcessing);
+  const isBusy = createMemo(() => !localProps.isDisabled && (formState.isProcessing || formState.isLoading));
   // Stamped onto the button so the submit handler can report which one started
   // the submit. The submit event does hand us the element directly, and this is
   // the deliberate cost of not keeping it: an element in the store is a live

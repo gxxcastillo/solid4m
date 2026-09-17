@@ -232,12 +232,12 @@ describe('declaring in-flight work through Form props', () => {
     expect(container.querySelector('.sf-form-status')).toHaveTextContent('Signing in…');
   });
 
-  // api.md has promised "Disables all fields while loading" the whole time. The
-  // reader in createFormField was written and correct; nothing could reach it,
-  // because no code path in the library ever set the flag.
-  it('disables every field while loading', () => {
+  // Loading makes the whole form unavailable: fields cannot be edited and a
+  // submit cannot forward the partial values that have arrived so far.
+  it('disables fields and prevents submitting while loading', () => {
+    const onSubmit = vi.fn();
     render(() => (
-      <Form<LoginValues> onSubmit={vi.fn()} isLoading>
+      <Form<LoginValues> onSubmit={onSubmit} isLoading>
         <InputField<LoginValues, 'email'> name='email' label='Email' />
         <InputField<LoginValues, 'password'> name='password' label='Password' />
         <SubmitButton>Go</SubmitButton>
@@ -246,6 +246,38 @@ describe('declaring in-flight work through Form props', () => {
 
     expect(document.getElementById('email')).toBeDisabled();
     expect(document.getElementById('password')).toBeDisabled();
+    const button = screen.getByRole('button');
+    expect(button).toHaveAttribute('aria-disabled', 'true');
+    expect(button).not.toBeDisabled();
+    expect(button.querySelector('[aria-hidden="true"]')).not.toBeNull();
+
+    fireEvent.click(button);
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('announces loading rather than submitting, with an override', () => {
+    const { container } = render(() => (
+      <Form<LoginValues> onSubmit={vi.fn()} isLoading loadingLabel='Fetching account…'>
+        <InputField<LoginValues, 'email'> name='email' label='Email' />
+        <SubmitButton>Go</SubmitButton>
+      </Form>
+    ));
+
+    expect(container.querySelector('.sf-form-status')).toHaveTextContent('Fetching account…');
+  });
+
+  it('also refuses a native submit control while loading', () => {
+    const onSubmit = vi.fn();
+    render(() => (
+      <Form<LoginValues> onSubmit={onSubmit} isLoading>
+        <InputField<LoginValues, 'email'> name='email' label='Email' />
+        <button type='submit'>Native submit</button>
+      </Form>
+    ));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Native submit' }));
+
+    expect(onSubmit).not.toHaveBeenCalled();
   });
 
   it('leaves fields alone when not loading', () => {

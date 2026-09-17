@@ -176,6 +176,19 @@ describe('createBaseFormOnSubmitHandler', () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
+  it('does not call onSubmit while loading', async () => {
+    const onSubmit = vi.fn();
+    const state = makeState({ isLoading: true });
+    const mutations = makeMutations();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handler = createBaseFormOnSubmitHandler({ onSubmit } as any, state, mutations);
+
+    await handler(makeEvent());
+
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(mutations.setIsProcessing).not.toHaveBeenCalled();
+  });
+
   it('submits even when no field values have changed', async () => {
     // A pristine, pre-filled, or submit-to-validate form must still submit;
     // submission is only blocked while already processing.

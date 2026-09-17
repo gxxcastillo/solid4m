@@ -49,8 +49,9 @@ export type BaseFormState<M extends object = FieldValueMapping> = {
   isReady: boolean;
   /**
    * True while work such as loading initial values means registered fields
-   * should not accept input. Unlike `isProcessing`, this does not represent a
-   * submit in flight or block a new submit.
+   * should not accept input. Blocks submitting, the same as `isProcessing`,
+   * since forwarding partially loaded values is never a useful outcome —
+   * but unlike `isProcessing`, it is not itself submission work in flight.
    */
   isLoading: boolean;
   /**

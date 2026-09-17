@@ -237,6 +237,24 @@ describe('SubmitButton', () => {
     expect(container.querySelector(`.${styles.spinner}`)).toBeNull();
   });
 
+  it('gives a loading form the unavailable treatment too', () => {
+    const { store } = makeStore();
+    const [, mutations] = store;
+    mutations.initializeField('email', 'a@b.com', []);
+    mutations.setIsLoading(true);
+
+    const { container } = render(() => (
+      <FormContextProvider store={store}>
+        <SubmitButton>Log in</SubmitButton>
+      </FormContextProvider>
+    ));
+    const button = screen.getByRole('button');
+
+    expect(button).toHaveAttribute('aria-disabled', 'true');
+    expect(button).not.toBeDisabled();
+    expect(container.querySelector(`.${styles.spinner}`)).not.toBeNull();
+  });
+
   // The regression this pins: `isBusy` used to require `isDisabled === undefined`,
   // so binding the prop to a signal — the idiomatic way to gate a submit button —
   // silently removed the spinner, the aria-disabled, and the activation block the

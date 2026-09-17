@@ -44,9 +44,10 @@ A self-contained form that creates its own internal store.
 | `schema`           | `StandardSchemaV1`                     | Optional Standard Schema-compatible validator; successful output is passed to `onSubmit` |
 | `children`         | `JSX.Element`                          | Field components and submit buttons                                                      |
 | `errors`           | `string[]`                             | Form-level errors to display                                                             |
-| `isLoading`        | `boolean`                              | Disables every registered field while `true`                                             |
+| `isLoading`        | `boolean`                              | Disables registered fields and makes submit actions unavailable while `true`             |
 | `isProcessing`     | `boolean`                              | Marks the form in flight for work of your own; OR'd with the form's own submit state     |
 | `processingLabel`  | `string`                               | Screen-reader announcement while a submit is in flight; defaults to `'Submitting…'`, `''` to disable |
+| `loadingLabel`     | `string`                               | Screen-reader announcement while form data is loading; defaults to `'Loading…'`, `''` to disable |
 | `className`        | `string`                               | CSS class on the form element                                                            |
 | `align`            | `'left' \| 'center'`                   | Button alignment, defaults to `'left'`                                                   |
 | `fullWidthButtons` | `boolean`                              | Stretch buttons to full width                                                            |

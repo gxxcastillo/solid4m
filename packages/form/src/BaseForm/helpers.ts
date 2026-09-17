@@ -217,7 +217,12 @@ export function createBaseFormOnSubmitHandler<
     // the schema-failure path below needs the form element after an `await`.
     const formElement = event.currentTarget as Element | null;
 
-    if (formState.isProcessing) {
+    // Loading is as unavailable as an in-flight submit: no registered field is
+    // currently interactive, and forwarding the partial values that have
+    // arrived so far to onSubmit is never a useful recovery path. Keep this
+    // guard here as well as in SubmitButton, because consumers may render a
+    // native submit control or call requestSubmit() themselves.
+    if (formState.isProcessing || formState.isLoading) {
       return;
     }
 
