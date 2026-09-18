@@ -37,7 +37,7 @@ export function SubmitButton<M extends object = FieldValueMapping, N extends Str
   // <button>; a mouse click handler works identically on either element.
   const onClick = createMemo(() =>
     localProps.onClick
-      ? (localProps.onClick as ButtonElementProps['onClick'])
+      ? (localProps.onClick as unknown as ButtonElementProps['onClick'])
       : parsedProps.name
         ? () => parsedProps.setValue?.(parsedProps.parse?.(parsedProps.value))
         : undefined
