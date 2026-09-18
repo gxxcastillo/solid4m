@@ -2,7 +2,12 @@ import solid from 'vite-plugin-solid';
 import { configDefaults, defineConfig } from 'vitest/config';
 
 export default defineConfig({
-  plugins: [solid()],
+  // hot: false skips solid-refresh's `if (import.meta.hot)` HMR guard, which
+  // @vitest/coverage-v8 otherwise reports as an always-true, permanently
+  // half-covered branch on every component (Vitest's Vite instance runs in
+  // 'serve' mode, so the guard compiles in and is always true, with no way
+  // to exercise its false path in a test run).
+  plugins: [solid({ hot: false })],
   test: {
     name: 'dom',
     environment: 'happy-dom',
@@ -11,7 +16,10 @@ export default defineConfig({
     // vite-plugin-solid's `ssr: true` transform (real SSR-generate output),
     // which happy-dom's browser resolve condition can't produce — solid-js
     // resolves to its client build there, where renderToString is a stub.
-    exclude: [...configDefaults.exclude, 'src/ssr.test.tsx'],
+    // '**/dist/**' is also explicit now: Vitest 5's own configDefaults.exclude
+    // dropped dist/cypress/etc, unlike earlier versions, and tsc --build's
+    // outDir is this package's own dist/.
+    exclude: [...configDefaults.exclude, 'src/ssr.test.tsx', '**/dist/**'],
     coverage: {
       provider: 'v8',
       thresholds: {

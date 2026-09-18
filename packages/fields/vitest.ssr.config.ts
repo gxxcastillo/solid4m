@@ -7,7 +7,10 @@ import { defineConfig } from 'vitest/config';
 // build) — both are whole-config settings, not something a single project
 // can vary per test file.
 export default defineConfig({
-  plugins: [solid({ ssr: true })],
+  // hot: false — see vitest.config.ts's comment. No coverage threshold runs
+  // against this project, but there's no reason to compile in dev-only HMR
+  // machinery for an SSR test run either.
+  plugins: [solid({ ssr: true, hot: false })],
   resolve: {
     conditions: ['node']
   },

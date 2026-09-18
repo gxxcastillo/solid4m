@@ -30,7 +30,7 @@
       "import": "./dist/index.js",
       "development": "./src/index.ts"
     },
-    "./styles.css": "./dist/style.css",
+    "./styles.css": "./dist/index.css",
     "./themes/base.css": {
       "development": "./themes/base.css",
       "default": "./dist/themes/base.css"
@@ -58,7 +58,7 @@
         "browser": "./dist/index.js",
         "import": "./dist/index.js"
       },
-      "./styles.css": "./dist/style.css",
+      "./styles.css": "./dist/index.css",
       "./themes/base.css": "./dist/themes/base.css",
       "./themes/minimal.css": "./dist/themes/minimal.css",
       "./themes/midnight.css": "./dist/themes/midnight.css",
@@ -78,8 +78,8 @@
     "@gxxc/solid-formation-state": "workspace:^",
     "type-fest": "^4.41.0",
     "typescript": "5.4.2",
-    "vite": "^5.4.21",
-    "vite-plugin-dts": "^3.9.1",
+    "vite": "^8.3.0",
+    "vite-plugin-dts": "^5.1.0",
     "vite-plugin-solid": "^2.11.14"
   },
   "peerDependencies": {

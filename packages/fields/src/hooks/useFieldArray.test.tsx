@@ -57,6 +57,18 @@ describe('useFieldArray', () => {
     dispose();
   });
 
+  it('prepend inserts a new item at the front, shifting existing fields', () => {
+    const { state, mutations, items, helpers, dispose } = setup([{ title: 'a' }]);
+    mutations.initializeField('items.0.title', 'a', []);
+
+    helpers.prepend({ title: 'b' });
+
+    expect(items()).toHaveLength(2);
+    expect(items()[0].defaultValue).toEqual({ title: 'b' });
+    expect(state.getFieldValue('items.1.title')).toBe('a');
+    dispose();
+  });
+
   it('remove renames survivors to their shifted index, preserving live value/errors/history', () => {
     const { state, mutations, items, helpers, dispose } = setup([
       { title: 'a' },
@@ -111,6 +123,27 @@ describe('useFieldArray', () => {
     expect(state.getFieldValue('items.0.title')).toBe('b');
     expect(state.getFieldValue('items.1.title')).toBe('c');
     expect(state.getFieldValue('items.2.title')).toBe('a');
+    dispose();
+  });
+
+  // moveIndex's forward and backward shifts are different branches
+  // (moveIndex, useFieldArray.ts) — the forward case above alone never
+  // exercises this one.
+  it('move permutes the fields when moving backward (to a lower index)', () => {
+    const { state, mutations, helpers, dispose } = setup([
+      { title: 'a' },
+      { title: 'b' },
+      { title: 'c' }
+    ]);
+    mutations.initializeField('items.0.title', 'a', []);
+    mutations.initializeField('items.1.title', 'b', []);
+    mutations.initializeField('items.2.title', 'c', []);
+
+    helpers.move(2, 0);
+
+    expect(state.getFieldValue('items.0.title')).toBe('c');
+    expect(state.getFieldValue('items.1.title')).toBe('a');
+    expect(state.getFieldValue('items.2.title')).toBe('b');
     dispose();
   });
 

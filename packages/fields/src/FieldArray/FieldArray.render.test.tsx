@@ -43,4 +43,41 @@ describe('FieldArray row layout', () => {
     expect(row.classList.contains('my-row')).toBe(true);
     expect(row.classList.contains(styles.row)).toBe(true);
   });
+
+  it('starts with zero rows when defaultValue is omitted', () => {
+    const store = createFormStore<TestFields>() as FormStore<TestFields>;
+
+    const { container } = render(() => (
+      <FormContextProvider store={store}>
+        <FieldArray<Row> name='items'>
+          {(fields, item) => <fields.InputField name='title' label='Title' defaultValue={item.title} />}
+        </FieldArray>
+      </FormContextProvider>
+    ));
+
+    expect(container.querySelectorAll('.sf-field-array-row')).toHaveLength(0);
+  });
+
+  it('hands helpersRef the same helpers append/remove use, synchronously on mount', () => {
+    const store = createFormStore<TestFields>() as FormStore<TestFields>;
+    let received: unknown;
+
+    render(() => (
+      <FormContextProvider store={store}>
+        <FieldArray<Row> name='items' helpersRef={(helpers) => (received = helpers)}>
+          {(fields, item) => <fields.InputField name='title' label='Title' defaultValue={item.title} />}
+        </FieldArray>
+      </FormContextProvider>
+    ));
+
+    expect(received).toMatchObject({
+      append: expect.any(Function),
+      prepend: expect.any(Function),
+      insert: expect.any(Function),
+      remove: expect.any(Function),
+      move: expect.any(Function),
+      swap: expect.any(Function),
+      pathAt: expect.any(Function)
+    });
+  });
 });

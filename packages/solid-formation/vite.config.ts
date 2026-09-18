@@ -17,9 +17,13 @@ const bundledPackages = [
 ];
 
 // Ship the theme stylesheets (token overrides) as standalone, importable files
-// under dist/themes/. `themes/base.css` is also bundled into dist/style.css, but
+// under dist/themes/. `themes/base.css` is also bundled into dist/index.css, but
 // copying it lets consumers pull just the tokens if they want. Structural CSS
-// (the CSS modules) is emitted separately by Vite as dist/style.css.
+// (the CSS modules) is emitted separately by Vite as dist/index.css — named
+// after the lib.fileName below, not the fixed `style.css` Vite 5 used to emit
+// regardless of it. package.json's `./styles.css` export points at the real
+// file rather than fighting Vite's naming; consumers only ever see the
+// subpath, never the underlying dist filename.
 function copyThemes(): Plugin {
   return {
     name: 'sf-copy-themes',
