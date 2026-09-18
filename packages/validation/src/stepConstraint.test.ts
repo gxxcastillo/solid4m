@@ -8,12 +8,11 @@ import { type ValidationConstraints } from './types';
 
 // `step` reimplements a browser behavior that `noValidate` turned off, so the
 // only test that means anything is agreement with a browser. stepMismatch.chromium.ts
-// is a recording of real `<input>` elements in real Chromium — regenerate it with
-// the script in this file's sibling comment if the table needs new rows:
+// is a recording of real `<input>` elements in real Chromium — regenerate it with:
 //
-//   node scripts/record-step-table.mjs <out>
+//   pnpm --filter a11y exec node scripts/record-step-mismatch-table.mjs
 //
-// The script lives outside the repo deliberately (it needs a browser install and
+// That script lives in apps/a11y rather than here (it needs a browser install and
 // runs once, by hand); what is committed is its output, so this suite keeps
 // checking the same agreement without needing Chromium at test time.
 

@@ -73,14 +73,13 @@ export type SchemaValidationResult<M extends object> = SchemaValidationSuccess<M
 
 export type ValidationConstraints = {
   match?: string;
-  // Bounds use the DOM value format for date/time controls, while retaining
-  // numbers for ordinary numeric inputs. They must stay symmetric: `min` also
-  // anchors `step`, but both bounds participate in range validation.
+  // Bounds use the DOM string format for date/time controls (e.g.
+  // '2026-01-01') and numbers for ordinary numeric inputs. `min` also anchors
+  // `step`, and range validation converts both bounds through the same
+  // per-type algorithm as the field value, so `max` must stay symmetric.
   max?: number | string;
   maxLength?: number;
-  // Date/time controls use their DOM string format (e.g. '2026-01-01').
-  // `min` also anchors `step`; range validation converts both bounds through
-  // the same per-type algorithm as the field value.
+  // Symmetric with `max` above.
   min?: number | string;
   minLength?: number;
   pattern?: string | RegExp;
@@ -104,10 +103,9 @@ export type ConstraintConfig = {
   // a constraint that can be decided from its own value alone should — but
   // `step` is meaningless without `type` (one `step` unit is one integer on a
   // number input, one *day* on a date, one *second* on a time) and anchors its
-  // ladder on `min`. This was left undone deliberately while `multiple` was the
-  // only candidate; `step` is the second constraint to need it, which is what
-  // the backlog set as the bar for widening the signature rather than special-
-  // casing one constraint inside validate().
+  // ladder on `min`. `step` is the second constraint to need it, which was the
+  // threshold for widening the signature rather than special-casing one
+  // constraint inside validate().
   validate: <M extends object>(
     v: FieldValue,
     c: Constraint | undefined,

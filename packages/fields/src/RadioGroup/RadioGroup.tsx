@@ -39,21 +39,21 @@ export function RadioGroup<M extends object = FieldValueMapping, N extends Strin
       <div role='radiogroup' aria-labelledby={localProps.label ? labelId : undefined} class={styles.options}>
         <For each={localProps.options}>
           {(option, index) => {
-            const id = () => `${props.id}-${index()}`;
+            const optionId = `${props.id}-${index()}`;
             return (
               <label
                 classList={{
                   [styles.option]: true,
                   [styles.disabled]: !!(props.disabled || option.disabled)
                 }}
-                for={id()}
+                for={optionId}
               >
                 <input
                   {...props}
-                  id={id()}
+                  id={optionId}
                   type='radio'
                   value={option.value}
-                  checked={String(props.value ?? '') === option.value}
+                  checked={(props.value ?? '') === option.value}
                   disabled={props.disabled || option.disabled}
                 />
                 {option.label}

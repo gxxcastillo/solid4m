@@ -18,8 +18,8 @@
 .select {
   box-sizing: border-box;
   width: 100%;
-  min-height: var(--sf-control-min-height, 2.5rem);
-  padding: var(--sf-control-padding-y) var(--sf-control-padding-x);
+  min-height: var(--sf-control-height);
+  padding: 0 var(--sf-control-padding-x);
   border: var(--sf-border-width) solid var(--sf-color-border);
   border-radius: var(--sf-radius-control);
   background-color: var(--sf-color-surface);

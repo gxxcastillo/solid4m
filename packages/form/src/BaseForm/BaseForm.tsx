@@ -87,7 +87,10 @@ export function classifyBaseFormChildren(childrenArray: JSX.Element[]) {
       formButtons.push(child);
     } else if (componentName === 'Link') {
       footerLinks.push(child);
-    } else if (componentName?.includes('Field')) {
+    } else if (componentName?.includes('Field') || componentName?.includes('Group')) {
+      // A `*Group` component (e.g. RadioGroup) renders its own self-contained
+      // fieldset with its own error region, exactly like a `*Field` component —
+      // see the `ComponentName` type in packages/fields/src/types.ts.
       bodyChildren.push({ child, wrap: false });
     } else {
       bodyChildren.push({ child, wrap: true });

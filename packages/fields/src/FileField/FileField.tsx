@@ -2,7 +2,7 @@ import { createUniqueId, mergeProps } from 'solid-js';
 import { type StringKeyOf } from 'type-fest';
 
 import { Input } from '@gxxc/solid-forms-elements';
-import { type FieldValueFor, type FieldValueMapping } from '@gxxc/solid-forms-state';
+import { type FieldValueMapping } from '@gxxc/solid-forms-state';
 
 import { createFormField } from '../hooks';
 import { type FormFieldProps } from '../types';
@@ -16,8 +16,10 @@ export type FileFieldProps<
 export function FileField<M extends object = FieldValueMapping, N extends StringKeyOf<M> = StringKeyOf<M>>(
   initialProps: FileFieldProps<M, N>
 ) {
+  // format is overridden: the default calls `.toString()`, which would render
+  // a FileList as the literal string "[object FileList]"
   const [props, createField] = createFormField<'input', M, N>(
-    mergeProps(initialProps, { type: 'file', parse: (value: unknown) => value as FieldValueFor<M, N> })
+    mergeProps(initialProps, { type: 'file', format: () => '' })
   )();
   const errorId = createUniqueId();
 

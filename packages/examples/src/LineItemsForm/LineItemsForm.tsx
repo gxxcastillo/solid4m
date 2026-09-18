@@ -49,10 +49,10 @@ export function LineItemsForm(props: LineItemsFormProps) {
   return (
     // Field names inside FieldArray's children are typed against LineItem
     // per row, not against LineItemsValues as a whole — deep-path field-name
-    // typing for the *form's* own onSubmit shape (items: LineItem[]) is a
-    // known, still-open gap (see strategic-backlog.md T2), so onSubmit's real
-    // runtime shape ({ items: [...] }, built by fieldsToProps' nested
-    // submit-value construction) has to be asserted here rather than inferred.
+    // typing for the *form's* own onSubmit shape (items: LineItem[]) does not
+    // exist yet, so onSubmit's real runtime shape ({ items: [...] }, built by
+    // fieldsToProps' nested submit-value construction) has to be asserted
+    // here rather than inferred.
     <Form onSubmit={(props.onSubmit ?? (() => undefined)) as (values: object) => void} isLoading={props.isLoading}>
       <LineItemFields />
       <SubmitButton>Submit</SubmitButton>

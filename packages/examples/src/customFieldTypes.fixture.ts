@@ -3,7 +3,8 @@ import type { CustomValidator, FormFieldProps, FormatFunction, ParseFunction } f
 // Compile-only regression fixture: proves FormFieldProps/CustomValidator/
 // ParseFunction/FormatFunction resolve through the public `@gxxc/solid-forms`
 // facade, matching what custom-fields.md and validation.md tell users to
-// import (strategic-backlog.md B2 — these were defined but never re-exported).
+// import — these were once defined but never re-exported, so nothing caught
+// consumers being unable to import them until this fixture was added.
 
 export interface RatingFormValues {
   rating: number;

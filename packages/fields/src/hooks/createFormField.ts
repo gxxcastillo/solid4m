@@ -19,6 +19,7 @@ import type {
   ComponentName,
   FormElementTag,
   FormFieldBlurEvent,
+  FormFieldElement,
   FormFieldInputEvent,
   FormFieldProps,
   SelectableFormFieldEvent,
@@ -31,25 +32,6 @@ export const formFieldDefaultProps = {
   isControlled: true,
   disabled: false
 };
-
-export function deepEqual(x: unknown, y: unknown) {
-  if (x === y) {
-    return true;
-  }
-  if (typeof x === 'object' && x != null && typeof y === 'object' && y != null) {
-    if (Object.keys(x).length !== Object.keys(y).length) return false;
-
-    for (const prop in x) {
-      if (Object.hasOwn(y, prop)) {
-        if (!deepEqual((x as Record<string, unknown>)[prop], (y as Record<string, unknown>)[prop]))
-          return false;
-      } else return false;
-    }
-
-    return true;
-  }
-  return false;
-}
 
 export function parse<V>(val: DisplayValue) {
   return val as V;
@@ -89,8 +71,7 @@ export function createValueSetter<
   // const) so a field whose `name` prop changes after mount — e.g. a
   // useFieldArray row re-addressed by remapFieldNames after an earlier item
   // shifts its index — keeps writing to wherever it currently lives, instead
-  // of a stale mount-time snapshot. Every existing (non-array) field usage
-  // passes a static string literal for `name`, so this is a no-op for them.
+  // of a stale mount-time snapshot.
 
   // Sequencing token: every commit bumps it, and an async custom validator only
   // applies its result while its captured token is still current. This stops a
@@ -174,24 +155,34 @@ export function createValueSetter<
   return setValue;
 }
 
+function resolveFieldEventValue<E extends FormFieldElement>(target: E): DisplayValue {
+  if (target instanceof HTMLInputElement && target.type === 'file') {
+    const files = target.files;
+    // An empty FileList is truthy, but has the same required-field meaning as
+    // no selection. Normalizing it here keeps native file clearing aligned
+    // with the shared required constraint.
+    return files?.length ? files : undefined;
+  }
+  if (target instanceof HTMLSelectElement && target.multiple) {
+    return Array.from(target.selectedOptions, (option) => option.value);
+  }
+  return target.value;
+}
+
+function applyFieldEvent(setValue: SetValue, event: AnyFormFieldEvent, isSelectable: boolean) {
+  if (isSelectableEvent(event, isSelectable)) {
+    setValue(event.currentTarget.checked);
+  } else {
+    setValue(resolveFieldEventValue(event.currentTarget));
+  }
+}
+
 export function createOnInput<G extends FormElementTag, M extends object, N extends StringKeyOf<M>>(
   setValue: SetValue,
   props: FormFieldProps<G, M, N>
 ) {
   return function onInput(event: FormFieldInputEvent<HTMLElementTagNameMap[G]>) {
-    if (isSelectableEvent(event, !!props.isSelectable)) {
-      setValue(event.currentTarget.checked);
-    } else if (event.currentTarget instanceof HTMLInputElement && event.currentTarget.type === 'file') {
-      const files = event.currentTarget.files;
-      // An empty FileList is truthy, but has the same required-field meaning as
-      // no selection. Normalizing it here keeps native file clearing aligned
-      // with the shared required constraint.
-      setValue(files?.length ? files : undefined);
-    } else if (event.currentTarget instanceof HTMLSelectElement && event.currentTarget.multiple) {
-      setValue(Array.from(event.currentTarget.selectedOptions, (option) => option.value));
-    } else {
-      setValue(event.currentTarget.value);
-    }
+    applyFieldEvent(setValue, event, !!props.isSelectable);
   };
 }
 
@@ -202,16 +193,7 @@ export function createOnBlur<G extends FormElementTag, M extends object, N exten
 ) {
   return function onBlur(event: FormFieldBlurEvent<HTMLElementTagNameMap[G]>) {
     setBlurredField(props.name);
-    if (isSelectableEvent(event, !!props.isSelectable)) {
-      setField(event.currentTarget.checked);
-    } else if (event.currentTarget instanceof HTMLInputElement && event.currentTarget.type === 'file') {
-      const files = event.currentTarget.files;
-      setField(files?.length ? files : undefined);
-    } else if (event.currentTarget instanceof HTMLSelectElement && event.currentTarget.multiple) {
-      setField(Array.from(event.currentTarget.selectedOptions, (option) => option.value));
-    } else {
-      setField(event.currentTarget.value);
-    }
+    applyFieldEvent(setField, event, !!props.isSelectable);
   };
 }
 
@@ -261,8 +243,7 @@ export function createFormField<
 
   // Without this cleanup, a conditionally-rendered field leaves a stale
   // entry in the store that keeps counting toward
-  // isFormValid/haveValuesChanged/submitted values after it unmounts (see
-  // strategic-backlog.md B1).
+  // isFormValid/haveValuesChanged/submitted values after it unmounts.
   onCleanup(() => formStateMutations.removeField(props.name, lastKnownGeneration));
 
   if (props.isControlled && !isInitialized()) {
@@ -341,15 +322,17 @@ export function createFormField<
 
   // Browsers reject every programmatic file-input value except clearing it, so
   // it cannot use the normal reactive value binding. Keep a native reference
-  // solely for the permitted clear after state is reset.
+  // solely for the permitted clear after state is reset. Gated on `props.type`
+  // like the `match` effect above, since it never changes after mount.
   let fileInput: HTMLInputElement | undefined;
-  createEffect(() => {
-    if (props.type !== 'file') return;
-    const files = value() as unknown as FileList | undefined;
-    if (!files?.length && fileInput) fileInput.value = '';
-  });
+  if (props.type === 'file') {
+    createEffect(() => {
+      const files = value() as unknown as FileList | undefined;
+      if (!files?.length && fileInput) fileInput.value = '';
+    });
+  }
 
-  const formattedValue = createMemo(() => (props.type === 'file' ? undefined : props.format(value())));
+  const formattedValue = createMemo(() => props.format(value()));
   const displayableErrors = createMemo(() => getDisplayableErrors(props.name, formState));
   const isDisabled = createMemo(() => Boolean(props.disabled || !props.name || formState.isLoading));
 

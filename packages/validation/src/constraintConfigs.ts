@@ -278,12 +278,6 @@ const STEP_SCALES: Record<string, StepScale> = {
   }
 };
 
-// `number` shares the step scale table, but it is not a date/time control:
-// numeric values and bounds remain its native DOM format. The date/time set is
-// intentionally separate so range validation can reject only the numeric bound
-// shapes browsers themselves ignore for those controls.
-const DATE_TIME_SCALE_TYPES = new Set(['date', 'month', 'week', 'time', 'datetime-local']);
-
 // The step amount as written by the caller, in the field's own units (a date's
 // `step={7}` is 7, not 7 days-in-milliseconds) — `undefined` when `step` isn't
 // a usable positive number. Shared by `resolveAllowedStep` (which still has to
@@ -337,14 +331,13 @@ function resolveStepBase(min: unknown, scale: StepScale): number {
 // field type's converter is what makes `min='2026-01-01'` mean the same thing
 // to validation and the native control. Numeric date/time values are not DOM
 // value formats, so browsers ignore them as bounds and validation must too.
-// Types without a scale keep the long-standing numeric behavior.
+// `scale.unit` is already the date/time discriminator (see `StepScale` above,
+// which leaves it absent only for the bare-number scale) — types without a
+// scale, and `number`'s scale, both keep the long-standing numeric behavior.
 function toComparableValue(value: unknown, type: unknown): number | undefined {
   const scale = safeLookup(STEP_SCALES, type);
-  if (scale) {
-    if (!DATE_TIME_SCALE_TYPES.has(type as string)) return toNumber(value);
-    return typeof value === 'string' && value !== '' ? scale.toNumber(value) : undefined;
-  }
-  return toNumber(value);
+  if (scale?.unit === undefined) return toNumber(value);
+  return typeof value === 'string' && value !== '' ? scale.toNumber(value) : undefined;
 }
 
 // Counts the decimal places of a number as written, including when JS writes it

@@ -32,6 +32,15 @@ describe('classifyBaseFormChildren', () => {
     expect(result.footerLinks).toEqual([link]);
   });
 
+  it('does not wrap a *Group component, matching *Field treatment', () => {
+    const group = component('RadioGroup');
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = classifyBaseFormChildren([group] as any);
+
+    expect(result.bodyChildren).toEqual([{ child: group, wrap: false }]);
+  });
+
   it('reads component names from the shared registry', () => {
     const field = {};
     const registry = new WeakMap<object, string>();
