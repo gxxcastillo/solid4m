@@ -66,7 +66,7 @@ to infer submit values from the schema instead of writing the values interface b
 ## What Is Included
 
 - `Form` and `useForm` for form composition and typed submit handlers
-- `InputField`, `PasswordField`, `TextAreaField`, `CheckboxField`, and `SubmitButton`
+- `InputField`, `PasswordField`, `TextAreaField`, `CheckboxField`, `SelectField`, `RadioGroup`, and `SubmitButton`
 - Standard Schema validation, built-in constraints, and custom validators
 - Async submission state and form-level error rendering
 - `parse` and `format` hooks for non-string field values

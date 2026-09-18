@@ -73,16 +73,14 @@ export type SchemaValidationResult<M extends object> = SchemaValidationSuccess<M
 
 export type ValidationConstraints = {
   match?: string;
-  max?: number;
+  // Bounds use the DOM value format for date/time controls, while retaining
+  // numbers for ordinary numeric inputs. They must stay symmetric: `min` also
+  // anchors `step`, but both bounds participate in range validation.
+  max?: number | string;
   maxLength?: number;
-  // Usually numeric, but `step`'s date/time ladder anchors on `min` as the DOM
-  // string a date/month/week/time input reports (e.g. '2026-01-01') — see
-  // `resolveStepBase` in constraintConfigs.ts. Narrowing this to `number` would
-  // make that documented, tested behavior unreachable through the typed
-  // `InputField` API: intersecting with the native `min?: string | number`
-  // attribute collapses to `number` only, rejecting a valid date string at
-  // compile time. `min.validate` already ignores a non-number value, so
-  // widening this doesn't change numeric min/max behavior.
+  // Date/time controls use their DOM string format (e.g. '2026-01-01').
+  // `min` also anchors `step`; range validation converts both bounds through
+  // the same per-type algorithm as the field value.
   min?: number | string;
   minLength?: number;
   pattern?: string | RegExp;

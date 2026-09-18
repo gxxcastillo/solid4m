@@ -40,12 +40,45 @@ describe('step constraint vs Chromium', () => {
       const constraints: ValidationConstraints = {
         type: recorded.type,
         step: recorded.step as ValidationConstraints['step'],
-        min: recorded.min as ValidationConstraints['min']
+        min: recorded.min as ValidationConstraints['min'],
+        max: recorded.max as ValidationConstraints['max']
       };
 
       expect(isStepValid(constraints, recorded.value)).toBe(!recorded.mismatch);
     });
   }
+});
+
+describe('min/max constraints vs Chromium', () => {
+  const rangeCases = recordedStepCases.filter(
+    (recorded) => recorded.underflow || recorded.overflow || recorded.max
+  );
+
+  it('recorded violations at both range edges', () => {
+    expect(rangeCases.some((recorded) => recorded.underflow)).toBe(true);
+    expect(rangeCases.some((recorded) => recorded.overflow)).toBe(true);
+  });
+
+  for (const recorded of rangeCases) {
+    const constraints: ValidationConstraints = { type: recorded.type, min: recorded.min, max: recorded.max };
+    it(`agrees with Chromium for ${recorded.type} ${JSON.stringify(recorded.value)}`, () => {
+      expect(constraintConfigs.min.validate(recorded.value, constraints.min, formState, constraints)).toBe(
+        !recorded.underflow
+      );
+      expect(constraintConfigs.max.validate(recorded.value, constraints.max, formState, constraints)).toBe(
+        !recorded.overflow
+      );
+    });
+  }
+
+  it('keeps numeric bounds unchanged and skips mismatched bound shapes', () => {
+    expect(constraintConfigs.min.validate('4', 5, formState, { min: 5, type: 'number' })).toBe(false);
+    expect(constraintConfigs.max.validate('6', 5, formState, { max: 5, type: 'number' })).toBe(false);
+    expect(constraintConfigs.min.validate('2026-01-01', 5, formState, { min: 5, type: 'date' })).toBe(true);
+    expect(
+      constraintConfigs.max.validate('6', '2026-01-01', formState, { max: '2026-01-01', type: 'number' })
+    ).toBe(true);
+  });
 });
 
 describe('step constraint', () => {

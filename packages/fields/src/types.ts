@@ -63,4 +63,6 @@ export type FormFieldBlurEvent<E extends FormFieldElement> = Parameters<JSX.Even
 export type ParseFunction<V extends FieldValue> = (val: DisplayValue) => V;
 export type FormatFunction<V extends FieldValue> = (val: V | undefined) => string;
 
-export type ComponentName = `${string}${'Field' | 'Button' | 'Link'}`;
+// Composite controls (such as RadioGroup) are still form components even
+// though their public name does not end in Field/Button/Link.
+export type ComponentName = `${string}${'Field' | 'Button' | 'Link' | 'Group'}`;

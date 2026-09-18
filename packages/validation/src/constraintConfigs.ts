@@ -278,6 +278,12 @@ const STEP_SCALES: Record<string, StepScale> = {
   }
 };
 
+// `number` shares the step scale table, but it is not a date/time control:
+// numeric values and bounds remain its native DOM format. The date/time set is
+// intentionally separate so range validation can reject only the numeric bound
+// shapes browsers themselves ignore for those controls.
+const DATE_TIME_SCALE_TYPES = new Set(['date', 'month', 'week', 'time', 'datetime-local']);
+
 // The step amount as written by the caller, in the field's own units (a date's
 // `step={7}` is 7, not 7 days-in-milliseconds) — `undefined` when `step` isn't
 // a usable positive number. Shared by `resolveAllowedStep` (which still has to
@@ -324,6 +330,21 @@ function resolveStepBase(min: unknown, scale: StepScale): number {
     if (parsed !== undefined) return parsed;
   }
   return scale.defaultBase;
+}
+
+// Range bounds and values have to be measured by the same algorithm. A date
+// string is not a JavaScript number, and Number('2026-01-01') is NaN; using the
+// field type's converter is what makes `min='2026-01-01'` mean the same thing
+// to validation and the native control. Numeric date/time values are not DOM
+// value formats, so browsers ignore them as bounds and validation must too.
+// Types without a scale keep the long-standing numeric behavior.
+function toComparableValue(value: unknown, type: unknown): number | undefined {
+  const scale = safeLookup(STEP_SCALES, type);
+  if (scale) {
+    if (!DATE_TIME_SCALE_TYPES.has(type as string)) return toNumber(value);
+    return typeof value === 'string' && value !== '' ? scale.toNumber(value) : undefined;
+  }
+  return toNumber(value);
 }
 
 // Counts the decimal places of a number as written, including when JS writes it
@@ -424,19 +445,19 @@ export const constraintConfigs: ConstraintConfigs = {
   },
 
   min: {
-    validate: (val, min) => {
-      if (typeof min !== 'number') return true;
-      const num = toNumber(val);
-      return num === undefined || num >= min;
+    validate: (val, min, _formState, siblings) => {
+      const value = toComparableValue(val, siblings.type);
+      const bound = toComparableValue(min, siblings.type);
+      return value === undefined || bound === undefined || value >= bound;
     },
     message: (fieldName: string) => `"${fieldName}" is too small`
   },
 
   max: {
-    validate: (val, max) => {
-      if (typeof max !== 'number') return true;
-      const num = toNumber(val);
-      return num === undefined || num <= max;
+    validate: (val, max, _formState, siblings) => {
+      const value = toComparableValue(val, siblings.type);
+      const bound = toComparableValue(max, siblings.type);
+      return value === undefined || bound === undefined || value <= bound;
     },
     message: (fieldName: string) => `"${fieldName}" is too large`
   },
@@ -479,7 +500,7 @@ export const constraintConfigs: ConstraintConfigs = {
     },
     message: (fieldName, step, _formState, siblings) => {
       const scale = safeLookup(STEP_SCALES, siblings.type);
-      const amount = parseStepAmount(step) ?? (scale?.defaultStep ?? 1);
+      const amount = parseStepAmount(step) ?? scale?.defaultStep ?? 1;
       // The unit appears only for the types where `step` is not counted in the
       // field's own units: `step={7}` on a date is seven *days*, and a message
       // that said just "7" would read as seven of whatever the user typed.

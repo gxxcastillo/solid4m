@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
+import { type Page, expect, test } from '@playwright/test';
 
 type AxeViolation = Awaited<ReturnType<AxeBuilder['analyze']>>['violations'][number];
 
@@ -155,6 +155,21 @@ test('a step-constrained field rejects an off-step value but not an empty one', 
 
   await page.getByLabel('Daily reminder').fill('09:30');
   await expect(page.getByText('must be in increments of')).toHaveCount(0);
+});
+
+test('a time field enforces its date-aware min and max bounds', async ({ page }) => {
+  await page.goto('/minimal/settings');
+
+  await page.getByLabel('Daily reminder').fill('08:30');
+  await page.getByRole('button', { name: 'Submit' }).click();
+  await expect(page.getByText('"Daily reminder" is too small')).toBeVisible();
+
+  await page.getByLabel('Daily reminder').fill('17:30');
+  await expect(page.getByText('"Daily reminder" is too large')).toBeVisible();
+
+  await page.getByLabel('Daily reminder').fill('09:30');
+  await expect(page.getByText('"Daily reminder" is too large')).toHaveCount(0);
+  await expectNoAxeViolations(page);
 });
 
 test('a malformed email is caught in the browser now that native validation is off', async ({ page }) => {

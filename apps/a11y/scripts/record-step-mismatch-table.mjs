@@ -11,17 +11,16 @@
 //
 // It lives here rather than in packages/validation because this is the only
 // workspace with Playwright and a browser install.
-import { writeFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-
 // From @playwright/test rather than 'playwright': that is the dependency this
 // workspace actually declares, and pnpm's strict layout makes the bare
 // 'playwright' package unresolvable from here.
 import { chromium } from '@playwright/test';
+import { writeFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 const cases = [];
-const add = (type, step, min, values) => {
-  for (const value of values) cases.push({ type, step, min, value });
+const add = (type, step, min, values, max) => {
+  for (const value of values) cases.push({ type, step, min, max, value });
 };
 
 // --- number ----------------------------------------------------------------
@@ -83,6 +82,22 @@ add('datetime-local', 60, undefined, ['2026-08-16T13:45', '2026-08-16T13:45:30']
 add('datetime-local', 1, undefined, ['2026-08-16T13:45:30', '2026-08-16T13:45:30.500']);
 add('datetime-local', 3600, '2026-08-16T00:30', ['2026-08-16T00:30', '2026-08-16T01:30', '2026-08-16T01:00']);
 
+// --- min/max ---------------------------------------------------------------
+// These bounds share the same per-type conversion as step but have independent
+// browser validity flags. Keep cases with both edges: a hand-written date table
+// is particularly prone to getting week/month ordering subtly wrong.
+add('date', undefined, '2026-01-10', ['2026-01-09', '2026-01-10', '2026-01-20', '2026-01-21'], '2026-01-20');
+add('month', undefined, '2026-02', ['2026-01', '2026-02', '2026-12', '2027-01'], '2026-12');
+add('week', undefined, '2026-W05', ['2026-W04', '2026-W05', '2026-W40', '2026-W41'], '2026-W40');
+add('time', undefined, '09:00', ['08:59', '09:00', '17:00', '17:01'], '17:00');
+add(
+  'datetime-local',
+  undefined,
+  '2026-01-10T09:00',
+  ['2026-01-10T08:59', '2026-01-10T09:00', '2026-01-10T17:00', '2026-01-10T17:01'],
+  '2026-01-10T17:00'
+);
+
 // --- types with no allowed value step --------------------------------------
 add('text', 5, undefined, ['7', 'abc']);
 add('email', 5, undefined, ['a@b.com']);
@@ -95,33 +110,33 @@ await page.setContent('<!doctype html><html><body><input id="probe" /></body></h
 
 const rows = [];
 for (const testCase of cases) {
-  const result = await page.evaluate(
-    ({ type, step, min, value }) => {
-      // A fresh element per case: leftover attributes (and the value
-      // sanitization a previous type applied) would leak between rows.
-      const input = document.createElement('input');
-      input.setAttribute('type', type);
-      if (step !== undefined) input.setAttribute('step', String(step));
-      if (min !== undefined) input.setAttribute('min', String(min));
-      // The IDL property, NOT setAttribute('value', …). The spec's step base
-      // falls back to the *value content attribute* when `min` is absent, so
-      // setting the attribute would silently re-anchor the ladder onto the very
-      // value under test and make every case align. Setting the property sets
-      // the dirty value flag and leaves the content attribute absent — which is
-      // also what Solid does when it binds a value, so this matches the DOM the
-      // library actually produces.
-      document.body.append(input);
-      input.value = String(value);
-      // Read back what the browser actually kept: value sanitization discards
-      // anything unparseable for the type, and that is exactly why an
-      // unparseable value must not be reported as a step mismatch.
-      const sanitized = input.value;
-      const mismatch = input.validity.stepMismatch;
-      input.remove();
-      return { sanitized, mismatch };
-    },
-    testCase
-  );
+  const result = await page.evaluate(({ type, step, min, max, value }) => {
+    // A fresh element per case: leftover attributes (and the value
+    // sanitization a previous type applied) would leak between rows.
+    const input = document.createElement('input');
+    input.setAttribute('type', type);
+    if (step !== undefined) input.setAttribute('step', String(step));
+    if (min !== undefined) input.setAttribute('min', String(min));
+    if (max !== undefined) input.setAttribute('max', String(max));
+    // The IDL property, NOT setAttribute('value', …). The spec's step base
+    // falls back to the *value content attribute* when `min` is absent, so
+    // setting the attribute would silently re-anchor the ladder onto the very
+    // value under test and make every case align. Setting the property sets
+    // the dirty value flag and leaves the content attribute absent — which is
+    // also what Solid does when it binds a value, so this matches the DOM the
+    // library actually produces.
+    document.body.append(input);
+    input.value = String(value);
+    // Read back what the browser actually kept: value sanitization discards
+    // anything unparseable for the type, and that is exactly why an
+    // unparseable value must not be reported as a step mismatch.
+    const sanitized = input.value;
+    const mismatch = input.validity.stepMismatch;
+    const underflow = input.validity.rangeUnderflow;
+    const overflow = input.validity.rangeOverflow;
+    input.remove();
+    return { sanitized, mismatch, underflow, overflow };
+  }, testCase);
   rows.push({ ...testCase, ...result });
 }
 
@@ -131,8 +146,9 @@ const literal = (value) => (value === undefined ? 'undefined' : JSON.stringify(v
 const body = rows
   .map(
     (row) =>
-      `  { type: ${literal(row.type)}, step: ${literal(row.step)}, min: ${literal(row.min)}, ` +
-      `value: ${literal(row.value)}, sanitized: ${literal(row.sanitized)}, mismatch: ${row.mismatch} }`
+      `  { type: ${literal(row.type)}, step: ${literal(row.step)}, min: ${literal(row.min)}, max: ${literal(row.max)}, ` +
+      `value: ${literal(row.value)}, sanitized: ${literal(row.sanitized)}, mismatch: ${row.mismatch}, ` +
+      `underflow: ${row.underflow}, overflow: ${row.overflow} }`
   )
   .join(',\n');
 
@@ -140,7 +156,8 @@ const header = `// RECORDED FROM CHROMIUM — do not hand-edit.
 //
 // Every row is a real \`<input>\` in a real browser: type, step and min set as
 // content attributes, the value set through the IDL property, and
-// \`validity.stepMismatch\` plus the post-sanitization \`input.value\` read back out.
+// \`validity.stepMismatch\`, range underflow/overflow, and the post-sanitization
+// \`input.value\` read back out.
 //
 // The value goes through the property and never \`setAttribute('value', …)\`,
 // because the spec's step base falls back to the *value content attribute* when
@@ -159,9 +176,12 @@ export type RecordedStepCase = {
   type: string;
   step: number | string | undefined;
   min: number | string | undefined;
+  max: number | string | undefined;
   value: string;
   sanitized: string;
   mismatch: boolean;
+  underflow: boolean;
+  overflow: boolean;
 };
 
 export const recordedStepCases: RecordedStepCase[] = [

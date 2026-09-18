@@ -38,19 +38,19 @@ A self-contained form that creates its own internal store.
 </Form>
 ```
 
-| Prop               | Type                                   | Description                                                                              |
-| ------------------ | -------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `onSubmit`         | `(values: M) => void \| Promise<void>` | Submit handler                                                                           |
-| `schema`           | `StandardSchemaV1`                     | Optional Standard Schema-compatible validator; successful output is passed to `onSubmit` |
-| `children`         | `JSX.Element`                          | Field components and submit buttons                                                      |
-| `errors`           | `string[]`                             | Form-level errors to display                                                             |
-| `isLoading`        | `boolean`                              | Disables registered fields and makes submit actions unavailable while `true`             |
-| `isProcessing`     | `boolean`                              | Marks the form in flight for work of your own; OR'd with the form's own submit state     |
+| Prop               | Type                                   | Description                                                                                          |
+| ------------------ | -------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `onSubmit`         | `(values: M) => void \| Promise<void>` | Submit handler                                                                                       |
+| `schema`           | `StandardSchemaV1`                     | Optional Standard Schema-compatible validator; successful output is passed to `onSubmit`             |
+| `children`         | `JSX.Element`                          | Field components and submit buttons                                                                  |
+| `errors`           | `string[]`                             | Form-level errors to display                                                                         |
+| `isLoading`        | `boolean`                              | Disables registered fields and makes submit actions unavailable while `true`                         |
+| `isProcessing`     | `boolean`                              | Marks the form in flight for work of your own; OR'd with the form's own submit state                 |
 | `processingLabel`  | `string`                               | Screen-reader announcement while a submit is in flight; defaults to `'Submitting…'`, `''` to disable |
-| `loadingLabel`     | `string`                               | Screen-reader announcement while form data is loading; defaults to `'Loading…'`, `''` to disable |
-| `className`        | `string`                               | CSS class on the form element                                                            |
-| `align`            | `'left' \| 'center'`                   | Button alignment, defaults to `'left'`                                                   |
-| `fullWidthButtons` | `boolean`                              | Stretch buttons to full width                                                            |
+| `loadingLabel`     | `string`                               | Screen-reader announcement while form data is loading; defaults to `'Loading…'`, `''` to disable     |
+| `className`        | `string`                               | CSS class on the form element                                                                        |
+| `align`            | `'left' \| 'center'`                   | Button alignment, defaults to `'left'`                                                               |
+| `fullWidthButtons` | `boolean`                              | Stretch buttons to full width                                                                        |
 
 ## `createForm<M>()`
 
@@ -73,7 +73,7 @@ const { Form, InputField, PasswordField } = createForm<LoginValues>();
 `onSubmit`'s `values`, `name='bogus'`, and a self-referencing `match` are all checked against `M`,
 exactly as if you had written `<Form<LoginValues>>` and `<InputField<LoginValues, 'email'>>` at each
 call site. The returned components are the real `Form`/`InputField`/`PasswordField`/`TextAreaField`/
-`CheckboxField` — `createForm` only fixes `M` at the type level, it does not wrap or change their
+`CheckboxField`/`SelectField` — `createForm` only fixes `M` at the type level, it does not wrap or change their
 behavior.
 
 Pass a Standard Schema-compatible schema instead of a type argument to infer `M` from it, the same as
@@ -88,8 +88,8 @@ const { Form, InputField, PasswordField } = createForm({ schema: loginSchema });
 </Form>;
 ```
 
-Fields are typed against the schema's *input* (what the DOM gives you); `onSubmit` receives the
-schema's *output*, which can differ for a transform/coercion schema. The schema also becomes `Form`'s
+Fields are typed against the schema's _input_ (what the DOM gives you); `onSubmit` receives the
+schema's _output_, which can differ for a transform/coercion schema. The schema also becomes `Form`'s
 default, so it does not need to be repeated as a `schema` prop — though an individual `<Form
 schema={other}>` call can still override it, same as `useForm`.
 
@@ -122,18 +122,18 @@ Prefer `type='email'` over a hand-written `pattern` — it drives the on-screen 
 format-checked against the HTML specification. See
 [validation](/validation/#format-checking-from-the-input-type).
 
-| Prop                                                                   | Type                    | Description                                         |
-| ---------------------------------------------------------------------- | ----------------------- | --------------------------------------------------- |
-| `name`                                                                 | `StringKeyOf<M>`        | Field name; must match a key in the form value type |
-| `label`                                                                | `string`                | Visible label text                                  |
-| `defaultValue`                                                         | `M[N]`                  | Initial value                                       |
-| `disabled`                                                             | `boolean`               | Disables the input                                  |
-| `readonly`                                                             | `boolean`               | Makes the input read-only                           |
-| `parse`                                                                | `(raw: string) => M[N]` | Convert DOM string to typed value                   |
-| `format`                                                               | `(val: M[N]) => string` | Convert typed value back to display string          |
-| `validator`                                                            | `CustomValidator<M, N>` | Custom validation function                          |
-| `required`, `minLength`, `maxLength`, `pattern`, `min`, `max`, `match`, `step` | Constraint props | Built-in validation constraints              |
-| `type`                                                                 | `string`                | Standard input type; `email` and `url` are also format-checked |
+| Prop                                                                           | Type                    | Description                                                    |
+| ------------------------------------------------------------------------------ | ----------------------- | -------------------------------------------------------------- |
+| `name`                                                                         | `StringKeyOf<M>`        | Field name; must match a key in the form value type            |
+| `label`                                                                        | `string`                | Visible label text                                             |
+| `defaultValue`                                                                 | `M[N]`                  | Initial value                                                  |
+| `disabled`                                                                     | `boolean`               | Disables the input                                             |
+| `readonly`                                                                     | `boolean`               | Makes the input read-only                                      |
+| `parse`                                                                        | `(raw: string) => M[N]` | Convert DOM string to typed value                              |
+| `format`                                                                       | `(val: M[N]) => string` | Convert typed value back to display string                     |
+| `validator`                                                                    | `CustomValidator<M, N>` | Custom validation function                                     |
+| `required`, `minLength`, `maxLength`, `pattern`, `min`, `max`, `match`, `step` | Constraint props        | Built-in validation constraints                                |
+| `type`                                                                         | `string`                | Standard input type; `email` and `url` are also format-checked |
 
 All standard HTML input attributes are also accepted.
 
@@ -166,6 +166,38 @@ Renders a labeled checkbox. The field value in form state is a boolean.
 | `required`       | `boolean`               | Field must be `true` to be valid |
 | `validator`      | `CustomValidator<M, N>` | Custom validation function       |
 
+## `SelectField`
+
+Renders a native, labeled `<select>` with the same form-state, disabled, and
+error treatment as the other fields. Supply standard `<option>` children; native
+select behavior is retained for keyboard and platform accessibility.
+
+```tsx
+<SelectField name='timezone' label='Time zone'>
+  <option value='America/Los_Angeles'>Pacific time</option>
+  <option value='America/New_York'>Eastern time</option>
+</SelectField>
+```
+
+It accepts standard select attributes and the shared field props, including
+`required`, `disabled`, `defaultValue`, `parse`, `format`, and `validator`.
+
+## `RadioGroup`
+
+Renders one native radio group backed by a single field value. Its `options`
+array supplies each option's stored value and accessible label.
+
+```tsx
+<RadioGroup
+  name='delivery'
+  label='Notification delivery'
+  options={[
+    { value: 'email', label: 'Email' },
+    { value: 'push', label: 'Push notification' }
+  ]}
+/>
+```
+
 ## `SubmitButton`
 
 Renders a submit button. It stays enabled while the form is invalid, and marks itself
@@ -173,7 +205,7 @@ Renders a submit button. It stays enabled while the form is invalid, and marks i
 
 Submitting an invalid form reveals every field's errors and moves focus to the first invalid field,
 rather than silently doing nothing. A disabled submit button would leave the tab order entirely and
-give no way to discover what is missing, so validity gates the *result* of the submit, not access to
+give no way to discover what is missing, so validity gates the _result_ of the submit, not access to
 it.
 
 An in-flight submit is marked with `aria-disabled` rather than the `disabled` attribute for a
@@ -234,20 +266,20 @@ and a plain function `onSubmit` never needs one.
 `form.state` is reactive. Access it inside Solid signals, `createEffect`, or JSX to get fine-grained
 updates.
 
-| Property or method              | Type                    | Description                                                    |
-| ------------------------------- | ----------------------- | -------------------------------------------------------------- |
-| `isFormValid`                   | `boolean`               | `true` when no registered field has errors                     |
-| `haveValuesChanged`             | `boolean`               | `true` when any field has changed from its initial value       |
-| `isLoading`                     | `boolean`               | `<Form isLoading>` is set; every field is disabled              |
+| Property or method              | Type                    | Description                                                           |
+| ------------------------------- | ----------------------- | --------------------------------------------------------------------- |
+| `isFormValid`                   | `boolean`               | `true` when no registered field has errors                            |
+| `haveValuesChanged`             | `boolean`               | `true` when any field has changed from its initial value              |
+| `isLoading`                     | `boolean`               | `<Form isLoading>` is set; every field is disabled                    |
 | `isProcessing`                  | `boolean`               | An async submit handler is in flight, or `<Form isProcessing>` is set |
-| `errors`                        | `string[]`              | Form-level errors, including thrown or rejected submit errors  |
-| `getFieldValue(name)`           | `M[N] \| undefined`     | Current parsed value for a field                               |
-| `getFieldErrors(name)`          | `string[] \| undefined` | Current errors for a field                                     |
-| `isFieldValid(name)`            | `boolean \| undefined`  | `false` if the field has errors; `undefined` if not registered |
-| `hasFieldBeenValid(name)`       | `boolean \| undefined`  | `true` once the field has been error-free                      |
-| `hasFieldBlurred(name)`         | `boolean \| undefined`  | `true` once the user has blurred the field                     |
-| `hasFieldChanged(name)`         | `boolean \| undefined`  | `true` once the field value has changed                        |
-| `hasFieldBeenInitialized(name)` | `boolean`               | `true` once the field has registered with the store            |
+| `errors`                        | `string[]`              | Form-level errors, including thrown or rejected submit errors         |
+| `getFieldValue(name)`           | `M[N] \| undefined`     | Current parsed value for a field                                      |
+| `getFieldErrors(name)`          | `string[] \| undefined` | Current errors for a field                                            |
+| `isFieldValid(name)`            | `boolean \| undefined`  | `false` if the field has errors; `undefined` if not registered        |
+| `hasFieldBeenValid(name)`       | `boolean \| undefined`  | `true` once the field has been error-free                             |
+| `hasFieldBlurred(name)`         | `boolean \| undefined`  | `true` once the user has blurred the field                            |
+| `hasFieldChanged(name)`         | `boolean \| undefined`  | `true` once the field value has changed                               |
+| `hasFieldBeenInitialized(name)` | `boolean`               | `true` once the field has registered with the store                   |
 
 ## Standard Schema Types
 

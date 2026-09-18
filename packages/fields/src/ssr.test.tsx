@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { FormContextProvider, createFormStore } from '@gxxc/solid-forms-state';
 
 import { InputField } from './InputField/InputField';
+import { SelectField } from './SelectField/SelectField';
 
 type TestForm = { [key: string]: string; email: string };
 
@@ -43,5 +44,19 @@ describe('SSR / renderToString smoke tests', () => {
 
   it('generateHydrationScript does not throw', () => {
     expect(() => generateHydrationScript()).not.toThrow();
+  });
+
+  it('renders SelectField to string without throwing', () => {
+    const store = createRoot(() => createFormStore<TestForm>());
+
+    expect(() =>
+      renderToString(() => (
+        <FormContextProvider store={store}>
+          <SelectField<TestForm, 'email'> name='email' label='Email kind'>
+            <option value='work'>Work</option>
+          </SelectField>
+        </FormContextProvider>
+      ))
+    ).not.toThrow();
   });
 });

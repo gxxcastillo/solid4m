@@ -181,6 +181,14 @@ export function createOnInput<G extends FormElementTag, M extends object, N exte
   return function onInput(event: FormFieldInputEvent<HTMLElementTagNameMap[G]>) {
     if (isSelectableEvent(event, !!props.isSelectable)) {
       setValue(event.currentTarget.checked);
+    } else if (event.currentTarget instanceof HTMLInputElement && event.currentTarget.type === 'file') {
+      const files = event.currentTarget.files;
+      // An empty FileList is truthy, but has the same required-field meaning as
+      // no selection. Normalizing it here keeps native file clearing aligned
+      // with the shared required constraint.
+      setValue(files?.length ? files : undefined);
+    } else if (event.currentTarget instanceof HTMLSelectElement && event.currentTarget.multiple) {
+      setValue(Array.from(event.currentTarget.selectedOptions, (option) => option.value));
     } else {
       setValue(event.currentTarget.value);
     }
@@ -196,6 +204,11 @@ export function createOnBlur<G extends FormElementTag, M extends object, N exten
     setBlurredField(props.name);
     if (isSelectableEvent(event, !!props.isSelectable)) {
       setField(event.currentTarget.checked);
+    } else if (event.currentTarget instanceof HTMLInputElement && event.currentTarget.type === 'file') {
+      const files = event.currentTarget.files;
+      setField(files?.length ? files : undefined);
+    } else if (event.currentTarget instanceof HTMLSelectElement && event.currentTarget.multiple) {
+      setField(Array.from(event.currentTarget.selectedOptions, (option) => option.value));
     } else {
       setField(event.currentTarget.value);
     }
@@ -315,14 +328,28 @@ export function createFormField<
     const field = formState.getField(fieldName);
     if (field?.generation === undefined) return prevGeneration;
     lastKnownGeneration = field.generation;
-    if (prevGeneration !== undefined && field.generation !== prevGeneration && untrack(() => field.wasReset)) {
+    if (
+      prevGeneration !== undefined &&
+      field.generation !== prevGeneration &&
+      untrack(() => field.wasReset)
+    ) {
       setValue.revalidate();
       formStateMutations.setBlurredField(fieldName);
     }
     return field.generation;
   }, undefined);
 
-  const formattedValue = createMemo(() => props.format(value()));
+  // Browsers reject every programmatic file-input value except clearing it, so
+  // it cannot use the normal reactive value binding. Keep a native reference
+  // solely for the permitted clear after state is reset.
+  let fileInput: HTMLInputElement | undefined;
+  createEffect(() => {
+    if (props.type !== 'file') return;
+    const files = value() as unknown as FileList | undefined;
+    if (!files?.length && fileInput) fileInput.value = '';
+  });
+
+  const formattedValue = createMemo(() => (props.type === 'file' ? undefined : props.format(value())));
   const displayableErrors = createMemo(() => getDisplayableErrors(props.name, formState));
   const isDisabled = createMemo(() => Boolean(props.disabled || !props.name || formState.isLoading));
 
@@ -344,6 +371,10 @@ export function createFormField<
     },
     get isInitialized() {
       return isInitialized();
+    },
+    ref(element: HTMLElement) {
+      if (element instanceof HTMLInputElement && props.type === 'file') fileInput = element;
+      if (typeof props.ref === 'function') (props.ref as (node: HTMLElement) => void)(element);
     },
     setValue,
     onInput,

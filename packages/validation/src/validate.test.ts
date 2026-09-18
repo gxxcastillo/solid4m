@@ -71,6 +71,13 @@ describe('validate — falsey constraints', () => {
   });
 });
 
+describe('date/time range bounds', () => {
+  it('ignores numeric bounds that a native date control cannot parse', () => {
+    expect(validate('username', '1970-01-01', { type: 'date', min: 5 }, makeFormState())).toEqual([]);
+    expect(validate('username', '1970-01-01', { type: 'date', max: 5 }, makeFormState())).toEqual([]);
+  });
+});
+
 describe('required', () => {
   const state = makeFormState();
 

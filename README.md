@@ -72,13 +72,13 @@ pnpm uses `publishConfig.exports` in `packages/solid-forms/package.json` to stri
 
 ## Monorepo structure
 
-| Path | Package | Description |
-|------|---------|-------------|
-| `packages/solid-forms` | `@gxxc/solid-forms` | Public facade — re-exports the full API |
-| `packages/state` | `@gxxc/solid-forms-state` | Form store, context, and field mutations |
-| `packages/form` | `@gxxc/solid-forms-form` | `Form`, `useForm`, submit pipeline |
-| `packages/fields` | `@gxxc/solid-forms-fields` | `InputField`, `PasswordField`, `TextAreaField`, `CheckboxField`, `SubmitButton` |
-| `packages/elements` | `@gxxc/solid-forms-elements` | Primitive DOM wrappers |
-| `packages/validation` | `@gxxc/solid-forms-validation` | Built-in constraint validation |
-| `packages/examples` | — | Standalone example components |
-| `apps/docs` | — | Astro docs site with live demo |
+| Path                   | Package                        | Description                                                                                                  |
+| ---------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| `packages/solid-forms` | `@gxxc/solid-forms`            | Public facade — re-exports the full API                                                                      |
+| `packages/state`       | `@gxxc/solid-forms-state`      | Form store, context, and field mutations                                                                     |
+| `packages/form`        | `@gxxc/solid-forms-form`       | `Form`, `useForm`, submit pipeline                                                                           |
+| `packages/fields`      | `@gxxc/solid-forms-fields`     | `InputField`, `PasswordField`, `TextAreaField`, `CheckboxField`, `SelectField`, `RadioGroup`, `SubmitButton` |
+| `packages/elements`    | `@gxxc/solid-forms-elements`   | Primitive DOM wrappers                                                                                       |
+| `packages/validation`  | `@gxxc/solid-forms-validation` | Built-in constraint validation                                                                               |
+| `packages/examples`    | —                              | Standalone example components                                                                                |
+| `apps/docs`            | —                              | Astro docs site with live demo                                                                               |

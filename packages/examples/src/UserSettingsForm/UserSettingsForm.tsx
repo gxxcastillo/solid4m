@@ -5,6 +5,11 @@ export interface UserSettingsValues {
   website: string;
   bio: string;
   reminderHour: string;
+  timezone: string;
+  delivery: string;
+  quantity: string;
+  appointment: string;
+  attachment: FileList;
 }
 
 export interface UserSettingsFormProps {
@@ -14,7 +19,8 @@ export interface UserSettingsFormProps {
   isLoading?: boolean;
 }
 
-const { Form, InputField, TextAreaField } = createForm<UserSettingsValues>();
+const { Form, DateField, FileField, InputField, NumberField, RadioGroup, SelectField, TextAreaField } =
+  createForm<UserSettingsValues>();
 
 export function UserSettingsForm(props: UserSettingsFormProps) {
   return (
@@ -37,7 +43,29 @@ export function UserSettingsForm(props: UserSettingsFormProps) {
           obviously right, because the units are the spec's (seconds) and not the
           ones the field displays — 1800 here means every half hour. Optional, so
           it also covers an empty step-constrained field staying valid. */}
-      <InputField name='reminderHour' type='time' label='Daily reminder' step={1800} />
+      <InputField
+        name='reminderHour'
+        type='time'
+        label='Daily reminder'
+        step={1800}
+        min='09:00'
+        max='17:00'
+      />
+      <SelectField name='timezone' label='Time zone'>
+        <option value='America/Los_Angeles'>Pacific time</option>
+        <option value='America/New_York'>Eastern time</option>
+      </SelectField>
+      <RadioGroup
+        name='delivery'
+        label='Notification delivery'
+        options={[
+          { value: 'email', label: 'Email' },
+          { value: 'push', label: 'Push notification' }
+        ]}
+      />
+      <NumberField name='quantity' label='Quantity' min={1} />
+      <DateField name='appointment' label='Appointment date' min='2026-01-01' />
+      <FileField name='attachment' label='Attachment' accept='.pdf,image/*' />
       <SubmitButton>Submit</SubmitButton>
     </Form>
   );

@@ -1,10 +1,15 @@
 export * from './CheckboxField/CheckboxField';
+export * from './DateField/DateField';
 export * from './createFields';
 export * from './createScopedFields';
 export * from './FieldArray/FieldArray';
+export * from './FileField/FileField';
 export * from './hooks';
 export * from './InputField/InputField';
+export * from './NumberField/NumberField';
 export * from './PasswordField/PasswordField';
+export * from './RadioGroup/RadioGroup';
+export * from './SelectField/SelectField';
 export * from './SubmitButton/SubmitButton';
 export * from './TextareaField/TextareaField';
 

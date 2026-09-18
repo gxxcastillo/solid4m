@@ -1,0 +1,38 @@
+.RadioGroup {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  color: var(--sf-color-text);
+  font-family: var(--sf-font-family);
+}
+.RadioGroup legend {
+  margin-bottom: 0.5rem;
+  font-size: var(--sf-font-size-title);
+  font-weight: var(--sf-font-weight-label);
+  text-transform: var(--sf-text-transform-label);
+}
+.options {
+  display: grid;
+  gap: 0.5rem;
+}
+.option {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  cursor: pointer;
+}
+.option input {
+  accent-color: var(--sf-color-border-focus);
+}
+.option:focus-within {
+  outline: var(--sf-focus-ring-width) solid var(--sf-color-focus-ring);
+  outline-offset: 0.2rem;
+}
+.disabled {
+  color: var(--sf-color-text-muted);
+  cursor: not-allowed;
+}
+.error {
+  composes: error from '../shared/error.module.css';
+  margin-top: 0.35rem;
+}

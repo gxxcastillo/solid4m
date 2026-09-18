@@ -2,7 +2,10 @@ import { type StringKeyOf } from 'type-fest';
 
 export type FieldName = string;
 
-export type DisplayValue = string | number | string[] | undefined;
+// File inputs expose a FileList rather than a string. It belongs in the DOM
+// display-value union so a FileField can use the shared parse/format pipeline
+// without pretending a file selection is text.
+export type DisplayValue = string | number | string[] | FileList | undefined;
 export type FieldValue = unknown;
 export type FieldValueFor<M extends object, N extends StringKeyOf<M>> = N extends keyof M ? M[N] : FieldValue;
 
@@ -66,7 +69,7 @@ export type BaseFormState<M extends object = FieldValueMapping> = {
 export type FormState<M extends object = FieldValueMapping> = BaseFormState<M> & FormStateGetters<M>;
 
 /**
-* The store's real backing shape: `BaseFormState` plus the bookkeeping that
+ * The store's real backing shape: `BaseFormState` plus the bookkeeping that
  * `BaseForm` and `SubmitButton` share but consumers have no reason to read.
  * Deliberately not re-exported from the `@gxxc/solid-forms` facade, so it is
  * reachable inside the workspace and invisible in the published surface.
