@@ -47,7 +47,15 @@ module.exports = {
     ]
   },
   parser: '@typescript-eslint/parser',
-  ignorePatterns: ['**/*.config.ts', '**/*.config.js', '**/*.config.cjs', '**/*.config.mjs'],
+  ignorePatterns: [
+    '**/*.config.ts',
+    '**/*.config.js',
+    '**/*.config.cjs',
+    '**/*.config.mjs',
+    // Vitest's own workspace-file auto-discovery requires this exact name,
+    // so it can't take the *.config.ts naming the pattern above relies on.
+    '**/vitest.workspace.ts'
+  ],
   parserOptions: {
     project: ['./tsconfig.eslint.json', './apps/**/tsconfig.json', './packages/**/tsconfig.json'],
     tsconfigRootDir: __dirname

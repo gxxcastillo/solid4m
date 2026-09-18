@@ -63,10 +63,22 @@ jobs:
               throw new Error('unexpected dependencies: ' + JSON.stringify(p.dependencies));
             if (JSON.stringify(p.exports).includes('development'))
               throw new Error('development export condition found in packed tarball');
-            if (!files.includes('package/dist/index.js'))
-              throw new Error('dist/index.js missing from tarball');
-            if (!files.includes('package/dist/index.d.ts'))
-              throw new Error('dist/index.d.ts missing from tarball');
+            for (const entry of ['package/dist/index.js', 'package/dist/index.d.ts', 'package/dist/server/index.js']) {
+              if (!files.includes(entry)) throw new Error(entry + ' missing from tarball');
+            }
+            // B5: solid-js/web's DOM runtime (template/delegateEvents) must
+            // never be inlined — it assumes \`document\` exists, which crashes
+            // the server entry, and doubles the DOM entry's bundle size.
+            for (const entry of ['package/dist/index.js', 'package/dist/server/index.js']) {
+              const code = execSync(\`tar -xOf solid-formation-*.tgz \${entry}\`, {encoding:'utf8'});
+              if (/function template\(|function delegateEvents\(/.test(code))
+                throw new Error(entry + ' inlines solid-js/web\\'s DOM runtime');
+            }
             console.log('pack ok');
           "
           rm solid-formation-*.tgz
+
+      - name: Verify tarball SSR + hydration
+        run: |
+          cd verify-tarball
+          node run.mjs

@@ -32,8 +32,15 @@ function copyThemes(): Plugin {
   };
 }
 
+// vite-plugin-solid only compiles hydratable output when its own `ssr` option
+// is set, regardless of whether *this* build targets the DOM or the server —
+// it picks dom-vs-ssr generate mode per module from Vite's own ssr transform
+// flag, which vite.server.config.ts's `build.ssr` turns on and this file
+// leaves off. A non-hydratable DOM build (the option this package used before
+// it could be server-rendered at all) would mismatch the markup produced by
+// that server build.
 export default defineConfig({
-  plugins: [solid(), dts({ rollupTypes: true, bundledPackages }), copyThemes()],
+  plugins: [solid({ ssr: true }), dts({ rollupTypes: true, bundledPackages }), copyThemes()],
   build: {
     minify: false,
     terserOptions: {
@@ -50,7 +57,11 @@ export default defineConfig({
       formats: ['es']
     },
     rollupOptions: {
-      external: ['solid-js']
+      // Matches the bare specifier and every subpath (solid-js/web,
+      // solid-js/store, …) — the old bare-only pattern let solid-js/web and
+      // solid-js/store get bundled into dist/index.js, inlining a second copy
+      // of solid's DOM runtime that assumes `document` exists (B5).
+      external: [/^solid-js(\/|$)/]
     }
   }
 });

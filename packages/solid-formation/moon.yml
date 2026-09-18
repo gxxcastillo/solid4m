@@ -1,0 +1,15 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+# Two runtime targets (browser + node/ssr) need two full `vite build` passes
+# with different vite-plugin-solid `ssr` transform behavior (dom vs ssr
+# generate mode) — Vite's classic (pre-Environment-API) build can only target
+# one at a time per invocation, so a single vite.config.ts cannot produce both.
+# scripts/build.mjs drives both builds through Vite's JS API instead of two
+# shell-level `vite build --config` calls.
+tasks:
+  build:
+    command: 'node'
+    args:
+      - 'scripts/build.mjs'
+    options:
+      mergeArgs: 'replace'

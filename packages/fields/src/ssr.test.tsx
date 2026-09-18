@@ -9,8 +9,8 @@ import { SelectField } from './SelectField/SelectField';
 
 type TestForm = { [key: string]: string; email: string };
 
-describe('SSR / renderToString smoke tests', () => {
-  it('renders InputField to string without throwing', () => {
+describe('SSR / renderToString', () => {
+  it('renders InputField to a real HTML string', () => {
     // Keep the reactive root alive while the store is consumed by renderToString;
     // dispose only after the assertions run.
     let dispose: () => void = () => {};
@@ -20,23 +20,48 @@ describe('SSR / renderToString smoke tests', () => {
     });
 
     try {
-      let html: string | undefined;
-      expect(() => {
-        html = renderToString(() => (
-          <FormContextProvider store={store}>
-            <InputField<TestForm, 'email'> name='email' label='Email' required />
-          </FormContextProvider>
-        ));
-      }).not.toThrow();
+      const html = renderToString(() => (
+        <FormContextProvider store={store}>
+          <InputField<TestForm, 'email'> name='email' label='Email' required />
+        </FormContextProvider>
+      ));
 
-      // In a true SSR/Node environment html will be a string; in a browser
-      // environment solid-js returns undefined (but does not throw).
-      if (typeof html === 'string') {
-        expect(html).toContain('input');
-        expect(html).toContain('email');
-      } else {
-        expect(html).toBeUndefined();
-      }
+      expect(html).toContain('<input');
+      expect(html).toContain('name="email"');
+      // `required` maps to `aria-required` for assistive tech only via the
+      // browser's implicit HTML-to-ARIA mapping at runtime — it is never a
+      // separate serialized attribute, so the accessibility signal to assert
+      // on here is the `required` attribute itself.
+      expect(html).toContain('required');
+      expect(html).toContain('Email');
+    } finally {
+      dispose();
+    }
+  });
+
+  it('renders an error region with role="alert" when the field has an error', () => {
+    let dispose: () => void = () => {};
+    const store = createRoot((d) => {
+      dispose = d;
+      return createFormStore<TestForm>();
+    });
+    const [, mutations] = store;
+
+    try {
+      // getDisplayableErrors only surfaces errors once hasBeenValid or
+      // hasBeenBlurred is set (see InputField.test.tsx) — a bare
+      // setFieldErrors on an unregistered field renders aria-invalid=false.
+      mutations.initializeField('email', 'valid@example.com', []);
+      mutations.setFieldValue('email', '', ['Email is required']);
+
+      const html = renderToString(() => (
+        <FormContextProvider store={store}>
+          <InputField<TestForm, 'email'> name='email' label='Email' required />
+        </FormContextProvider>
+      ));
+
+      expect(html).toContain('role="alert"');
+      expect(html).toContain('Email is required');
     } finally {
       dispose();
     }
@@ -46,17 +71,19 @@ describe('SSR / renderToString smoke tests', () => {
     expect(() => generateHydrationScript()).not.toThrow();
   });
 
-  it('renders SelectField to string without throwing', () => {
+  it('renders SelectField to a real HTML string', () => {
     const store = createRoot(() => createFormStore<TestForm>());
 
-    expect(() =>
-      renderToString(() => (
-        <FormContextProvider store={store}>
-          <SelectField<TestForm, 'email'> name='email' label='Email kind'>
-            <option value='work'>Work</option>
-          </SelectField>
-        </FormContextProvider>
-      ))
-    ).not.toThrow();
+    const html = renderToString(() => (
+      <FormContextProvider store={store}>
+        <SelectField<TestForm, 'email'> name='email' label='Email kind'>
+          <option value='work'>Work</option>
+        </SelectField>
+      </FormContextProvider>
+    ));
+
+    expect(html).toContain('<select');
+    expect(html).toContain('<option');
+    expect(html).toContain('Work');
   });
 });

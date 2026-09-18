@@ -39,6 +39,10 @@ pnpm moon :types :lint :test :coverage :build :a11y
 All six must pass before work is considered done. `:a11y` runs Playwright + axe
 against `apps/a11y` and needs Chromium installed.
 
+A seventh check, `verify-tarball/` (see Testing notes below), runs in CI but
+is outside this moon baseline — it packs and installs the real tarball, which
+none of the six tasks above do.
+
 **moon's local task cache can desync from reality.** If you `rm -rf` a package's
 `dist/` without clearing `.moon/cache`, moon keeps reporting a stale cached
 success. If typecheck or build output looks inconsistent with the source,
@@ -53,11 +57,26 @@ facade-level type check.
 
 ## Testing notes
 
-`renderToString` from `solid-js/web` does not reliably execute the component
-tree under Vitest here — it hits solid's "not supported in the browser" guard
-even in a `node` environment. See `packages/fields/src/ssr.test.tsx` for the
-tolerant pattern, and prefer invoking JSX inside `createRoot` (see
-`packages/state/src/FormContext.test.tsx`) to exercise context propagation.
+Real SSR under Vitest needs its own project: `packages/fields/vitest.ssr.config.ts`
+(wired up via `vitest.workspace.ts`) sets `environment: 'node'`,
+`resolve.conditions: ['node']`, and — the part that actually matters —
+`ssr.noExternal: ['solid-js']`. Without `noExternal`, Vite's SSR dev pipeline
+treats `solid-js` as an external Node dependency and lets Node resolve it
+outside this config entirely, which can land different imports on different
+builds of the package (dev vs. server, each with its own module-level state)
+within the same render — `renderToString`'s hydration context then never
+reaches the components that read it. See `packages/fields/src/ssr.test.tsx`.
+For plain (non-SSR) context propagation, prefer invoking JSX inside
+`createRoot` (see `packages/state/src/FormContext.test.tsx`).
+
+That covers the component source; the built package's own SSR/hydration
+correctness is a separate concern, covered by `verify-tarball/` at the repo
+root: it packs the facade, installs the tarball outside the pnpm workspace (so
+nothing resolves through a source alias, unlike `apps/docs`/`apps/a11y`), and
+hydrates it in real Chromium via Playwright. Run it with
+`cd verify-tarball && node run.mjs`. This is the check that would have caught
+a published bundle that inlines `solid-js/web`'s DOM runtime and crashes under
+SSR — it runs in CI but is not part of the `pnpm moon` baseline below.
 
 Tests in `packages/fields` cannot import `@gxxc/solid-formation-form` (the
 dependency runs the other way). Put cross-package integration tests in
