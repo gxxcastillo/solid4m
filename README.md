@@ -1,8 +1,8 @@
-# solid-forms
+# solid-formation
 
 Typed, reactive forms for SolidJS.
 
-**Documentation:** https://gxxcastillo.github.io/solid-forms/
+**Documentation:** https://gxxcastillo.github.io/solid-formation/
 
 ---
 
@@ -37,7 +37,7 @@ pnpm moon :types    # typecheck all packages
 pnpm moon :lint     # lint all packages
 
 # target a single project
-pnpm moon solid-forms-state:test
+pnpm moon state:test
 pnpm moon docs:dev
 ```
 
@@ -63,22 +63,22 @@ pnpm changeset
 
 ```bash
 pnpm bump          # bump package versions based on changesets
-pnpm run publish   # build, pack, and publish @gxxc/solid-forms
+pnpm run publish   # build, pack, and publish solid-formation
 ```
 
-pnpm uses `publishConfig.exports` in `packages/solid-forms/package.json` to strip the `development` export condition from the published tarball. Internal workspace packages are listed only in `devDependencies` and are bundled into `dist/index.js` at build time, so they do not appear as runtime dependencies.
+pnpm uses `publishConfig.exports` in `packages/solid-formation/package.json` to strip the `development` export condition from the published tarball. Internal workspace packages are listed only in `devDependencies` and are bundled into `dist/index.js` at build time, so they do not appear as runtime dependencies.
 
 ---
 
 ## Monorepo structure
 
-| Path                   | Package                        | Description                                                                                                  |
-| ---------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------ |
-| `packages/solid-forms` | `@gxxc/solid-forms`            | Public facade — re-exports the full API                                                                      |
-| `packages/state`       | `@gxxc/solid-forms-state`      | Form store, context, and field mutations                                                                     |
-| `packages/form`        | `@gxxc/solid-forms-form`       | `Form`, `useForm`, submit pipeline                                                                           |
-| `packages/fields`      | `@gxxc/solid-forms-fields`     | `InputField`, `PasswordField`, `TextAreaField`, `CheckboxField`, `SelectField`, `RadioGroup`, `SubmitButton` |
-| `packages/elements`    | `@gxxc/solid-forms-elements`   | Primitive DOM wrappers                                                                                       |
-| `packages/validation`  | `@gxxc/solid-forms-validation` | Built-in constraint validation                                                                               |
-| `packages/examples`    | —                              | Standalone example components                                                                                |
-| `apps/docs`            | —                              | Astro docs site with live demo                                                                               |
+| Path                       | Package                            | Description                                                                                                  |
+| -------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `packages/solid-formation` | `solid-formation`                  | Public facade — re-exports the full API                                                                      |
+| `packages/state`           | `@gxxc/solid-formation-state`      | Form store, context, and field mutations                                                                     |
+| `packages/form`            | `@gxxc/solid-formation-form`       | `Form`, `useForm`, submit pipeline                                                                           |
+| `packages/fields`          | `@gxxc/solid-formation-fields`     | `InputField`, `PasswordField`, `TextAreaField`, `CheckboxField`, `SelectField`, `RadioGroup`, `SubmitButton` |
+| `packages/elements`        | `@gxxc/solid-formation-elements`   | Primitive DOM wrappers                                                                                       |
+| `packages/validation`      | `@gxxc/solid-formation-validation` | Built-in constraint validation                                                                               |
+| `packages/examples`        | —                                  | Standalone example components                                                                                |
+| `apps/docs`                | —                                  | Astro docs site with live demo                                                                               |

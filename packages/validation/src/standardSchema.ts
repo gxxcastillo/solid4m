@@ -1,4 +1,4 @@
-import { type ErrorMessages, type FormFields } from '@gxxc/solid-forms-state';
+import { type ErrorMessages, type FormFields } from '@gxxc/solid-formation-state';
 
 import {
   type SchemaValidationResult,

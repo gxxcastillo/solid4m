@@ -7,7 +7,7 @@ import {
   type FormStore,
   createFormStore,
   useFormContext
-} from '@gxxc/solid-forms-state';
+} from '@gxxc/solid-formation-state';
 
 import { BaseForm, type BaseFormPropsWithSubmit } from '../BaseForm/BaseForm';
 import {

@@ -8,11 +8,11 @@ import solid from 'vite-plugin-solid';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const bundledPackages = [
-  '@gxxc/solid-forms-elements',
-  '@gxxc/solid-forms-fields',
-  '@gxxc/solid-forms-form',
-  '@gxxc/solid-forms-state',
-  '@gxxc/solid-forms-validation',
+  '@gxxc/solid-formation-elements',
+  '@gxxc/solid-formation-fields',
+  '@gxxc/solid-formation-form',
+  '@gxxc/solid-formation-state',
+  '@gxxc/solid-formation-validation',
   'type-fest'
 ];
 

@@ -9,7 +9,7 @@ value types. Schema issues with field paths are mapped back onto registered fiel
 ```tsx
 import { z } from 'zod';
 
-import { Form, InputField, PasswordField, SubmitButton } from '@gxxc/solid-forms';
+import { Form, InputField, PasswordField, SubmitButton } from 'solid-formation';
 
 const loginSchema = z.object({
   email: z.string().email('Enter a valid email'),

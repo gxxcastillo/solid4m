@@ -1,7 +1,7 @@
-import type { CustomValidator, FormFieldProps, FormatFunction, ParseFunction } from '@gxxc/solid-forms';
+import type { CustomValidator, FormFieldProps, FormatFunction, ParseFunction } from 'solid-formation';
 
 // Compile-only regression fixture: proves FormFieldProps/CustomValidator/
-// ParseFunction/FormatFunction resolve through the public `@gxxc/solid-forms`
+// ParseFunction/FormatFunction resolve through the public `solid-formation`
 // facade, matching what custom-fields.md and validation.md tell users to
 // import — these were once defined but never re-exported, so nothing caught
 // consumers being unable to import them until this fixture was added.

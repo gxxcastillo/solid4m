@@ -7,8 +7,8 @@ import {
   type FormStateMutations,
   isObjectLike,
   setOwnEnumerableProperty
-} from '@gxxc/solid-forms-state';
-import { validateWithSchema } from '@gxxc/solid-forms-validation';
+} from '@gxxc/solid-formation-state';
+import { validateWithSchema } from '@gxxc/solid-formation-validation';
 
 import {
   type BaseFormElementSubmitEvent,
@@ -112,8 +112,8 @@ export function resolveSubmitHandler<P extends RequestProps, R extends SubmitRes
     .join(', ');
   console.warn(
     buttonName
-      ? `[solid-forms] Submit did nothing: onSubmit has no handler named "${buttonName}". Available handlers: ${available}.`
-      : `[solid-forms] Submit did nothing: onSubmit is a map of handlers (${available}) but the button that submitted the form has no \`name\`, so none of them could be selected. Give each SubmitButton a \`name\` matching one of those keys.`
+      ? `[solid-formation] Submit did nothing: onSubmit has no handler named "${buttonName}". Available handlers: ${available}.`
+      : `[solid-formation] Submit did nothing: onSubmit is a map of handlers (${available}) but the button that submitted the form has no \`name\`, so none of them could be selected. Give each SubmitButton a \`name\` matching one of those keys.`
   );
 
   return undefined;

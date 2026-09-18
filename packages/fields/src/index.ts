@@ -18,6 +18,6 @@ export * from './TextareaField/TextareaField';
 // plus internal composition plumbing (FieldProps, event types, etc.) that
 // tags along. Must be `export *`, not a named `export type {...} from`: the
 // named form crashes @microsoft/api-extractor's dts bundling for the
-// `@gxxc/solid-forms` build ("Unable to follow symbol for JSX") because
+// `solid-formation` build ("Unable to follow symbol for JSX") because
 // FormFieldProps resolves through the global JSX namespace.
 export * from './types';

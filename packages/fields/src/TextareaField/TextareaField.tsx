@@ -1,8 +1,8 @@
 import { createMemo, createUniqueId, splitProps } from 'solid-js';
 import { type StringKeyOf } from 'type-fest';
 
-import { Textarea } from '@gxxc/solid-forms-elements';
-import { type FieldValueMapping, useFormContext } from '@gxxc/solid-forms-state';
+import { Textarea } from '@gxxc/solid-formation-elements';
+import { type FieldValueMapping, useFormContext } from '@gxxc/solid-formation-state';
 
 import { createFormField, useFormFieldLabel } from '../hooks';
 import { type FormFieldProps } from '../types';

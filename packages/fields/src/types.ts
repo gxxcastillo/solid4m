@@ -8,8 +8,8 @@ import {
   type FieldValueFor,
   type FieldValueMapping,
   type FormState
-} from '@gxxc/solid-forms-state';
-import { type ValidationConstraints } from '@gxxc/solid-forms-validation';
+} from '@gxxc/solid-formation-state';
+import { type ValidationConstraints } from '@gxxc/solid-formation-validation';
 
 export type CustomValidator<M extends object, N extends StringKeyOf<M>> = (
   fieldName: N,

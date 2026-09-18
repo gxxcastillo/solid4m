@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { setComponentName } from '@gxxc/solid-forms-state';
+import { setComponentName } from '@gxxc/solid-formation-state';
 
 import { classifyBaseFormChildren } from './BaseForm';
 
@@ -12,7 +12,7 @@ function component(name: string) {
   return el;
 }
 
-const componentNameRegistryKey = Symbol.for('@gxxc/solid-forms/component-name-registry');
+const componentNameRegistryKey = Symbol.for('solid-formation/component-name-registry');
 
 describe('classifyBaseFormChildren', () => {
   it('classifies fields, buttons, links, and other children without mutating during render', () => {

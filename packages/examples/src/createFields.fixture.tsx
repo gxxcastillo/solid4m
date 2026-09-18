@@ -1,4 +1,4 @@
-import { createFields } from '@gxxc/solid-forms';
+import { createFields } from 'solid-formation';
 
 // Compile-only regression fixture: proves createFields binds M once so
 // individual field calls need no <M, N> generics, while still checking `name`

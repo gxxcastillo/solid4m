@@ -1,4 +1,4 @@
-import { PasswordField } from '@gxxc/solid-forms';
+import { PasswordField } from 'solid-formation';
 
 // Compile-only regression fixture: proves `match` is checked against the
 // form's real field names once a field is given explicit <M, N> generics —

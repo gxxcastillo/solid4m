@@ -8,16 +8,16 @@
     "jsx": "preserve",
     "jsxImportSource": "solid-js",
     "paths": {
-      "@gxxc/solid-forms/styles.css": ["../../packages/solid-forms/src/index.ts"],
-      "@gxxc/solid-forms/themes/*": ["../../packages/solid-forms/themes/*"],
-      "@gxxc/solid-forms-examples": ["../../packages/examples/src/index.ts"],
-      "@gxxc/solid-forms": ["../../packages/solid-forms/src/index.ts"]
+      "solid-formation/styles.css": ["../../packages/solid-formation/src/index.ts"],
+      "solid-formation/themes/*": ["../../packages/solid-formation/themes/*"],
+      "@gxxc/solid-formation-examples": ["../../packages/examples/src/index.ts"],
+      "solid-formation": ["../../packages/solid-formation/src/index.ts"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "tests/**/*.ts", "playwright.config.ts", "vite.config.ts"],
   "references": [
     {
-      "path": "../../packages/solid-forms"
+      "path": "../../packages/solid-formation"
     },
     {
       "path": "../../packages/examples"

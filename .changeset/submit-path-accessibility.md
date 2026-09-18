@@ -1,5 +1,5 @@
 ---
-'@gxxc/solid-forms': minor
+'solid-formation': minor
 ---
 
 Make an invalid form submittable, and make the failure explain itself.

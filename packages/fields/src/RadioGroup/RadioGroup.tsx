@@ -1,7 +1,7 @@
 import { For, createUniqueId, splitProps } from 'solid-js';
 import { type StringKeyOf } from 'type-fest';
 
-import { type FieldValueMapping } from '@gxxc/solid-forms-state';
+import { type FieldValueMapping } from '@gxxc/solid-formation-state';
 
 import { createFormField } from '../hooks';
 import { type FormFieldProps } from '../types';

@@ -1,4 +1,4 @@
-import { type FieldArrayHelpers, FieldArray, Form, SubmitButton } from '@gxxc/solid-forms';
+import { type FieldArrayHelpers, FieldArray, Form, SubmitButton } from 'solid-formation';
 
 export interface LineItem {
   description: string;

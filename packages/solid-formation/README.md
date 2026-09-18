@@ -1,16 +1,16 @@
-# @gxxc/solid-forms
+# solid-formation
 
 Typed, reactive forms for [SolidJS](https://www.solidjs.com/).
 
-**Docs:** https://gxxcastillo.github.io/solid-forms/
-**Demo:** https://gxxcastillo.github.io/solid-forms/demo/
+**Docs:** https://gxxcastillo.github.io/solid-formation/
+**Demo:** https://gxxcastillo.github.io/solid-formation/demo/
 
 ## Installation
 
 ```bash
-npm install @gxxc/solid-forms
+npm install solid-formation
 # or
-pnpm add @gxxc/solid-forms
+pnpm add solid-formation
 ```
 
 Requires SolidJS 1.x as a peer dependency.
@@ -20,11 +20,11 @@ Requires SolidJS 1.x as a peer dependency.
 Import the stylesheet once in your app entry, then use the form and field components.
 
 ```ts
-import '@gxxc/solid-forms/styles.css';
+import 'solid-formation/styles.css';
 ```
 
 ```tsx
-import { Form, InputField, PasswordField, SubmitButton } from '@gxxc/solid-forms';
+import { Form, InputField, PasswordField, SubmitButton } from 'solid-formation';
 
 function LoginForm() {
   return (
@@ -40,7 +40,7 @@ function LoginForm() {
 Use `useForm` when you need typed values or reactive form state outside the form tree:
 
 ```tsx
-import { InputField, PasswordField, SubmitButton, useForm } from '@gxxc/solid-forms';
+import { InputField, PasswordField, SubmitButton, useForm } from 'solid-formation';
 
 interface LoginValues {
   email: string;
@@ -74,10 +74,10 @@ to infer submit values from the schema instead of writing the values interface b
 
 ## Learn More
 
-- [Installation](https://gxxcastillo.github.io/solid-forms/installation/)
-- [Theming](https://gxxcastillo.github.io/solid-forms/theming/)
-- [Validation](https://gxxcastillo.github.io/solid-forms/validation/)
-- [Async submission](https://gxxcastillo.github.io/solid-forms/submission/)
-- [Custom fields](https://gxxcastillo.github.io/solid-forms/custom-fields/)
-- [API reference](https://gxxcastillo.github.io/solid-forms/api/)
-- [Solid vs React mental model](https://gxxcastillo.github.io/solid-forms/solid-vs-react/)
+- [Installation](https://gxxcastillo.github.io/solid-formation/installation/)
+- [Theming](https://gxxcastillo.github.io/solid-formation/theming/)
+- [Validation](https://gxxcastillo.github.io/solid-formation/validation/)
+- [Async submission](https://gxxcastillo.github.io/solid-formation/submission/)
+- [Custom fields](https://gxxcastillo.github.io/solid-formation/custom-fields/)
+- [API reference](https://gxxcastillo.github.io/solid-formation/api/)
+- [Solid vs React mental model](https://gxxcastillo.github.io/solid-formation/solid-vs-react/)

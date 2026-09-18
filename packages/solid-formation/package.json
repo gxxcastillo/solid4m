@@ -1,14 +1,24 @@
 {
-  "name": "@gxxc/solid-forms",
+  "name": "solid-formation",
   "version": "0.2.0",
   "type": "module",
-  "description": "Solid.js forms",
+  "description": "Typed, accessible, SSR-ready forms for SolidJS",
+  "keywords": [
+    "solid",
+    "solidjs",
+    "solid-js",
+    "form",
+    "forms",
+    "validation",
+    "standard-schema",
+    "solid-start"
+  ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/gxxcastillo/solid-forms",
-    "directory": "packages/solid-forms"
+    "url": "https://github.com/gxxcastillo/solid-formation",
+    "directory": "packages/solid-formation"
   },
-  "homepage": "https://gxxcastillo.github.io/solid-forms/",
+  "homepage": "https://gxxcastillo.github.io/solid-formation/",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
@@ -49,15 +59,15 @@
   },
   "scripts": {
     "prepublishOnly": "vite build",
-    "postpublish": "git tag @gxxc/solid-forms@$(node -p \"require('./package.json').version\") && git push origin @gxxc/solid-forms@$(node -p \"require('./package.json').version\")"
+    "postpublish": "git tag solid-formation@$(node -p \"require('./package.json').version\") && git push origin solid-formation@$(node -p \"require('./package.json').version\")"
   },
   "files": [
     "dist"
   ],
   "devDependencies": {
-    "@gxxc/solid-forms-fields": "workspace:^",
-    "@gxxc/solid-forms-form": "workspace:^",
-    "@gxxc/solid-forms-state": "workspace:^",
+    "@gxxc/solid-formation-fields": "workspace:^",
+    "@gxxc/solid-formation-form": "workspace:^",
+    "@gxxc/solid-formation-state": "workspace:^",
     "type-fest": "^4.24.0",
     "typescript": "5.4.2",
     "vite": "^5.4.0",

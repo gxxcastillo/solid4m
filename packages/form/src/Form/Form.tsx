@@ -1,6 +1,6 @@
 import { type JSX } from 'solid-js';
 
-import { type FieldValueMapping } from '@gxxc/solid-forms-state';
+import { type FieldValueMapping } from '@gxxc/solid-formation-state';
 
 import { type BaseFormProps, type BaseFormPropsWithSubmit } from '../BaseForm/BaseForm';
 import { useForm } from '../hooks/useForm';

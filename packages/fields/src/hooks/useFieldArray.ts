@@ -1,6 +1,6 @@
 import { type Accessor, batch, createSignal, createUniqueId } from 'solid-js';
 
-import { shiftFieldArrayIndex, useFormContext } from '@gxxc/solid-forms-state';
+import { shiftFieldArrayIndex, useFormContext } from '@gxxc/solid-formation-state';
 
 export type FieldArrayItem<T> = {
   // Stable identity for <For>'s keying — never derived from index, never

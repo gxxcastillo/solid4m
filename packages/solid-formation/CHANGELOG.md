@@ -1,4 +1,4 @@
-# @gxxc/solid-forms
+# solid-formation
 
 ## 0.2.0
 

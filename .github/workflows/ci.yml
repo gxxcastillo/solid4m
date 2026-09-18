@@ -53,12 +53,12 @@ jobs:
 
       - name: Verify pack
         run: |
-          cd packages/solid-forms
+          cd packages/solid-formation
           pnpm pack
           node -e "
             const {execSync} = require('child_process');
-            const files = execSync('tar -tzf gxxc-solid-forms-*.tgz', {encoding:'utf8'});
-            const p = JSON.parse(execSync('tar -xOf gxxc-solid-forms-*.tgz package/package.json', {encoding:'utf8'}));
+            const files = execSync('tar -tzf solid-formation-*.tgz', {encoding:'utf8'});
+            const p = JSON.parse(execSync('tar -xOf solid-formation-*.tgz package/package.json', {encoding:'utf8'}));
             if (p.dependencies && Object.keys(p.dependencies).length)
               throw new Error('unexpected dependencies: ' + JSON.stringify(p.dependencies));
             if (JSON.stringify(p.exports).includes('development'))
@@ -69,4 +69,4 @@ jobs:
               throw new Error('dist/index.d.ts missing from tarball');
             console.log('pack ok');
           "
-          rm gxxc-solid-forms-*.tgz
+          rm solid-formation-*.tgz

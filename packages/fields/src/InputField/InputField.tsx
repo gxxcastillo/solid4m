@@ -1,13 +1,13 @@
 import { type JSX, createMemo, createUniqueId, splitProps } from 'solid-js';
 import { type StringKeyOf } from 'type-fest';
 
-import { Input } from '@gxxc/solid-forms-elements';
+import { Input } from '@gxxc/solid-formation-elements';
 import {
   type FieldValueFor,
   type FieldValueMapping,
   type FormState,
   useFormContext
-} from '@gxxc/solid-forms-state';
+} from '@gxxc/solid-formation-state';
 
 import { createFormField } from '../hooks';
 import { type FormFieldProps } from '../types';

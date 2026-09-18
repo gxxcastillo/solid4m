@@ -1,7 +1,7 @@
 import { type JSX } from 'solid-js';
 import { type StringKeyOf } from 'type-fest';
 
-import { type FieldValueMapping } from '@gxxc/solid-forms-state';
+import { type FieldValueMapping } from '@gxxc/solid-formation-state';
 
 import { CheckboxField, type CheckboxFieldProps } from './CheckboxField/CheckboxField';
 import { DateField, type DateFieldProps } from './DateField/DateField';

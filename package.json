@@ -1,14 +1,14 @@
 {
-  "name": "@gxxc/solid-forms-repo",
+  "name": "@gxxc/solid-formation-repo",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "description": "Solid.js forms",
   "repository": {
     "type": "git",
-    "url": "https://github.com/gxxcastillo/solid-forms"
+    "url": "https://github.com/gxxcastillo/solid-formation"
   },
-  "homepage": "https://gxxcastillo.github.io/solid-forms/",
+  "homepage": "https://gxxcastillo.github.io/solid-formation/",
   "scripts": {
     "clean": "pnpm clean:modules && pnpm clean:dist",
     "clean:modules": "find . -name 'node_modules' -print -type d -prune -exec rm -rf '{}' + ",
@@ -21,7 +21,7 @@
     "format": "pnpm moon :format",
     "bump": "pnpm changeset version",
     "prepublishOnly": "node --eval \"console.error('\\nRun pnpm run publish instead.\\n'); process.exit(1)\"",
-    "publish": "pnpm --filter @gxxc/solid-forms publish"
+    "publish": "pnpm --filter solid-formation publish"
   },
   "keywords": [
     "solid-js",

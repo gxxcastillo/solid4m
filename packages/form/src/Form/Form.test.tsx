@@ -1,7 +1,7 @@
 import { cleanup, render, screen } from '@solidjs/testing-library';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { useFormContext } from '@gxxc/solid-forms-state';
+import { useFormContext } from '@gxxc/solid-formation-state';
 
 import { Form } from './Form';
 

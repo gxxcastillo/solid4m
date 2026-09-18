@@ -1,5 +1,5 @@
 ---
-'@gxxc/solid-forms': minor
+'solid-formation': minor
 ---
 
 Make `<Form isProcessing>` and `<Form isLoading>` actually do something.

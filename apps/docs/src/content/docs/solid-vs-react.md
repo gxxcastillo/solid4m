@@ -1,6 +1,6 @@
 ---
 title: Solid vs React mental model
-description: How solid-forms differs from React form libraries.
+description: How solid-formation differs from React form libraries.
 ---
 
 Solid and React both use JSX, but their update models are different. In React, form state often flows
@@ -14,14 +14,14 @@ In React, updating form state with a state setter usually reruns the component f
 reconciles the next render output. You often manage that with local state, memoized callbacks,
 component boundaries, or context selectors.
 
-solid-forms writes field changes into a Solid store. When JSX reads `form.state.isFormValid` or
+solid-formation writes field changes into a Solid store. When JSX reads `form.state.isFormValid` or
 `form.state.getFieldValue('email')`, Solid tracks that read and updates the dependent binding. The
 rest of the component tree does not rerun just because one field changed.
 
 ## Fields are form-aware components
 
 In React, you usually choose between controlled inputs (`value` plus `onChange`) and uncontrolled
-inputs (`defaultValue` plus refs or form reads). With solid-forms, the field components provide the
+inputs (`defaultValue` plus refs or form reads). With solid-formation, the field components provide the
 input props, event handlers, validation state, and store synchronization for you.
 
 You still declare normal JSX:
@@ -49,7 +49,7 @@ There is no extra effect, selector, or memoized callback needed just to keep tha
 ## `parse` and `format` instead of `valueAs`
 
 Browser text inputs still emit strings. In React, type conversion often happens inside `onChange`,
-inside submit handlers, or in a form helper. solid-forms makes the conversion part of the field
+inside submit handlers, or in a form helper. solid-formation makes the conversion part of the field
 contract.
 
 ```tsx

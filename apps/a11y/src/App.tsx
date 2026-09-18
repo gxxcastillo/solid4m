@@ -1,6 +1,6 @@
 import { Match, Switch } from 'solid-js';
 
-import { LineItemsForm, LoginForm, SignupForm, UserSettingsForm } from '@gxxc/solid-forms-examples';
+import { LineItemsForm, LoginForm, SignupForm, UserSettingsForm } from '@gxxc/solid-formation-examples';
 
 import './App.css';
 import { resolveFixtureRoute } from './routes';

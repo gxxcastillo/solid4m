@@ -1,1 +1,1 @@
-## @gxxc/solid-forms-state
+## @gxxc/solid-formation-state

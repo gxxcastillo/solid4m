@@ -1,6 +1,6 @@
 import { type JSX } from 'solid-js';
 
-import { SubmitButton, createForm } from '@gxxc/solid-forms';
+import { SubmitButton, createForm } from 'solid-formation';
 
 export interface SignupValues {
   email: string;

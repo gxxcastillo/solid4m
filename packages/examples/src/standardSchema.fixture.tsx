@@ -6,7 +6,7 @@ import {
   type StandardSchemaV1Types,
   SubmitButton,
   useForm
-} from '@gxxc/solid-forms';
+} from 'solid-formation';
 
 // Compile-only regression fixture: proves a Standard Schema can infer the form
 // value type without a hand-written generic or an index signature on the values.

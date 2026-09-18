@@ -71,7 +71,7 @@ export type FormState<M extends object = FieldValueMapping> = BaseFormState<M> &
 /**
  * The store's real backing shape: `BaseFormState` plus the bookkeeping that
  * `BaseForm` and `SubmitButton` share but consumers have no reason to read.
- * Deliberately not re-exported from the `@gxxc/solid-forms` facade, so it is
+ * Deliberately not re-exported from the `solid-formation` facade, so it is
  * reachable inside the workspace and invisible in the published surface.
  *
  * `processingSubmitter` identifies which submit button started the in-flight

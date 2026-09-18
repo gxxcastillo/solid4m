@@ -3,10 +3,10 @@
 > non-trivial work — coding or not — and keep it current as you go. It holds private
 > working state; it does not replace the project's designated shared sources of truth.
 
-# solid-forms — agent instructions
+# solid-formation — agent instructions
 
-Typed, reactive forms for SolidJS. pnpm + moon monorepo. `@gxxc/solid-forms`
-(`packages/solid-forms`) is the only published package; everything else is
+Typed, reactive forms for SolidJS. pnpm + moon monorepo. `solid-formation`
+(`packages/solid-formation`) is the only published package; everything else is
 private and bundled into it at build time.
 
 ## Conventions
@@ -59,6 +59,6 @@ even in a `node` environment. See `packages/fields/src/ssr.test.tsx` for the
 tolerant pattern, and prefer invoking JSX inside `createRoot` (see
 `packages/state/src/FormContext.test.tsx`) to exercise context propagation.
 
-Tests in `packages/fields` cannot import `@gxxc/solid-forms-form` (the
+Tests in `packages/fields` cannot import `@gxxc/solid-formation-form` (the
 dependency runs the other way). Put cross-package integration tests in
-`packages/solid-forms`, which depends on both.
+`packages/solid-formation`, which depends on both.

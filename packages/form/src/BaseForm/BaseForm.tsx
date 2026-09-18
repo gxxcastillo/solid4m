@@ -4,7 +4,7 @@ import {
   type ErrorMessages,
   getComponentName as lookupComponentName,
   useFormContext
-} from '@gxxc/solid-forms-state';
+} from '@gxxc/solid-formation-state';
 
 import {
   type BaseFormOnSubmit,

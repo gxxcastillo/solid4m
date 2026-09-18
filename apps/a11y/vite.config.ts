@@ -10,20 +10,20 @@ export default defineConfig({
   resolve: {
     alias: [
       {
-        find: '@gxxc/solid-forms/styles.css',
-        replacement: resolve(__dirname, '../../packages/solid-forms/src/index.ts')
+        find: 'solid-formation/styles.css',
+        replacement: resolve(__dirname, '../../packages/solid-formation/src/index.ts')
       },
       {
-        find: '@gxxc/solid-forms/themes',
-        replacement: resolve(__dirname, '../../packages/solid-forms/themes')
+        find: 'solid-formation/themes',
+        replacement: resolve(__dirname, '../../packages/solid-formation/themes')
       },
       {
-        find: '@gxxc/solid-forms-examples',
+        find: '@gxxc/solid-formation-examples',
         replacement: resolve(__dirname, '../../packages/examples/src/index.ts')
       },
       {
-        find: '@gxxc/solid-forms',
-        replacement: resolve(__dirname, '../../packages/solid-forms/src/index.ts')
+        find: 'solid-formation',
+        replacement: resolve(__dirname, '../../packages/solid-formation/src/index.ts')
       }
     ]
   }

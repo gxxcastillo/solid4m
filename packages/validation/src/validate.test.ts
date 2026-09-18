@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { type FormState } from '@gxxc/solid-forms-state';
+import { type FormState } from '@gxxc/solid-formation-state';
 
 import { validate } from './validate';
 

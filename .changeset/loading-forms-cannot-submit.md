@@ -1,5 +1,5 @@
 ---
-'@gxxc/solid-forms': patch
+'solid-formation': patch
 ---
 
 Prevent forms from submitting while `isLoading` is true. Submit buttons now receive

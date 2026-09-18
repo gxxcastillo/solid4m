@@ -1,6 +1,6 @@
 ---
 title: Theming
-description: Customize solid-forms with CSS custom properties and bundled themes.
+description: Customize solid-formation with CSS custom properties and bundled themes.
 ---
 
 Every skinnable value is a CSS custom property namespaced with `--sf-`: colors, spacing, radii,
@@ -32,10 +32,10 @@ Three themes ship with the package:
 Import one or more themes and activate the one you want.
 
 ```ts
-import '@gxxc/solid-forms/styles.css';
-import '@gxxc/solid-forms/themes/midnight.css';
-import '@gxxc/solid-forms/themes/minimal.css';
-import '@gxxc/solid-forms/themes/neobrutalist.css';
+import 'solid-formation/styles.css';
+import 'solid-formation/themes/midnight.css';
+import 'solid-formation/themes/minimal.css';
+import 'solid-formation/themes/neobrutalist.css';
 ```
 
 ```tsx
@@ -78,7 +78,7 @@ Set as many or as few tokens as you need. Omitted values fall back to the defaul
 }
 ```
 
-If you only want tokens for surrounding UI, import `@gxxc/solid-forms/themes/base.css` instead of the
+If you only want tokens for surrounding UI, import `solid-formation/themes/base.css` instead of the
 full structural stylesheet.
 
 ## Token reference

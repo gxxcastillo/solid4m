@@ -1,5 +1,5 @@
 {
-  "name": "@gxxc/solid-forms-examples",
+  "name": "@gxxc/solid-formation-examples",
   "version": "0.0.3",
   "private": true,
   "type": "module",
@@ -7,7 +7,7 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@gxxc/solid-forms": "workspace:*",
+    "solid-formation": "workspace:*",
     "solid-js": "^1.8.20"
   },
   "devDependencies": {

@@ -1,7 +1,7 @@
 import { type Accessor, type JSX, mergeProps } from 'solid-js';
 import { type StringKeyOf } from 'type-fest';
 
-import { type ErrorMessages, type FormField, type FormState } from '@gxxc/solid-forms-state';
+import { type ErrorMessages, type FormField, type FormState } from '@gxxc/solid-formation-state';
 
 import { InputField, type InputFieldProps } from './InputField/InputField';
 import { PasswordField, type PasswordFieldProps } from './PasswordField/PasswordField';

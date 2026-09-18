@@ -1,4 +1,4 @@
-import { SubmitButton, createForm } from '@gxxc/solid-forms';
+import { SubmitButton, createForm } from 'solid-formation';
 
 export interface UserSettingsValues {
   username: string;

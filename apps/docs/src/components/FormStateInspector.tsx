@@ -1,6 +1,6 @@
 import { For, type JSX, Show, createMemo } from 'solid-js';
 
-import type { FormState } from '@gxxc/solid-forms';
+import type { FormState } from 'solid-formation';
 
 import styles from './FormStateInspector.module.css';
 

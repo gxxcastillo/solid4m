@@ -1,6 +1,6 @@
 import { type StringKeyOf } from 'type-fest';
 
-import { type FieldValueMapping } from '@gxxc/solid-forms-state';
+import { type FieldValueMapping } from '@gxxc/solid-formation-state';
 
 import { InputField, type InputFieldProps } from '../InputField/InputField';
 

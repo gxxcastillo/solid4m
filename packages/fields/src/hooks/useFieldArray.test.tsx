@@ -1,7 +1,7 @@
 import { createRoot, createSignal } from 'solid-js';
 import { describe, expect, it } from 'vitest';
 
-import { FormContextProvider, type FormStore, createFormStore } from '@gxxc/solid-forms-state';
+import { FormContextProvider, type FormStore, createFormStore } from '@gxxc/solid-formation-state';
 
 import { type FieldArrayHelpers, type FieldArrayItem, useFieldArray } from './useFieldArray';
 

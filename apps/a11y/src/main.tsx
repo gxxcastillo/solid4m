@@ -1,9 +1,9 @@
 import { render } from 'solid-js/web';
 
-import '@gxxc/solid-forms/styles.css';
-import '@gxxc/solid-forms/themes/minimal.css';
-import '@gxxc/solid-forms/themes/midnight.css';
-import '@gxxc/solid-forms/themes/neobrutalist.css';
+import 'solid-formation/styles.css';
+import 'solid-formation/themes/minimal.css';
+import 'solid-formation/themes/midnight.css';
+import 'solid-formation/themes/neobrutalist.css';
 
 import App from './App';
 

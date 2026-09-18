@@ -1,5 +1,5 @@
 ---
-'@gxxc/solid-forms': minor
+'solid-formation': minor
 ---
 
 Add a `step` constraint, closing the rest of the `noValidate` gap.
