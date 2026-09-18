@@ -9,7 +9,7 @@ export interface StandardSchemaV1Props<Input = unknown, Output = Input> {
   readonly vendor: string;
   readonly validate: (
     value: unknown,
-    options?: StandardSchemaV1Options | undefined
+    options?: StandardSchemaV1Options
   ) => StandardSchemaV1Result<Output> | Promise<StandardSchemaV1Result<Output>>;
   readonly types?: StandardSchemaV1Types<Input, Output> | undefined;
 }

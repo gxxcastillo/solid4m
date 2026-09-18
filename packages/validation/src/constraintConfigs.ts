@@ -414,6 +414,10 @@ export const constraintConfigs: ConstraintConfigs = {
       if (typeof pattern !== 'string' && !(pattern instanceof RegExp)) return false;
       // Emptiness is `required`'s concern; an absent value can't violate a pattern.
       if (val === undefined || val === null || val === '') return true;
+      // Anything without a meaningful textual form (an object, an array, a
+      // File) is unmeasurable the same way `toLength` treats it, and skipped
+      // rather than stringified to the useless "[object Object]".
+      if (typeof val !== 'string' && typeof val !== 'number') return true;
       return getCompiledPattern(pattern).test(String(val));
     },
     message: (fieldName) => `"${fieldName}" is invalid`
@@ -481,8 +485,9 @@ export const constraintConfigs: ConstraintConfigs = {
       if (val === undefined || val === null || val === '') return true;
 
       // A number arrives already in the units the scale counts in — that is what
-      // a custom `parse` produces. Anything else converts from its DOM string.
-      const value = typeof val === 'number' ? val : scale.toNumber(String(val));
+      // a custom `parse` produces. A string converts from its DOM value, same as
+      // `toComparableValue`. Anything else has no step to be off of.
+      const value = typeof val === 'number' ? val : typeof val === 'string' ? scale.toNumber(val) : undefined;
       // A value this type cannot parse is not a step mismatch. The browser's
       // value sanitization discards it before validity is ever consulted, so
       // reporting one here would invent an error the browser never showed — and
@@ -515,6 +520,9 @@ export const constraintConfigs: ConstraintConfigs = {
       // Emptiness is `required`'s concern, consistent with every other
       // constraint here — an absent value has no format to be wrong about.
       if (val === undefined || val === null || val === '') return true;
+      // Same as `pattern`: nothing without a meaningful textual form has a
+      // format to be wrong about either.
+      if (typeof val !== 'string' && typeof val !== 'number') return true;
       return format.test(String(val));
     },
     message: (fieldName, type) => {

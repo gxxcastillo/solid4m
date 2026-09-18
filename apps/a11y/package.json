@@ -10,15 +10,15 @@
     "a11y": "playwright test"
   },
   "dependencies": {
-    "solid-formation": "workspace:^",
     "@gxxc/solid-formation-examples": "workspace:*",
-    "solid-js": "^1.9.14"
+    "solid-formation": "workspace:^",
+    "solid-js": "^1.9.15"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.12.1",
-    "@playwright/test": "^1.61.1",
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.63.0",
     "typescript": "5.4.2",
-    "vite": "^5.4.0",
-    "vite-plugin-solid": "^2.3.0"
+    "vite": "^5.4.21",
+    "vite-plugin-solid": "^2.11.14"
   }
 }

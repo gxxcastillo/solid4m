@@ -144,6 +144,14 @@ describe('pattern', () => {
     expect(validate('age', 123 as never, { pattern: '^[0-9]+$' }, state)).toEqual([]);
     expect(validate('age', 12.5 as never, { pattern: '^[0-9]+$' }, state)).toHaveLength(1);
   });
+
+  it('skips a value with no meaningful textual form instead of stringifying it', () => {
+    // A pattern that matches literally nothing, including "[object Object]" —
+    // if this value were ever stringified and tested, it would fail.
+    const neverMatches = '^$a';
+    expect(validate('tags', ['a', 'b'] as never, { pattern: neverMatches }, state)).toEqual([]);
+    expect(validate('bio', {} as never, { pattern: neverMatches }, state)).toEqual([]);
+  });
 });
 
 describe('minLength / maxLength', () => {
@@ -340,6 +348,11 @@ describe('type', () => {
   it('reports only the required error for an empty required email', () => {
     const errors = validate('username', '', { required: true, type: 'email' }, makeFormState());
     expect(errors).toEqual(['"username" is required']);
+  });
+
+  it('skips a value with no meaningful textual form instead of stringifying it', () => {
+    expect(validate('bio', {} as never, { type: 'email' }, makeFormState())).toEqual([]);
+    expect(validate('tags', ['a', 'b'] as never, { type: 'url' }, makeFormState())).toEqual([]);
   });
 
   // The overwhelmingly common case: `type` is present on every input field, and

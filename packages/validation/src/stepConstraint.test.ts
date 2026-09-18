@@ -94,6 +94,16 @@ describe('step constraint', () => {
     expect(constraintConfigs.step.validate(7, 5, formState, numberField)).toBe(false);
   });
 
+  // Array-to-string coercion joins a single-element array to its bare element
+  // (`['7'].toString() === '7'`), which used to let a stray array value parse
+  // as a real number and report a step mismatch for a value that was never a
+  // number at all. Skipped now, the same as any other value with no step to
+  // be off of.
+  it('skips a value with no meaningful numeric form instead of coercing it', () => {
+    expect(constraintConfigs.step.validate(['7'] as never, 5, formState, numberField)).toBe(true);
+    expect(constraintConfigs.step.validate({} as never, 5, formState, numberField)).toBe(true);
+  });
+
   // `type` is a free-form public string, so a bare index would reach an
   // inherited Object.prototype member and throw on `scale.toNumber`. Same guard,
   // and same reason, as the `type` constraint's own lookup.
