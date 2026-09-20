@@ -76,6 +76,8 @@
     "@gxxc/solid-formation-fields": "workspace:^",
     "@gxxc/solid-formation-form": "workspace:^",
     "@gxxc/solid-formation-state": "workspace:^",
+    "rollup": "4.63.3",
+    "rollup-plugin-dts": "^6.5.1",
     "type-fest": "^4.41.0",
     "typescript": "6.0.3",
     "vite": "^8.3.0",

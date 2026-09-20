@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.options.json",
+  "compilerOptions": {
+    "composite": true,
+    "checkJs": true,
+    "types": ["node"],
+    "emitDeclarationOnly": true,
+    "outDir": "./.tsbuild/node",
+    "tsBuildInfoFile": "./.tsbuild/node.tsbuildinfo"
+  },
+  "include": ["vite.config.ts", "vite.server.config.ts", "scripts/**/*.mjs"]
+}

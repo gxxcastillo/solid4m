@@ -13,6 +13,10 @@ test-results
 
 # ts
 tsconfig.tsbuildinfo
+packages/solid-formation/.tsbuild
+
+# verify-tarball
+verify-tarball/consumer.gen.ts
 
 # vite
 *.timestamp-*.mjs

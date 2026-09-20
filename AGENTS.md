@@ -49,11 +49,12 @@ success. If typecheck or build output looks inconsistent with the source,
 `rm -rf .moon/cache` and re-run from a full `pnpm moon :build` before concluding
 there is a real bug.
 
-`packages/*/dist/` holds two declaration outputs that can silently disagree:
-`tsc --build` (the `:types` task) emits per-file, while `vite build` (the
-`:build` task) produces the bundled `index.d.ts` that `package.json`'s
-`exports.types` actually points at. Run `:build` too before trusting a
-facade-level type check.
+The facade's `:types` task writes its per-file declarations to a private
+`.tsbuild/` directory. Its `:build` task produces the bundled
+`dist/index.d.ts` that `package.json` exposes, so it remains intact regardless
+of task order. `examples:types` depends on that build and resolves the public
+declaration entry; `verify-tarball`'s consumer type-check is still the only
+check that exercises the packed artifact exactly as a user receives it.
 
 ## Testing notes
 

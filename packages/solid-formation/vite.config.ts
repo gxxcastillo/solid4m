@@ -7,15 +7,6 @@ import solid from 'vite-plugin-solid';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const bundledPackages = [
-  '@gxxc/solid-formation-elements',
-  '@gxxc/solid-formation-fields',
-  '@gxxc/solid-formation-form',
-  '@gxxc/solid-formation-state',
-  '@gxxc/solid-formation-validation',
-  'type-fest'
-];
-
 // Ship the theme stylesheets (token overrides) as standalone, importable files
 // under dist/themes/. `themes/base.css` is also bundled into dist/index.css, but
 // copying it lets consumers pull just the tokens if they want. Structural CSS
@@ -44,7 +35,11 @@ function copyThemes(): Plugin {
 // it could be server-rendered at all) would mismatch the markup produced by
 // that server build.
 export default defineConfig({
-  plugins: [solid({ ssr: true }), dts({ rollupTypes: true, bundledPackages }), copyThemes()],
+  plugins: [
+    solid({ ssr: true }),
+    dts({ exclude: ['src/**/*.test.ts', 'src/**/*.test.tsx'] }),
+    copyThemes()
+  ],
   build: {
     minify: false,
     terserOptions: {

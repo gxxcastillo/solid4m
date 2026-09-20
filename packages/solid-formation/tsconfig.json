@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.options.json",
   "compilerOptions": {
     "rootDir": "./src",
-    "outDir": "./dist",
+    "outDir": "./.tsbuild",
     "types": ["vite/client", "@testing-library/jest-dom/vitest"],
     "jsx": "preserve",
     "jsxImportSource": "solid-js"
@@ -17,6 +17,9 @@
     },
     {
       "path": "../state"
+    },
+    {
+      "path": "./tsconfig.node.json"
     }
   ]
 }

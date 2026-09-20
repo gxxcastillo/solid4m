@@ -14,7 +14,7 @@ export default defineConfig({
     // Vitest 5's own configDefaults.exclude dropped dist/cypress/etc, unlike
     // earlier versions — this package's own build (dist/ and dist/server/)
     // would otherwise also get picked up and run as tests.
-    exclude: [...configDefaults.exclude, '**/dist/**'],
+    exclude: [...configDefaults.exclude, '**/dist/**', '**/.tsbuild/**'],
     coverage: {
       provider: 'v8'
     }
