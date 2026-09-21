@@ -234,6 +234,9 @@ importers:
       '@gxxc/solid4m-state':
         specifier: workspace:^
         version: link:../state
+      esbuild:
+        specifier: ^0.28.2
+        version: 0.28.2
       rollup:
         specifier: 4.63.3
         version: 4.63.3

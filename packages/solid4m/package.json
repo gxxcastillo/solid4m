@@ -19,6 +19,9 @@
     "directory": "packages/solid4m"
   },
   "homepage": "https://gxxcastillo.github.io/solid4m/",
+  "sideEffects": [
+    "**/*.css"
+  ],
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
@@ -76,6 +79,7 @@
     "@gxxc/solid4m-fields": "workspace:^",
     "@gxxc/solid4m-form": "workspace:^",
     "@gxxc/solid4m-state": "workspace:^",
+    "esbuild": "^0.28.2",
     "rollup": "4.63.3",
     "rollup-plugin-dts": "^6.5.1",
     "type-fest": "^4.41.0",

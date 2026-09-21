@@ -48,6 +48,9 @@ jobs:
       - name: Build
         run: pnpm moon :build
 
+      - name: Bundle size
+        run: node packages/solid4m/scripts/check-bundle-size.mjs
+
       - name: Accessibility
         run: pnpm moon :a11y
 

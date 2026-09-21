@@ -41,13 +41,27 @@ against `apps/a11y` and needs Chromium installed.
 
 A seventh check, `verify-tarball/` (see Testing notes below), runs in CI but
 is outside this moon baseline — it packs and installs the real tarball, which
-none of the six tasks above do.
+none of the six tasks above do. Its consumer type-check runs with
+`skipLibCheck: false` on purpose, so the bundled `index.d.ts` itself must
+type-check, not just resolve.
+
+CI also runs `node packages/solid4m/scripts/check-bundle-size.mjs` after the
+build: minified + gzipped budgets for what a consumer's bundle actually
+contains. If a change legitimately grows the package, raise the budget in that
+script and say so in the changeset.
 
 **moon's local task cache can desync from reality.** If you `rm -rf` a package's
 `dist/` without clearing `.moon/cache`, moon keeps reporting a stale cached
 success. If typecheck or build output looks inconsistent with the source,
 `rm -rf .moon/cache` and re-run from a full `pnpm moon :build` before concluding
 there is a real bug.
+
+The reverse also bites: a cleared `.moon/cache` is not a clean checkout. A
+leftover `packages/solid4m/dist/` can satisfy a task that is missing its
+`^:build` dependency, so the baseline passes locally and fails on CI's fresh
+runner. When a change touches build outputs or task dependencies, also remove
+`packages/*/dist`, `packages/solid4m/.tsbuild`, and `packages/*/tsconfig.tsbuildinfo`
+before trusting a local pass.
 
 The facade's `:types` task writes its per-file declarations to a private
 `.tsbuild/` directory. Its `:build` task produces the bundled
