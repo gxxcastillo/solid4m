@@ -14,6 +14,7 @@
     "clean:modules": "find . -name 'node_modules' -print -type d -prune -exec rm -rf '{}' + ",
     "clean:dist": "find . -name 'dist' -print -type d -prune -exec rm -rf '{}' + ",
     "lint": "pnpm moon :lint",
+    "lint:fix": "pnpm moon :lint-fix",
     "types": "pnpm moon :types",
     "test": "pnpm moon :test",
     "a11y": "pnpm moon :a11y",

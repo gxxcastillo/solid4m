@@ -81,8 +81,8 @@ tasks:
       # Support other extensions
       # - '--ext'
       # - '.js,.jsx,.ts,.tsx'
-      # Always fix and run extra checks
-      - '--fix'
+      # No `--fix` here: CI runs this task, and a fix applied on the runner is
+      # thrown away while the run reports green. Use `lint-fix` locally.
       - '--report-unused-disable-directives'
       # Dont fail if a project has nothing to lint
       - '--no-error-on-unmatched-pattern'
@@ -108,6 +108,13 @@ tasks:
       - 'tsconfig.json'
       - '/tsconfig.eslint.json'
       - '/tsconfig.options.json'
+
+  lint-fix:
+    extends: 'lint'
+    args:
+      - '--fix'
+    options:
+      cache: false
 
   format:
     command:
