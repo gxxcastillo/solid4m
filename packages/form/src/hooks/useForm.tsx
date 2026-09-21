@@ -22,7 +22,7 @@ import {
 export type FormComponentProps<
   FieldValues extends RequestProps,
   SubmitValues extends RequestProps = FieldValues,
-  R extends SubmitResponse | SubmitResponseMapping<SubmitValues> = SubmitValues
+  R extends SubmitResponse | SubmitResponseMapping<SubmitValues> = SubmitResponse
 > = BaseFormPropsWithSubmit<FieldValues, SubmitValues, R>;
 
 export type UseFormOptions<S extends StandardSchemaV1 = StandardSchemaV1> = {
@@ -32,23 +32,29 @@ export type UseFormOptions<S extends StandardSchemaV1 = StandardSchemaV1> = {
 export type UseFormReturn<
   FieldValues extends RequestProps,
   SubmitValues extends RequestProps = FieldValues,
-  R extends SubmitResponse | SubmitResponseMapping<SubmitValues> = SubmitValues
+  R extends SubmitResponse | SubmitResponseMapping<SubmitValues> = SubmitResponse
 > = {
   Form: (props: FormComponentProps<FieldValues, SubmitValues, R>) => JSX.Element;
   readonly store: FormStore<FieldValues>;
   readonly state: FormState<FieldValues>;
 };
 
+// `R` (what a submit handler's promise resolves to) defaults to any
+// `SubmitResponse`, not to the values type. Unlike `<Form>`, whose `R` is
+// inferred from the handler at each call, the hook fixes `R` when it is
+// called, before any handler exists — and a values-type default rejected the
+// ordinary `async (values) => { await save(values) }`, whose `Promise<void>`
+// is not a `Promise<M>`, unless the caller wrote `useForm<M, void>()`.
 export function useForm<
   S extends StandardSchemaV1,
-  R extends SubmitResponse | SubmitResponseMapping<StandardSchemaSubmitValues<S>> = StandardSchemaSubmitValues<S>
+  R extends SubmitResponse | SubmitResponseMapping<StandardSchemaSubmitValues<S>> = SubmitResponse
 >(
   options: UseFormOptions<S> & { schema: S }
 ): UseFormReturn<StandardSchemaFormValues<S>, StandardSchemaSubmitValues<S>, R>;
 export function useForm<
   FieldValues extends RequestProps,
   SubmitValues extends RequestProps,
-  R extends SubmitResponse | SubmitResponseMapping<SubmitValues> = SubmitValues
+  R extends SubmitResponse | SubmitResponseMapping<SubmitValues> = SubmitResponse
 >(
   // `schema` is a required key (unlike UseFormOptions) so FieldValues and
   // SubmitValues can't be pinned to different types without at least
@@ -58,12 +64,12 @@ export function useForm<
 ): UseFormReturn<FieldValues, SubmitValues, R>;
 export function useForm<
   M extends RequestProps = FieldValueMapping,
-  R extends SubmitResponse | SubmitResponseMapping<M> = M
+  R extends SubmitResponse | SubmitResponseMapping<M> = SubmitResponse
 >(options?: UseFormOptions): UseFormReturn<M, M, R>;
 export function useForm<
   FieldValues extends RequestProps = FieldValueMapping,
   SubmitValues extends RequestProps = FieldValues,
-  R extends SubmitResponse | SubmitResponseMapping<SubmitValues> = SubmitValues
+  R extends SubmitResponse | SubmitResponseMapping<SubmitValues> = SubmitResponse
 >(options: UseFormOptions<StandardSchemaV1<FieldValues, SubmitValues>> = {}) {
   const existingStore = useFormContext<FieldValues>();
   const hasExistingStore = !!existingStore.length;
