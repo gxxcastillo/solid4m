@@ -1,5 +1,6 @@
 import { For, createUniqueId, splitProps } from 'solid-js';
 
+import { Input } from '@gxxc/solid4m-elements';
 import { type FieldPath, type FieldValueMapping } from '@gxxc/solid4m-state';
 
 import { createFormField } from '../hooks';
@@ -47,7 +48,13 @@ export function RadioGroup<M extends object = FieldValueMapping, N extends Field
                 }}
                 for={optionId}
               >
-                <input
+                {/*
+                  The elements-package Input, not a raw <input>: it strips the
+                  field plumbing (parse/format/setValue, errors, isControlled…)
+                  that rides along in `props`, which would otherwise render as
+                  attributes on every radio, and under SSR as function source.
+                */}
+                <Input
                   {...props}
                   id={optionId}
                   type='radio'

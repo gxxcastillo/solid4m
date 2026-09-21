@@ -1,7 +1,7 @@
 import { cleanup, render } from '@solidjs/testing-library';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { Select } from './Select';
+import { Select, type SelectElementProps } from './Select';
 
 describe('Select', () => {
   afterEach(cleanup);
@@ -24,5 +24,14 @@ describe('Select', () => {
     const { container } = render(() => <Select id='role' disabled />);
 
     expect(container.querySelector('select')).toBeDisabled();
+  });
+
+  it('strips internal field-only props before reaching the DOM', () => {
+    const props = { id: 'role', errors: ['Required'], parse: (v: string) => v } as unknown as SelectElementProps;
+    const { container } = render(() => <Select {...props} />);
+
+    const select = container.querySelector('select');
+    expect(select).not.toHaveAttribute('errors');
+    expect(select).not.toHaveAttribute('parse');
   });
 });

@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { FormContextProvider, createFormStore } from '@gxxc/solid4m-state';
 
 import { InputField } from './InputField/InputField';
+import { RadioGroup } from './RadioGroup/RadioGroup';
 import { SelectField } from './SelectField/SelectField';
 
 type TestForm = { [key: string]: string; email: string };
@@ -85,5 +86,33 @@ describe('SSR / renderToString', () => {
     expect(html).toContain('<select');
     expect(html).toContain('<option');
     expect(html).toContain('Work');
+  });
+
+  // Found against a real SolidStart app: SelectField and RadioGroup spread the
+  // field's plumbing onto their native controls, and the server render
+  // serialized it — including `parse="function parse(val) {…}"`.
+  it('does not serialize field plumbing into SelectField or RadioGroup markup', () => {
+    const store = createRoot(() => createFormStore<TestForm>());
+
+    const html = renderToString(() => (
+      <FormContextProvider store={store}>
+        <SelectField<TestForm, 'email'> name='email' label='Email kind'>
+          <option value='work'>Work</option>
+        </SelectField>
+        <RadioGroup<TestForm, 'kind'>
+          name='kind'
+          label='Kind'
+          options={[
+            { value: 'a', label: 'A' },
+            { value: 'b', label: 'B' }
+          ]}
+        />
+      </FormContextProvider>
+    ));
+
+    expect(html).toContain('<select');
+    expect(html).toContain('type="radio"');
+    expect(html).not.toMatch(/\b(parse|format|setValue|isControlled|errors)=/i);
+    expect(html).not.toContain('function');
   });
 });

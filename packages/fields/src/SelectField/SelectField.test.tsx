@@ -55,4 +55,84 @@ describe('SelectField', () => {
 
     expect(store[0].getFieldValue('roles')).toEqual(['author', 'editor']);
   });
+
+  // A multiple select's selection can't round-trip through `value`: the
+  // stored array formats to "author,editor", which matches no single option,
+  // so binding it back as `select.value` deselected everything — including
+  // what the user had just picked.
+  describe('multiple', () => {
+    function renderRoles(defaultValue?: string[]) {
+      const { store } = createRoot((dispose) => ({ store: createFormStore<MultiSelectForm>(), dispose }));
+      render(() => (
+        <FormContextProvider store={store}>
+          <SelectField<MultiSelectForm, 'roles'>
+            name='roles'
+            label='Roles'
+            multiple
+            defaultValue={defaultValue}
+          >
+            <option value='author'>Author</option>
+            <option value='editor'>Editor</option>
+            <option value='viewer'>Viewer</option>
+          </SelectField>
+        </FormContextProvider>
+      ));
+      const select = screen.getByLabelText('Roles') as HTMLSelectElement;
+      // Per-option `selected`, not `select.selectedOptions`: happy-dom leaves
+      // selectedOptions stale after options are toggled programmatically. It
+      // also never cleared a multiple select through `value` the way Chromium
+      // does, so the user-selection case only fails in a real browser — see
+      // the palette test in apps/a11y.
+      const selected = () =>
+        Array.from(select.options)
+          .filter((option) => option.selected)
+          .map((option) => option.value);
+      return { store, select, selected };
+    }
+
+    it('keeps the options the user selected', () => {
+      const { select, selected } = renderRoles();
+      select.options[0].selected = true;
+      select.options[2].selected = true;
+      fireEvent.input(select);
+
+      expect(selected()).toEqual(['author', 'viewer']);
+    });
+
+    it('selects the options in its defaultValue', () => {
+      const { store, selected } = renderRoles(['editor', 'viewer']);
+
+      expect(store[0].getFieldValue('roles')).toEqual(['editor', 'viewer']);
+      expect(selected()).toEqual(['editor', 'viewer']);
+    });
+
+    it('reflects setValues and reset in the selected options', () => {
+      const { store, selected } = renderRoles(['author']);
+
+      store[1].setValues({ roles: ['editor'] });
+      expect(selected()).toEqual(['editor']);
+
+      store[1].reset();
+      expect(selected()).toEqual(['author']);
+    });
+  });
+
+  // The field's own plumbing (parse/format/setValue functions, errors,
+  // isControlled…) rides along in the props it spreads onto <Select>. Under SSR
+  // those serialize as attributes, including each function's source text.
+  it('does not leak field plumbing onto the native select as attributes', () => {
+    const { store } = makeStore();
+    render(() => (
+      <FormContextProvider store={store}>
+        <SelectField<TestForm, 'role'> name='role' label='Role' required>
+          <option value='admin'>Admin</option>
+        </SelectField>
+      </FormContextProvider>
+    ));
+
+    const attributes = Array.from(screen.getByLabelText('Role').attributes, (a) => a.name.toLowerCase());
+    for (const leaked of ['parse', 'format', 'setvalue', 'iscontrolled', 'errors', 'label']) {
+      expect(attributes).not.toContain(leaked);
+    }
+  });
 });
