@@ -3,7 +3,7 @@ title: Quick start
 description: Build typed, reactive forms for SolidJS with solid4m.
 ---
 
-Typed, reactive forms for SolidJS.
+**Typed, reactive forms for SolidJS.**
 
 ## Install
 

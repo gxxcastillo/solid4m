@@ -2,7 +2,8 @@ name: Deploy Pages
 
 on:
   push:
-    branches: [main]
+    tags:
+      - 'solid4m@*'
   workflow_dispatch:
 
 permissions:

@@ -1,8 +1,9 @@
 # solid4m
 
-Typed, reactive forms for [SolidJS](https://www.solidjs.com/).
+**Typed, reactive forms for [SolidJS](https://www.solidjs.com/).**
 
 **Docs:** https://gxxcastillo.github.io/solid4m/
+
 **Demo:** https://gxxcastillo.github.io/solid4m/demo/
 
 ## Installation
