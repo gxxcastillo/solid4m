@@ -8,7 +8,6 @@ import { build } from 'vite';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '..');
 const bundledPackages = [
-  '@gxxc/solid4m-elements',
   '@gxxc/solid4m-fields',
   '@gxxc/solid4m-form',
   '@gxxc/solid4m-state',

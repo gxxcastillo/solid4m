@@ -14,7 +14,6 @@
     "dist"
   ],
   "dependencies": {
-    "@gxxc/solid4m-elements": "workspace:*",
     "@gxxc/solid4m-state": "workspace:*",
     "@gxxc/solid4m-validation": "workspace:*"
   },

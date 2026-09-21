@@ -41,8 +41,6 @@ tasks:
       - 'package.json'
       - '/package.json'
       - '/pnpm-lock.yaml'
-      - '/packages/elements/src/**/*'
-      - '/packages/elements/package.json'
       - '/packages/examples/src/**/*'
       - '/packages/examples/package.json'
       - '/packages/fields/src/**/*'

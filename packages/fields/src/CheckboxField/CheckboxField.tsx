@@ -1,8 +1,8 @@
 import { createUniqueId, mergeProps, splitProps } from 'solid-js';
 
-import { Checkbox } from '@gxxc/solid4m-elements';
 import { type FieldPath, type FieldValueMapping } from '@gxxc/solid4m-state';
 
+import { Checkbox } from '../elements';
 import { createFormField } from '../hooks';
 import { type FormFieldProps } from '../types';
 import styles from './CheckboxField.module.css';

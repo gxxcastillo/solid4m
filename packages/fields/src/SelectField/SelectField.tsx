@@ -1,8 +1,8 @@
 import { createEffect, createUniqueId, splitProps } from 'solid-js';
 
-import { Select } from '@gxxc/solid4m-elements';
 import { type FieldPath, type FieldValueMapping, useFormContext } from '@gxxc/solid4m-state';
 
+import { Select } from '../elements';
 import { createFormField } from '../hooks';
 import { type FormFieldProps } from '../types';
 import styles from './SelectField.module.css';

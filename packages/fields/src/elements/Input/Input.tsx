@@ -5,7 +5,7 @@ import { stripInvalidProps } from '../utils';
 export type InputProps = JSX.InputHTMLAttributes<HTMLInputElement>;
 
 export function Input(initialProps: InputProps) {
-  const props = stripInvalidProps(initialProps) as InputProps;
+  const props = stripInvalidProps(initialProps);
 
   return <input {...props} />;
 }

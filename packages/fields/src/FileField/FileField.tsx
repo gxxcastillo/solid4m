@@ -1,8 +1,8 @@
 import { createUniqueId, mergeProps } from 'solid-js';
 
-import { Input } from '@gxxc/solid4m-elements';
 import { type FieldPath, type FieldValueMapping } from '@gxxc/solid4m-state';
 
+import { Input } from '../elements';
 import { createFormField } from '../hooks';
 import { type FormFieldProps } from '../types';
 import styles from './FileField.module.css';

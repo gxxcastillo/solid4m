@@ -1,8 +1,8 @@
 import { createMemo, createUniqueId, splitProps } from 'solid-js';
 
-import { Textarea } from '@gxxc/solid4m-elements';
 import { type FieldPath, type FieldValueMapping, useFormContext } from '@gxxc/solid4m-state';
 
+import { Textarea } from '../elements';
 import { createFormField } from '../hooks';
 import { type FormFieldProps } from '../types';
 import styles from './TextareaField.module.css';

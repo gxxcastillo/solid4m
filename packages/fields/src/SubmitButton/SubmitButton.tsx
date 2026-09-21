@@ -1,8 +1,8 @@
 import { type JSX, Show, createMemo, createUniqueId, children as prepareChildren, splitProps } from 'solid-js';
 
-import { Button, type ButtonElementProps } from '@gxxc/solid4m-elements';
 import { type FieldPath, type FieldValueMapping, type InternalFormState, useFormContext } from '@gxxc/solid4m-state';
 
+import { Button, type ButtonElementProps } from '../elements';
 import { createField } from '../hooks';
 import { type FormFieldProps } from '../types';
 import styles from './SubmitButton.module.css';

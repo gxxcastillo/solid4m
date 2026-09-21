@@ -89,7 +89,6 @@ pnpm uses `publishConfig.exports` in `packages/solid4m/package.json` to strip th
 | `packages/state`           | `@gxxc/solid4m-state`      | Form store, context, and field mutations                                                                     |
 | `packages/form`            | `@gxxc/solid4m-form`       | `Form`, `useForm`, submit pipeline                                                                           |
 | `packages/fields`          | `@gxxc/solid4m-fields`     | Field components, `SubmitButton`, `FieldArray`/`useFieldArray`, `createFields`                               |
-| `packages/elements`        | `@gxxc/solid4m-elements`   | Primitive DOM wrappers                                                                                       |
 | `packages/validation`      | `@gxxc/solid4m-validation` | Built-in constraint validation                                                                               |
 | `packages/examples`        | —                                  | Example components, also used as the docs demos                                                              |
 | `apps/docs`                | —                                  | Astro docs site with live demos                                                                              |

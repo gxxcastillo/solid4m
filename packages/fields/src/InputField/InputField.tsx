@@ -1,6 +1,5 @@
 import { type JSX, createMemo, createUniqueId, splitProps } from 'solid-js';
 
-import { Input } from '@gxxc/solid4m-elements';
 import {
   type FieldPath,
   type FieldValueFor,
@@ -9,6 +8,7 @@ import {
   useFormContext
 } from '@gxxc/solid4m-state';
 
+import { Input } from '../elements';
 import { createFormField } from '../hooks';
 import { type FormFieldProps } from '../types';
 import styles from './InputField.module.css';

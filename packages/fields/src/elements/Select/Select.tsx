@@ -5,7 +5,7 @@ import { stripInvalidProps } from '../utils';
 export type SelectElementProps = JSX.SelectHTMLAttributes<HTMLSelectElement>;
 
 export function Select(initialProps: SelectElementProps) {
-  const props = stripInvalidProps(initialProps) as SelectElementProps;
+  const props = stripInvalidProps(initialProps);
 
   return <select {...props} />;
 }
