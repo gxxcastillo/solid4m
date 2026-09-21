@@ -41,10 +41,10 @@ export function ThemeShowcase() {
   const [theme, setTheme] = createSignal<(typeof THEMES)[number]['id']>('minimal');
   const [section, setSection] = createSignal<SectionId>('signup');
 
-  const signupForm = useForm<SignupValues, void>();
-  const loginForm = useForm<LoginValues, void>();
-  const settingsForm = useForm<UserSettingsValues, void>();
-  const lineItemsForm = useForm<LineItemsValues, void>();
+  const signupForm = useForm<SignupValues>();
+  const loginForm = useForm<LoginValues>();
+  const settingsForm = useForm<UserSettingsValues>();
+  const lineItemsForm = useForm<LineItemsValues>();
 
   const [isLoading, setIsLoading] = createSignal(false);
   const [failNextSubmit, setFailNextSubmit] = createSignal(false);

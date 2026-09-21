@@ -1,0 +1,146 @@
+---
+title: Accessibility
+description: Focus management, live regions, and disabled-state handling for failed and in-flight submits.
+---
+
+import Demo from '../../components/Demo';
+
+A form is, for many users, the one part of your UI they cannot avoid interacting with directly.
+solid4m treats what happens at submit time as the library's central concern rather than a layer
+added on top: an invalid form stays submittable, a failed submit explains itself, and an in-flight
+submit is announced without moving the user's focus or place in the document.
+
+Try it below. Press submit without typing anything, then fill in a name and a valid email and press
+it again.
+
+<Demo client:only='solid-js' demo='contact' title='Contact form' />
+
+## The submit button is never disabled for invalidity
+
+A button that disables itself while a form is invalid is removed from the tab order entirely — a
+screen reader or keyboard-only user tabbing through the page may never learn it exists — and it
+fires no events, so it cannot explain what is wrong even to a user who does find it. `SubmitButton`
+stays enabled regardless of `form.state.isFormValid`. Validity gates what a submit *does*, not
+whether the control is reachable.
+
+Pass `isDisabled` instead when an action is genuinely unavailable for a reason of your own (an unmet
+prerequisite outside the form's own validation, for example). Unlike the invalid state, that renders
+a real `disabled` attribute — the difference matters because a deliberately disabled action is not
+something the user is expected to be about to complete, while an invalid form is. See
+[`SubmitButton`](../api/#submitbutton) for the full prop.
+
+## A failed submit explains itself
+
+Submitting an invalid form does not do nothing. It marks every registered field as blurred, which
+reveals every field's errors at once — including on a field nobody has touched yet, such as a
+pristine required input — and then moves focus to the first field that still has an error.
+
+Fields are walked in registration order (mount order, so DOM order for an ordinary form). A field
+that cannot actually take focus is skipped rather than stopping the walk there: a `disabled` field is
+the obvious case, but a field inside a collapsed section or a `display: none` branch also silently
+ignores `focus()`, and stopping on one of those would strand the user on the submit button with no
+indication anything happened.
+
+## Two live regions
+
+Two `aria-live` regions are always present in the rendered form — "always" matters, because a live
+region has to already be in the accessibility tree before content lands in it, so mounting one only
+once there is something to say would drop the first announcement.
+
+- **`.sf-form-errors`** is `aria-live="assertive"`. It carries form-level errors: the `errors` prop
+  you pass to `Form`, plus anything a rejected or thrown `onSubmit` adds to `form.state.errors`. It
+  interrupts, which is appropriate for something that just went wrong.
+- **`.sf-form-status`** is `aria-live="polite"` and screen-reader-only — visually hidden, because the
+  dimmed submit button is already the sighted signal. It carries `processingLabel` while a submit is
+  in flight and `loadingLabel` while `isLoading` is set (`'Submitting…'` and `'Loading…'` by default;
+  pass `''` to either prop to opt out). Polite rather than assertive, so it waits its turn instead of
+  cutting off whatever the user is already reading.
+
+Neither is `role="alert"` or `role="status"`, because both regions are permanently in the DOM — a
+region that claims one of those roles unconditionally would make `getByRole('alert')` ambiguous
+against the genuinely per-field alerts described below. Per-field errors are announced separately,
+each in its own `role="alert"` next to the field it belongs to.
+
+The status region is also deliberately not surfaced as `aria-busy` on the `<form>`. `aria-busy="true"`
+tells assistive technology to *withhold* live-region updates beneath it until it flips back to
+`false` — the opposite of what an announcement needs. See [async submission](../submission/) for the
+rest of the in-flight lifecycle these regions report on.
+
+## In flight, not gone
+
+While a submit is in flight (or `isLoading` is set), every submit button in the form is marked
+`aria-disabled="true"` instead of getting the `disabled` attribute. The distinction matters
+specifically for the button that was just pressed: the user who clicked or Enter-key-submitted it is
+focused on it, and disabling a *focused* element removes it from the tab order — the browser resets
+focus to `<body>`, and nothing restores it once the submit settles. A keyboard or screen-reader user
+would be silently dropped back to the top of the document mid-submit. `aria-disabled` conveys the
+same unavailability while leaving focus and tab position untouched.
+
+Because `aria-disabled` is advisory rather than enforced by the browser, `SubmitButton` blocks
+activation itself — this is also what stops a second submit through a `variant='approve'` button,
+whose `type="button"` never reaches the form's own submit handler.
+
+The button pressed also shows a spinner. It is `aria-hidden`, since the polite status region already
+announces the state and a spinner contributing to the button's accessible name would corrupt it for
+anyone querying by that name. It is positioned inside the button's own padding rather than added as
+extra content, so the button never resizes or re-centers its label under the user's cursor while they
+wait. Under `prefers-reduced-motion: reduce` it stops animating and renders as a static dot instead —
+motion is the only thing it was communicating, so there is nothing left to show once motion is off.
+
+In a form with more than one submit button, every button still gets `aria-disabled` while a submit
+runs — a second submit really is unavailable — but only the button that was actually pressed shows
+the spinner, so two actions are never shown running when only one is. When nothing pressed a
+button — a caller-set `<Form isProcessing>`, or a programmatic submit — every submit button shows the
+spinner, since there is no single action to attribute it to.
+
+## Semantics the browser already understands
+
+The rendered `<form>` sets `noValidate`, because the browser's own interactive validation would
+otherwise intercept the click and show a native validation bubble before this library's own
+validation, error display, or focus management ever runs. That turns off only the browser's
+*interactive* handling — constraint props such as `required`, `minLength`, `pattern`, `min`, and
+`max` are still rendered as real HTML attributes on the underlying control, so a `required` input
+still exposes `aria-required="true"` in the accessibility tree through the browser's own implicit
+HTML-to-ARIA mapping. See [validation](../validation/#native-browser-validation-is-off) for what
+replaces the checks `noValidate` turns off.
+
+Every field component sets `aria-invalid` from whether it currently has errors, and, when it does,
+points `aria-describedby` at the `id` of its own error message — the same `<div role="alert">` a
+sighted user sees underneath the field. `RadioGroup` puts both attributes on the `<fieldset>` that
+wraps the whole group instead of on an individual radio, since the group, not any one option, is what
+is invalid.
+
+None of the field components reinvent a native control. `SelectField` renders a real `<select>`,
+`RadioGroup` renders real `<input type="radio">` elements inside a `<fieldset>`/`<legend>`, and
+`CheckboxField` renders a real `<input type="checkbox">` — each keeps the keyboard and platform
+behavior a screen reader or switch-access user already knows, and each layers its errors and disabled
+state on top of that native semantics rather than around it.
+
+## How this is tested
+
+`apps/a11y` renders solid4m's example forms — login, signup, line items, settings, and the full field
+palette — under all three bundled themes (fifteen routes total) in a real Chromium instance and runs
+`@axe-core/playwright` against each one at rest, asserting zero detectable violations. A couple of
+those routes are also checked again after several of their fields are blurred into invalid states at
+once — `required`, `minLength`, and `match` (confirm password) errors all visible together — since
+that combination is exactly the state a sighted user only sees once something is actually wrong.
+
+Beyond the blanket sweep, specific flows get their own tests, several of which only mean anything in
+a real browser rather than a mocked DOM:
+
+- Submitting a pristine, untouched form reveals every error and moves focus to the first invalid
+  field — the flow this page opens with.
+- An optional field with a length constraint (`minLength`/`maxLength`) does not block submission
+  while it is empty, and a malformed `type='email'`/`type='url'` value is still caught now that
+  `noValidate` turned off the browser's own check for it — this is the one exercise of that path in a
+  real browser, where the gap `noValidate` opened actually existed.
+- The submit button keeps focus and switches to `aria-disabled` (not `disabled`) while a held promise
+  keeps a submit in flight, and the status region's text is confirmed present and *not* ignored in
+  the real accessibility tree (read via a Chrome DevTools Protocol session) — the DOM alone cannot
+  distinguish an invisible element from an absent one, which is exactly the regression this guards
+  against.
+- The in-flight spinner is confirmed on screen and then checked not to change the submit button's
+  size or position, and not to change its accessible name.
+- A repeating field array (line items) stays violation-free after a row is added and another removed.
+- A `multiple` select keeps its preselected default, the options the user picks, and the default
+  again after a reset — behavior that differs between a real browser and a simulated DOM.

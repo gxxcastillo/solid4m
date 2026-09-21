@@ -1,4 +1,4 @@
-import { type FieldArrayHelpers, FieldArray, Form, SubmitButton } from 'solid4m';
+import { FieldArray, type FieldArrayHelpers, SubmitButton, createForm } from 'solid4m';
 
 export interface LineItem {
   description: string;
@@ -27,10 +27,19 @@ function LineItemFields() {
 
   return (
     <>
-      <FieldArray<LineItem> name='items' defaultValue={[emptyItem]} helpersRef={(helpers) => (itemsArray = helpers)}>
+      <FieldArray<LineItem>
+        name='items'
+        defaultValue={[emptyItem]}
+        helpersRef={(helpers) => (itemsArray = helpers)}
+      >
         {(fields, item, remove) => (
           <>
-            <fields.InputField name='description' label='Description' defaultValue={item.description} required />
+            <fields.InputField
+              name='description'
+              label='Description'
+              defaultValue={item.description}
+              required
+            />
             <fields.InputField name='quantity' label='Quantity' defaultValue={item.quantity} required />
             <SubmitButton variant='approve' onClick={remove}>
               Remove
@@ -45,15 +54,11 @@ function LineItemFields() {
   );
 }
 
+const { Form } = createForm<LineItemsValues>();
+
 export function LineItemsForm(props: LineItemsFormProps) {
   return (
-    // Field names inside FieldArray's children are typed against LineItem
-    // per row, not against LineItemsValues as a whole — deep-path field-name
-    // typing for the *form's* own onSubmit shape (items: LineItem[]) does not
-    // exist yet, so onSubmit's real runtime shape ({ items: [...] }, built by
-    // fieldsToProps' nested submit-value construction) has to be asserted
-    // here rather than inferred.
-    <Form onSubmit={(props.onSubmit ?? (() => undefined)) as (values: object) => void} isLoading={props.isLoading}>
+    <Form onSubmit={props.onSubmit ?? (() => undefined)} isLoading={props.isLoading}>
       <LineItemFields />
       <SubmitButton>Submit</SubmitButton>
     </Form>

@@ -1,0 +1,212 @@
+---
+title: Field palette
+description: Selects, radios, numbers, dates, and files — what each one stores, and where that differs from a plain text input.
+---
+
+import Demo from '../../components/Demo';
+
+Beyond text-shaped inputs, solid4m ships five field components: `SelectField`, `RadioGroup`,
+`NumberField`, `DateField`, and `FileField`. Each stores a different shape of value — a string array,
+a raw string, a `FileList` — and that stored shape is the point of this page more than any one prop
+table is. Watch the state inspector in the demo below as you use each field to see exactly what lands
+in form state.
+
+## Which field for what
+
+For a plain string, a password, a longer string, or a boolean, reach for the fields already documented
+in the [API reference](../api/): `InputField`, `PasswordField`, `TextAreaField`, and `CheckboxField`.
+This page covers the rest:
+
+| Field         | Stores                                     |
+| ------------- | ------------------------------------------- |
+| `SelectField` | A string, or a string array with `multiple` |
+| `RadioGroup`  | A single string, chosen from `options`      |
+| `NumberField` | A raw string by default; a number with `parse` |
+| `DateField`   | A `yyyy-mm-dd` string by default; a `Date` with `parse`/`format` |
+| `FileField`   | A `FileList`, or `undefined` when cleared   |
+
+All nine are exported from [`createForm()` and `createFields()`](../api/#createformm) alongside the
+ones above — there is nothing extra to import or register.
+
+## Try them together
+
+<Demo client:only='solid-js' demo='fieldPalette' title='Workshop registration' inspect />
+
+Pick a track, cmd/ctrl-click a couple of topics, choose a meal, type into the two number fields (then
+clear each one), pick a session date, and attach or clear a resume. Watch the inspector: `topics`
+holds an array, `guestCount` holds whatever string you typed (including `""`), `age` holds a number or
+`undefined`, and `resume` holds a `FileList` or `undefined`.
+
+## SelectField
+
+Renders a real `<select>`; give it plain `<option>` children the way you would without the library.
+
+```tsx
+<SelectField name='track' label='Preferred track'>
+  <option value=''>Choose a track</option>
+  <option value='frontend'>Frontend</option>
+  <option value='backend'>Backend</option>
+</SelectField>
+```
+
+Add `multiple` and the stored value becomes every selected option's value, as a string array, rather
+than one string:
+
+```tsx
+<SelectField name='topics' label='Topics you would attend' multiple defaultValue={['a11y']}>
+  <option value='testing'>Testing</option>
+  <option value='a11y'>Accessibility</option>
+</SelectField>
+```
+
+Give a `multiple` select an array `defaultValue` to preselect options; `reset()` and `setValues()`
+update the selected options the same way. A browser `<select>` can only take a single string through
+its `value`, so a `multiple` select syncs each option's `selected` from the stored array instead. One
+consequence: options you add after the field mounts, such as ones loaded asynchronously, pick up the
+stored selection the next time the value changes, not immediately.
+
+See [`SelectField`](../api/#selectfield) for the full prop list.
+
+## RadioGroup
+
+One field, backed by an `options` array — each option supplies the value it stores and the label a
+screen reader announces:
+
+```tsx
+<RadioGroup
+  name='mealPreference'
+  label='Meal preference'
+  options={[
+    { value: 'anything', label: 'Anything' },
+    { value: 'vegetarian', label: 'Vegetarian' },
+    { value: 'vegan', label: 'Vegan' }
+  ]}
+/>
+```
+
+Unlike a set of independent `CheckboxField`s, this is a single form field with a single value — see
+[`RadioGroup`](../api/#radiogroup) for the rest of its props.
+
+## NumberField
+
+Renders `<input type="number">`, but the stored value is still the input's raw string, not a number —
+the same as every other field until you add `parse`. Coercing automatically would turn clearing an
+optional field into `0` rather than "nothing entered," which is rarely what an optional quantity or
+age field means:
+
+```tsx
+<NumberField name='guestCount' label='Additional guests' defaultValue='0' />
+```
+
+Pass `parse` to store an actual number, and decide there how you want emptiness represented — usually
+`undefined`, so a cleared field reads as "not answered" rather than `0` or `NaN`:
+
+```tsx
+<NumberField
+  name='age'
+  label='Age (optional)'
+  min={18}
+  parse={(raw) => {
+    const text = typeof raw === 'string' ? raw : '';
+    return text === '' ? undefined : Number(text);
+  }}
+  format={(value) => (value === undefined ? '' : String(value))}
+/>
+```
+
+`min`, `max`, and `step` keep working against the parsed number here, because they compare whatever
+the field actually stores — a plain JavaScript number compares the same way whether or not a `parse`
+produced it. See [Custom fields](../custom-fields/) for how `parse`/`format` work in general, and
+[Stepped values](../validation/#stepped-values) for `step`'s units and its deliberate gaps: an absent
+`step` is not checked at all (so a bare number input never rejects a decimal), and the ladder is always
+anchored on `min`, not on whatever the field started with.
+
+## DateField
+
+Renders `<input type="date">`. The stored value stays in the browser's own `yyyy-mm-dd` string format
+by default — not a `Date` — which is also the format `min`, `max`, and `step` are written in:
+
+```tsx
+<DateField name='sessionDate' label='Preferred session date' min='2026-01-05' max='2026-02-23' step={7} />
+```
+
+### Bounds and the anchored step
+
+`min`/`max` bound the range exactly like [numeric bounds do](../validation/#date-and-time-bounds), just
+written as `yyyy-mm-dd` strings instead of numbers. `step` is counted in **days**, and the ladder starts
+at `min` rather than at zero — `min='2026-01-05' step={7}` above accepts January 5th and every seventh
+day after it (the 12th, the 19th, February 2nd, and so on through February 23rd), not "every date whose
+day-of-month is a multiple of 7." The "Preferred session date" field in the
+[registration demo](#try-them-together) uses exactly this `min`/`max`/`step` — try typing an off-week
+date, or one past February 23rd, and watch the inspector show its error.
+
+### `parse`/`format` for `Date` objects
+
+Supply `parse`/`format` to work with `Date` objects instead of the DOM string — `min`/`max`/`step` stay
+declared in the same `yyyy-mm-dd` strings either way:
+
+```tsx
+<DateField
+  name='deadlineDate'
+  label='Deadline (Date, via parse/format)'
+  min='2026-01-01'
+  max='2026-12-31'
+  step={7}
+  parse={(raw) => (typeof raw === 'string' && raw !== '' ? new Date(raw) : undefined)}
+  format={(value) => (value ? value.toISOString().slice(0, 10) : '')}
+/>
+```
+
+<Demo client:only='solid-js' demo='dateParse' title='Date bounds: string vs. Date' inspect />
+
+Type the same out-of-range or off-week date into both fields above. The plain string field reports an
+error; the `Date`-backed one does not. `min`/`max`/`step` still render as real HTML attributes on both
+inputs — the native date picker still refuses to scroll past them — but this library's own bounds and
+step checks compare the field's *stored* value, and a date/time bound can only be compared against the
+DOM string it was written in. Once `parse` turns that string into a `Date`, there is no longer a string
+for `min`/`max`/`step` to compare against, so those constraints are silently skipped rather than
+checked against the `Date`. Keep bounds checking by leaving the value as a string, or check a parsed
+`Date` yourself with a [custom `validator`](../validation/#custom-validators) or a schema.
+
+## Other date/time bounds via `InputField`
+
+`min`/`max` accept the same native string format on the other date/time input types, rendered through
+`InputField` rather than a dedicated component — `DateField` is only a convenience wrapper for
+`type='date'`:
+
+```tsx
+<InputField name='reminder' type='time' min='09:00' max='17:00' step={1800} />
+<InputField name='billingCycle' type='month' min='2026-01' max='2026-12' step={3} />
+<InputField name='sprint' type='week' min='2026-W01' max='2026-W52' />
+<InputField name='startsAt' type='datetime-local' min='2026-01-01T09:00' max='2026-01-01T17:00' step={900} />
+```
+
+`step` still counts in the unit each type defines — months for `month`, weeks for `week`, seconds for
+`time`/`datetime-local` — and `min` still anchors it. See
+[Date and time bounds](../validation/#date-and-time-bounds) for the full rundown.
+
+## FileField
+
+Renders `<input type="file">` and stores the selected `FileList`:
+
+```tsx
+<FileField name='resume' label='Resume' required />
+```
+
+Clearing the native selection stores `undefined`, not an empty `FileList`, so `required` rejects it the
+same way it rejects any other missing value. Browsers refuse to let script set a file input's value at
+all — not even to blank it out — which is also why `FileField` accepts no `value`, `parse`, or `format`
+props; there is nothing meaningful for them to do. `reset()` and `resetField()` still clear the *native*
+control (the browser's own "no file chosen" state), by holding a direct reference to the input rather
+than going through the usual reactive value binding. The "Clear resume" and "Reset form" buttons in the
+[registration demo](#try-them-together) near the top of this page call `resetField('resume')` and
+`reset()` respectively — attach a file there, then press either one to see the native control clear
+itself, not just the inspector.
+
+## See also
+
+- [API reference](../api/) for the full prop tables of every field, including the ones this page
+  skipped over.
+- [Validation](../validation/) for `min`/`max`/`step`/`required` semantics shared by every field type.
+- [Custom fields](../custom-fields/) for how `parse`/`format` work when you want a stored type the DOM
+  does not give you directly.

@@ -7,14 +7,17 @@ description: Reference for form hooks, field components, and state APIs.
 
 Creates a self-contained form store.
 
-| Property | Type           | Description                                                |
-| -------- | -------------- | ---------------------------------------------------------- |
-| `Form`   | Component      | Renders the form element; accepts the same props as `Form` |
-| `state`  | `FormState<M>` | Reactive state object                                      |
-| `store`  | `FormStore<M>` | Raw `[state, mutations]` tuple                             |
+| Property | Type           | Description                                                                   |
+| -------- | -------------- | ----------------------------------------------------------------------------- |
+| `Form`   | Component      | Renders the form element; accepts the same props as `Form`                    |
+| `state`  | `FormState<M>` | Reactive state object (see [State API](#state-api))                           |
+| `store`  | `FormStore<M>` | Raw `[state, mutations]` tuple (see [Mutations](#mutations)) |
 
-Use `useForm` when you need to read field values or validity outside the form tree. Use `Form`
-directly when you only need a submit handler.
+Use `useForm` when you need to read field values or validity outside the form tree, or to call
+mutations such as `reset`. Use `Form` directly when you only need a submit handler.
+
+Called from inside an existing form context — under a `<Form>` or a `FormContextProvider` —
+`useForm` returns that form's store instead of creating a new one.
 
 Pass a Standard Schema-compatible schema to infer values without a form generic:
 
@@ -72,9 +75,11 @@ const { Form, InputField, PasswordField } = createForm<LoginValues>();
 
 `onSubmit`'s `values`, `name='bogus'`, and a self-referencing `match` are all checked against `M`,
 exactly as if you had written `<Form<LoginValues>>` and `<InputField<LoginValues, 'email'>>` at each
-call site. The returned components are the real `Form`/`InputField`/`PasswordField`/`TextAreaField`/
-`CheckboxField`/`SelectField` — `createForm` only fixes `M` at the type level, it does not wrap or change their
-behavior.
+call site. Nested names are checked too: with `M = { address: { city: string } }`, `name='address.city'`
+compiles and its value is typed `string`, while `name='address.town'` is an error. The returned
+components are the real `Form`, `InputField`, `PasswordField`, `TextAreaField`, `CheckboxField`,
+`SelectField`, `RadioGroup`, `NumberField`, `DateField`, and `FileField` — `createForm` only fixes `M`
+at the type level, it does not wrap or change their behavior.
 
 Pass a Standard Schema-compatible schema instead of a type argument to infer `M` from it, the same as
 `useForm({ schema })`:
@@ -120,20 +125,22 @@ Renders a labeled `<input>`, defaulting to `type="text"`.
 
 Prefer `type='email'` over a hand-written `pattern` — it drives the on-screen keyboard and is
 format-checked against the HTML specification. See
-[validation](/validation/#format-checking-from-the-input-type).
+[validation](../validation/#format-checking-from-the-input-type).
 
-| Prop                                                                           | Type                    | Description                                                    |
-| ------------------------------------------------------------------------------ | ----------------------- | -------------------------------------------------------------- |
-| `name`                                                                         | `StringKeyOf<M>`        | Field name; must match a key in the form value type            |
-| `label`                                                                        | `string`                | Visible label text                                             |
-| `defaultValue`                                                                 | `M[N]`                  | Initial value                                                  |
-| `disabled`                                                                     | `boolean`               | Disables the input                                             |
-| `readonly`                                                                     | `boolean`               | Makes the input read-only                                      |
-| `parse`                                                                        | `(raw: string) => M[N]` | Convert DOM string to typed value                              |
-| `format`                                                                       | `(val: M[N]) => string` | Convert typed value back to display string                     |
-| `validator`                                                                    | `CustomValidator<M, N>` | Custom validation function                                     |
-| `required`, `minLength`, `maxLength`, `pattern`, `min`, `max`, `match`, `step` | Constraint props        | Built-in validation constraints                                |
-| `type`                                                                         | `string`                | Standard input type; `email` and `url` are also format-checked |
+In the table, `V` is `FieldPathValue<M, N>`, the value type at the field's path.
+
+| Prop                                                                           | Type                    | Description                                                                          |
+| ------------------------------------------------------------------------------ | ----------------------- | ------------------------------------------------------------------------------------ |
+| `name`                                                                         | `FieldPath<M>`          | A key or dotted path in the form value type, such as `email` or `address.city`       |
+| `label`                                                                        | `string`                | Visible label text                                                                   |
+| `defaultValue`                                                                 | `V`                     | Initial value                                                                        |
+| `disabled`                                                                     | `boolean`               | Disables the input                                                                   |
+| `readonly`                                                                     | `boolean`               | Makes the input read-only                                                            |
+| `parse`                                                                        | `(raw: string) => V`    | Convert DOM string to typed value                                                    |
+| `format`                                                                       | `(val: V) => string`    | Convert typed value back to display string                                           |
+| `validator`                                                                    | `CustomValidator<M, N>` | Custom validation function                                                           |
+| `required`, `minLength`, `maxLength`, `pattern`, `min`, `max`, `match`, `step` | Constraint props        | Built-in validation constraints                                                      |
+| `type`                                                                         | `string`                | Standard input type; `email` and `url` are also format-checked                       |
 
 All standard HTML input attributes are also accepted.
 
@@ -159,7 +166,7 @@ Renders a labeled checkbox. The field value in form state is a boolean.
 
 | Prop             | Type                    | Description                      |
 | ---------------- | ----------------------- | -------------------------------- |
-| `name`           | `StringKeyOf<M>`        | Field name                       |
+| `name`           | `FieldPath<M>`          | Field name or dotted path        |
 | `label`          | `string`                | Label text                       |
 | `defaultChecked` | `boolean`               | Initial checked state            |
 | `disabled`       | `boolean`               | Disables the checkbox            |
@@ -196,6 +203,40 @@ array supplies each option's stored value and accessible label.
     { value: 'push', label: 'Push notification' }
   ]}
 />
+```
+
+Each option is `{ value: string; label: string; disabled?: boolean }`. It accepts the shared field
+props except `type` and `value`.
+
+## `NumberField`
+
+Same props as `InputField`, except `type`. Renders `<input type="number">`. The stored value is the
+input's string, not a number, so clearing an optional field stores `''` rather than `0`; pass `parse`
+to store numbers and choose how empty is represented. See [the field palette](../fields/).
+
+```tsx
+<NumberField name='quantity' label='Quantity' min={1} step={1} />
+```
+
+## `DateField`
+
+Same props as `InputField`, except `type`. Renders `<input type="date">`. Values stay in the
+browser's `yyyy-mm-dd` format, the same format `min`, `max`, and `step` use; `parse` and `format`
+convert to and from `Date` objects if you want those instead.
+
+```tsx
+<DateField name='startsOn' label='Start date' min='2026-01-01' max='2026-12-31' />
+```
+
+## `FileField`
+
+Renders `<input type="file">` and stores the selected `FileList`. Clearing the selection stores
+`undefined`, so `required` rejects it, and `reset()` or `resetField()` clear the native control.
+Browsers do not allow setting a file input's value, so it takes no `value`, `parse`, or `format`
+props.
+
+```tsx
+<FileField name='avatar' label='Profile photo' accept='image/*' required />
 ```
 
 ## `SubmitButton`
@@ -261,25 +302,130 @@ and a plain function `onSubmit` never needs one.
 | `name`        | `string`                 | Optional field name for multi-button forms        |
 | `variant`     | `'primary' \| 'approve'` | Visual variant; `approve` renders `type="button"` |
 
+## `FieldArray`
+
+Renders one row per item of a repeating section, such as line items. Each row's render function
+receives field components scoped to that row, typed against the row's own item type and registered
+under `name.<index>` at runtime, plus the row's seed value and a `remove` callback.
+
+```tsx
+<FieldArray<LineItem> name='items' defaultValue={[emptyItem]} helpersRef={(helpers) => (items = helpers)}>
+  {(fields, item, remove) => (
+    <>
+      <fields.InputField name='description' label='Description' defaultValue={item.description} />
+      <SubmitButton variant='approve' onClick={remove}>
+        Remove
+      </SubmitButton>
+    </>
+  )}
+</FieldArray>
+```
+
+| Prop           | Type                                    | Description                                                          |
+| -------------- | --------------------------------------- | -------------------------------------------------------------------- |
+| `name`         | `string`                                | The array's field name; rows register as `name.0.*`, `name.1.*`, …   |
+| `defaultValue` | `Item[]`                                | Initial rows                                                         |
+| `helpersRef`   | `(helpers: FieldArrayHelpers) => void`  | Receives `append`, `remove`, `move`, and the other helpers once      |
+| `rowClass`     | `string`                                | Extra class on each row's wrapper, beside `sf-field-array-row`       |
+| `children`     | `(fields, item, remove) => JSX.Element` | Renders one row                                                      |
+
+The scoped field components are `InputField` and `PasswordField`. Like any field, `FieldArray` must be
+rendered from a component inside `<Form>`, not from the component that renders the `<Form>` itself.
+See [Field arrays](../field-arrays/).
+
+## `useFieldArray(name, defaultValue?)`
+
+The hook behind `FieldArray`, for building your own row layout. Returns `[items, helpers]`: `items`
+is an accessor of `{ key, defaultValue }` rows, where `key` is a stable identity for keying `<For>`
+that survives reordering. `helpers` has `append(value)`, `prepend(value)`, `insert(index, value)`,
+`remove(index)`, `move(from, to)`, `swap(a, b)`, and `pathAt(index)`, which takes a row's index
+accessor (from `<For>`) and returns an accessor of that row's field-name prefix, such as `items.2`.
+Call it from a component rendered inside `<Form>`, since it reads the form's context.
+
+## `createScopedFields<Item>(base)`
+
+Returns `InputField` and `PasswordField` components that register under `${base()}.<name>` and are
+typed against `Item` — what `FieldArray` hands each row. Pair it with `useFieldArray`'s `pathAt` for a
+custom row layout. `match` is scoped the same way, so a row's `match='password'` refers to that row's
+own password field.
+
+## `FormContextProvider`
+
+Provides an existing store to the tree below it. A `<Form>` or `useForm()` rendered inside it reuses
+that store instead of creating its own, so a self-contained form component can still expose its live
+state to an ancestor:
+
+```tsx
+const outer = useForm<SignupValues>();
+
+<FormContextProvider store={outer.store}>
+  <SignupForm />
+</FormContextProvider>;
+<p>Valid: {String(outer.state.isFormValid)}</p>;
+```
+
 ## State API
 
 `form.state` is reactive. Access it inside Solid signals, `createEffect`, or JSX to get fine-grained
-updates.
+updates. Every `name` argument is a `FieldPath<M>`.
 
-| Property or method              | Type                    | Description                                                           |
-| ------------------------------- | ----------------------- | --------------------------------------------------------------------- |
-| `isFormValid`                   | `boolean`               | `true` when no registered field has errors                            |
-| `haveValuesChanged`             | `boolean`               | `true` when any field has changed from its initial value              |
-| `isLoading`                     | `boolean`               | `<Form isLoading>` is set; every field is disabled                    |
-| `isProcessing`                  | `boolean`               | An async submit handler is in flight, or `<Form isProcessing>` is set |
-| `errors`                        | `string[]`              | Form-level errors, including thrown or rejected submit errors         |
-| `getFieldValue(name)`           | `M[N] \| undefined`     | Current parsed value for a field                                      |
-| `getFieldErrors(name)`          | `string[] \| undefined` | Current errors for a field                                            |
+| Property or method              | Type                                 | Description                                                           |
+| ------------------------------- | ------------------------------------ | --------------------------------------------------------------------- |
+| `isFormValid`                   | `boolean`                            | `true` when no registered field has errors                            |
+| `haveValuesChanged`             | `boolean`                            | `true` when any field has changed from its initial value              |
+| `isLoading`                     | `boolean`                            | `<Form isLoading>` is set; every field is disabled                    |
+| `isProcessing`                  | `boolean`                            | An async submit handler is in flight, or `<Form isProcessing>` is set |
+| `errors`                        | `string[]`                           | Form-level errors, including thrown or rejected submit errors         |
+| `fields`                        | `FormField[]`                        | Every registered field's record: name, value, errors, and flags       |
+| `getField(name)`                | `FormField \| undefined`             | One field's record                                                    |
+| `getFieldValue(name)`           | `FieldPathValue<M, N> \| undefined`  | Current parsed value for a field                                      |
+| `getFieldErrors(name)`          | `string[] \| undefined`              | Current errors for a field                                            |
 | `isFieldValid(name)`            | `boolean \| undefined`  | `false` if the field has errors; `undefined` if not registered        |
 | `hasFieldBeenValid(name)`       | `boolean \| undefined`  | `true` once the field has been error-free                             |
 | `hasFieldBlurred(name)`         | `boolean \| undefined`  | `true` once the user has blurred the field                            |
 | `hasFieldChanged(name)`         | `boolean \| undefined`  | `true` once the field value has changed                               |
 | `hasFieldBeenInitialized(name)` | `boolean`               | `true` once the field has registered with the store                   |
+
+## Mutations
+
+The second element of `form.store` holds the store's mutations:
+
+```tsx
+const form = useForm<ProfileValues>();
+const [, mutations] = form.store;
+
+mutations.reset(await api.loadProfile()); // load, then let the user edit
+```
+
+The ones you are likely to call directly:
+
+| Mutation                        | Description                                                                                                                     |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `reset(toValues?)`              | Revert every field to its initial value and clear form-level errors. With `toValues`, those values become the new initial values |
+| `setValues(values)`             | Set current values without changing the initial values or clearing errors                                                       |
+| `resetField(name)`              | Revert one field to its initial value and clear its errors                                                                      |
+| `setErrors(errors?)`            | Replace the form-level errors, for example with a server response                                                               |
+| `setFieldErrors(name, errors?)` | Replace one field's errors                                                                                                      |
+| `setFieldsErrors(map)`          | Set errors for many fields in one pass; registered fields missing from the map are cleared                                      |
+
+`reset` and `setValues` accept nested objects and match them to dotted field names:
+`setValues({ items: [{ title: 'x' }] })` sets the field registered as `items.0.title`. Keys with no
+registered field are ignored. The remaining mutations exist for custom field components; see
+[Custom fields](../custom-fields/). See [Loading and resetting data](../loading-and-resetting/) for
+worked examples.
+
+## Types
+
+| Type                   | Description                                                                                         |
+| ---------------------- | --------------------------------------------------------------------------------------------------- |
+| `FieldPath<M>`         | Every valid field name on `M`: top-level keys and dotted paths such as `address.city` or `items.0.title` |
+| `FieldPathValue<M, P>` | The value type at path `P`                                                                          |
+| `FormState<M>`         | The type of `form.state`                                                                            |
+| `FormStore<M>`         | The type of `form.store`                                                                            |
+| `FormFieldProps`       | Props for building your own field component; see [Custom fields](../custom-fields/)                |
+
+`FieldPath` follows objects and arrays up to six levels deep. A form typed with the default
+`FieldValueMapping`, an untyped form, accepts any string.
 
 ## Standard Schema Types
 

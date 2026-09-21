@@ -1,6 +1,6 @@
 import { Match, Switch } from 'solid-js';
 
-import { LineItemsForm, LoginForm, SignupForm, UserSettingsForm } from '@gxxc/solid4m-examples';
+import { FieldPaletteForm, LineItemsForm, LoginForm, SignupForm, UserSettingsForm } from '@gxxc/solid4m-examples';
 
 import './App.css';
 import { resolveFixtureRoute } from './routes';
@@ -53,6 +53,9 @@ export function App() {
             </Match>
             <Match when={route.form === 'settings'}>
               <UserSettingsForm />
+            </Match>
+            <Match when={route.form === 'palette'}>
+              <FieldPaletteForm />
             </Match>
           </Switch>
         </section>

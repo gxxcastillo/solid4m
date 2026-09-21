@@ -15,6 +15,14 @@ pnpm add solid4m
 
 Requires SolidJS 1.x as a peer dependency.
 
+Import the stylesheet once, usually in your app entry — forms render unstyled without it:
+
+```ts
+import 'solid4m/styles.css';
+```
+
+See [Installation](installation/) for optional theme files.
+
 ## Your first form
 
 The simplest form needs no type parameters. Import `Form`, add fields, and provide an `onSubmit`
@@ -34,19 +42,100 @@ function LoginForm() {
 }
 ```
 
-## Typed state with `useForm`
+## Typed forms with `createForm`
 
-Pass your field shape as a type parameter to get typed `onSubmit` values and reactive state access
-outside the form tree.
+Call `createForm<M>()` with your field shape and it binds that type once for `Form` and every field
+component it returns, so neither needs a repeated `<Form<M>>` or `<InputField<M, 'name'>>` at each
+call site. `onSubmit` receives typed values, and a field `name` or `match` that does not exist on `M`
+is a compile error.
 
 ```tsx
-import { InputField, PasswordField, SubmitButton, useForm } from 'solid4m';
+import { SubmitButton, createForm } from 'solid4m';
 
 interface LoginValues {
-  [key: string]: string;
   email: string;
   password: string;
 }
+
+const { Form, InputField, PasswordField } = createForm<LoginValues>();
+
+function LoginForm() {
+  async function onSubmit(values: LoginValues) {
+    await api.login(values);
+  }
+
+  return (
+    <Form onSubmit={onSubmit}>
+      <InputField name='email' type='email' label='Email' required />
+      <PasswordField name='password' label='Password' required minLength={8} />
+      <SubmitButton>Log in</SubmitButton>
+    </Form>
+  );
+}
+```
+
+`LoginValues` needs nothing beyond its own fields — no index signature, no widening type alias. `M`
+only has to satisfy `object`.
+
+## Validating with a schema
+
+Pass a Standard Schema-compatible schema (Zod, Valibot, and others all implement it) to
+`createForm({ schema })` and it becomes the source of truth for both the field values and the
+submitted values, which can differ when the schema transforms its input.
+
+```tsx
+import { z } from 'zod';
+
+import { SubmitButton, createForm } from 'solid4m';
+
+const loginSchema = z.object({
+  email: z.string().email('Enter a valid email'),
+  password: z.string().min(8, 'Password must be at least 8 characters')
+});
+
+const { Form, InputField, PasswordField } = createForm({ schema: loginSchema });
+
+function LoginForm() {
+  return (
+    <Form
+      onSubmit={(values) => {
+        values.email; // string
+        values.password; // string
+      }}
+    >
+      <InputField name='email' label='Email' />
+      <PasswordField name='password' label='Password' />
+      <SubmitButton>Log in</SubmitButton>
+    </Form>
+  );
+}
+```
+
+`Form` also takes a `schema` prop directly, for the cases where binding one to `createForm` is more
+setup than you want:
+
+```tsx
+<Form schema={loginSchema} onSubmit={(values) => console.log(values)}>
+```
+
+## Reading state with `useForm`
+
+Reach for `useForm<M>()` when something outside the fields needs reactive access to the form's state —
+validity, processing, field values — or its mutations, such as `reset`. It returns a `form.Form`
+bound to `M` and a live `form.state`. Pair it with `createFields<M>()`, the field-only half of
+`createForm`, so field names stay checked too.
+
+```tsx
+import { Show } from 'solid-js';
+
+import { SubmitButton, createFields, useForm } from 'solid4m';
+
+interface LoginValues {
+  email: string;
+  password: string;
+}
+
+const { InputField, PasswordField } = createFields<LoginValues>();
 
 function LoginForm() {
   const form = useForm<LoginValues>();
@@ -59,17 +148,24 @@ function LoginForm() {
     <form.Form onSubmit={onSubmit}>
       <InputField name='email' type='email' label='Email' required />
       <PasswordField name='password' label='Password' required minLength={8} />
+      <Show when={form.state.haveValuesChanged}>
+        <p>You have unsaved changes.</p>
+      </Show>
       <SubmitButton>Log in</SubmitButton>
     </form.Form>
   );
 }
 ```
 
-The type parameter must satisfy `Record<string, unknown>`. Add an index signature to interfaces you
-pass into `useForm`, or use a type alias that widens to a record.
-
 ## Next steps
 
-- See the [interactive demo](demo/) to try the themes and live form state inspector.
-- Read [Theming](theming/) before customizing the visual system.
-- Use the [API reference](api/) when you need exact component props and state APIs.
+- [Installation](installation/) — theme files and scoping.
+- [Validation](validation/) — schemas, built-in constraints, and custom validators.
+- [Async submission](submission/) — promise-based `onSubmit`, in-flight state, and named submit
+  buttons.
+- [Fields](fields/) — the field component palette.
+- [Field arrays](field-arrays/) — repeating groups of fields.
+- [Loading and resetting data](loading-and-resetting/) — populating a form asynchronously.
+- [Accessibility](accessibility/) — how focus, errors, and live regions are wired.
+- [Server rendering](server-rendering/) — SSR and hydration.
+- [API reference](api/) — exact component props and state APIs.

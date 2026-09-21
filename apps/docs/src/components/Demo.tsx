@@ -1,0 +1,72 @@
+import { type Component, Show } from 'solid-js';
+
+import { FormContextProvider, type FieldValueMapping, useForm } from 'solid4m';
+import {
+  ContactForm,
+  DateParseForm,
+  DraftPublishForm,
+  ErrorVisibilityForm,
+  FieldPaletteForm,
+  LineItemsForm,
+  LoadedProfileForm,
+  TeamRosterForm
+} from '@gxxc/solid4m-examples';
+
+// The frame pins `data-sf-theme='minimal'`, so it brings that theme with it
+// rather than relying on the page to import it. The structural CSS and default
+// tokens need no import here: the docs alias `solid4m` to its source, whose
+// components import their own styles.
+import 'solid4m/themes/minimal.css';
+
+import styles from './Demo.module.css';
+import { FormStateInspector } from './FormStateInspector';
+
+// Guide pages embed a demo by key rather than importing the example directly,
+// so every demo gets the same frame and the same optional state inspector
+// without each page repeating the wiring.
+const DEMOS: Record<string, Component> = {
+  contact: ContactForm,
+  dateParse: DateParseForm,
+  draftPublish: DraftPublishForm,
+  errorVisibility: ErrorVisibilityForm,
+  fieldPalette: FieldPaletteForm,
+  lineItems: LineItemsForm,
+  loadedProfile: LoadedProfileForm,
+  teamRoster: TeamRosterForm
+};
+
+interface DemoProps {
+  demo: keyof typeof DEMOS;
+  title?: string;
+  // Renders a live view of the form's state beside it. The example renders
+  // its own <Form>, which reuses the store provided here instead of creating
+  // one (the same pattern the theme showcase uses), so the inspector reads
+  // the state the form is actually using.
+  inspect?: boolean;
+}
+
+export function Demo(props: DemoProps) {
+  const form = useForm<FieldValueMapping>();
+  const Example = DEMOS[props.demo];
+
+  return (
+    <section class={`${styles.demo} not-content`} data-sf-theme='minimal'>
+      <div class={props.inspect ? styles.layoutInspect : styles.layout}>
+        <div class={styles.card}>
+          <Show when={props.title}>
+            <h2 class={styles.cardTitle}>{props.title}</h2>
+          </Show>
+          <FormContextProvider store={form.store}>
+            <Example />
+          </FormContextProvider>
+        </div>
+
+        <Show when={props.inspect}>
+          <FormStateInspector state={form.state} />
+        </Show>
+      </div>
+    </section>
+  );
+}
+
+export default Demo;

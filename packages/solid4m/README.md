@@ -14,71 +14,72 @@ npm install solid4m
 pnpm add solid4m
 ```
 
-Requires SolidJS 1.x as a peer dependency.
+Requires SolidJS 1.x (1.8.20 or later) as a peer dependency.
+
+Coming from `@gxxc/solid-forms`? This is the same library under its new name; see
+[Upgrading](https://gxxcastillo.github.io/solid4m/installation/#upgrading-from-gxxcsolid-forms).
 
 ## Quick Start
 
-Import the stylesheet once in your app entry, then use the form and field components.
+Import the stylesheet once in your app entry:
 
 ```ts
 import 'solid4m/styles.css';
 ```
 
-```tsx
-import { Form, InputField, PasswordField, SubmitButton } from 'solid4m';
+Then bind your form's value type once with `createForm`, and every field name is checked against it,
+including nested paths:
 
-function LoginForm() {
+```tsx
+import { SubmitButton, createForm } from 'solid4m';
+
+interface SignupValues {
+  email: string;
+  password: string;
+  profile: { name: string };
+}
+
+const { Form, InputField, PasswordField } = createForm<SignupValues>();
+
+function SignupForm() {
   return (
-    <Form onSubmit={(values) => console.log(values)}>
-      <InputField name='email' label='Email' required />
+    <Form onSubmit={(values) => console.log(values.profile.name)}>
+      <InputField name='email' type='email' label='Email' required />
       <PasswordField name='password' label='Password' required minLength={8} />
-      <SubmitButton>Log in</SubmitButton>
+      <InputField name='profile.name' label='Name' />
+      <SubmitButton>Sign up</SubmitButton>
     </Form>
   );
 }
 ```
 
-Use `useForm` when you need typed values or reactive form state outside the form tree:
-
-```tsx
-import { InputField, PasswordField, SubmitButton, useForm } from 'solid4m';
-
-interface LoginValues {
-  email: string;
-  password: string;
-}
-
-function TypedLoginForm() {
-  const form = useForm<LoginValues>();
-
-  return (
-    <form.Form onSubmit={(values) => console.log(values.email)}>
-      <InputField name='email' label='Email' required />
-      <PasswordField name='password' label='Password' required minLength={8} />
-      <SubmitButton>Log in</SubmitButton>
-    </form.Form>
-  );
-}
-```
-
-If you already have a Standard Schema-compatible schema, pass it to `Form` or `useForm({ schema })`
-to infer submit values from the schema instead of writing the values interface by hand.
+Already have a schema? Any [Standard Schema](https://standardschema.dev/) library works (Zod, Valibot,
+ArkType, …): `createForm({ schema })` infers the field types from it and validates on submit.
 
 ## What Is Included
 
-- `Form` and `useForm` for form composition and typed submit handlers
-- `InputField`, `PasswordField`, `TextAreaField`, `CheckboxField`, `SelectField`, `RadioGroup`, and `SubmitButton`
-- Standard Schema validation, built-in constraints, and custom validators
-- Async submission state and form-level error rendering
-- `parse` and `format` hooks for non-string field values
+- `Form`, `createForm`, and `useForm`, with typed submit handlers and field names typed as dotted paths
+- `InputField`, `PasswordField`, `TextAreaField`, `CheckboxField`, `SelectField`, `RadioGroup`, `NumberField`,
+  `DateField`, `FileField`, and `SubmitButton`
+- `FieldArray` and `useFieldArray` for repeating sections, with reordering that keeps each row's state
+- Standard Schema validation, built-in constraints (including `step` and date bounds), and custom validators
+- `reset`, `setValues`, and `resetField` for loading and reverting data
+- Accessible by default: focus moves to the first invalid field on submit, and errors and progress are
+  announced through live regions
+- Server rendering and hydration, including SolidStart
 - Token-based styling with optional bundled themes: `minimal`, `midnight`, and `neobrutalist`
 
 ## Learn More
 
 - [Installation](https://gxxcastillo.github.io/solid4m/installation/)
-- [Theming](https://gxxcastillo.github.io/solid4m/theming/)
+- [Field palette](https://gxxcastillo.github.io/solid4m/fields/)
 - [Validation](https://gxxcastillo.github.io/solid4m/validation/)
 - [Async submission](https://gxxcastillo.github.io/solid4m/submission/)
+- [Field arrays](https://gxxcastillo.github.io/solid4m/field-arrays/)
+- [Loading and resetting data](https://gxxcastillo.github.io/solid4m/loading-and-resetting/)
+- [Accessibility](https://gxxcastillo.github.io/solid4m/accessibility/)
+- [Server rendering](https://gxxcastillo.github.io/solid4m/server-rendering/)
+- [Theming](https://gxxcastillo.github.io/solid4m/theming/)
 - [Custom fields](https://gxxcastillo.github.io/solid4m/custom-fields/)
 - [API reference](https://gxxcastillo.github.io/solid4m/api/)
 - [Solid vs React mental model](https://gxxcastillo.github.io/solid4m/solid-vs-react/)

@@ -1,0 +1,147 @@
+---
+title: Loading and resetting
+description: Populate a form from a resource, and revert values with reset, setValues, and resetField.
+---
+
+import Demo from '../../components/Demo';
+
+Three mutations change field values without the user typing anything: `reset`, `setValues`, and
+`resetField`. All three live on the form's mutations — the second half of `form.store`, or reachable
+through `useForm()` when a component doesn't own its own `<Form>`.
+
+```tsx
+const form = useForm<ProfileValues>();
+const [, mutations] = form.store;
+
+mutations.reset({ email: 'loaded@example.com' });
+```
+
+## Loading initial values with `isLoading`
+
+A form whose values come from a resource — an account being edited, a draft being resumed — starts
+with nothing to show. Render it right away with `<Form isLoading>`, and fill it in once the fetch
+resolves.
+
+<Demo client:only='solid-js' demo='loadedProfile' title='Loading a saved profile' inspect />
+
+```tsx
+import { createSignal, onMount } from 'solid-js';
+
+import { SubmitButton, createFields, useForm } from 'solid4m';
+
+export interface ProfileValues {
+  displayName: string;
+  email: string;
+}
+
+const savedProfile: ProfileValues = { displayName: 'Ada Lovelace', email: 'ada@example.com' };
+
+const { InputField } = createFields<ProfileValues>();
+
+export function LoadedProfileForm() {
+  const form = useForm<ProfileValues>();
+  const [isLoading, setIsLoading] = createSignal(true);
+
+  onMount(() => {
+    fetchProfile().then((profile) => {
+      form.store[1].reset(profile);
+      setIsLoading(false);
+    });
+  });
+
+  return (
+    <form.Form onSubmit={saveProfile} isLoading={isLoading()} loadingLabel='Loading profile…'>
+      <InputField name='displayName' label='Display name' required />
+      <InputField name='email' type='email' label='Email' required />
+      <SubmitButton>Save</SubmitButton>
+    </form.Form>
+  );
+}
+```
+
+While `isLoading` is `true`, every registered field is disabled and every submit button gets the same
+unavailable treatment a real submit gets — `aria-disabled`, the spinner, blocked activation — so
+partially loaded values can never reach `onSubmit`. `loadingLabel` announces the state to assistive
+technology through the form's polite live region, the same channel `isProcessing`'s
+`processingLabel` uses; it defaults to `'Loading…'`, and an empty string keeps it silent. See
+[Async submission](../submission/#work-the-form-does-not-run-itself) for how `isLoading` and
+`isProcessing` relate — they're independent flags with independent labels, so loading a form's
+initial values never gets confused with submitting it, even in the (unusual) case where both happen
+to be true at once.
+
+Filling the fields in with `reset(toValues)` rather than `setValues(toValues)` matters here: `reset`
+rebaselines each field's initial value to what you pass, so the freshly loaded data reads as a clean,
+untouched form rather than something the user just edited — see the difference below.
+
+## `reset(toValues?)`
+
+Called with no arguments, `reset()` reverts every registered field to its own current initial value,
+clears form-level errors, and clears each field's `hasChanged`/`hasBeenBlurred` — the "start over"
+case (a cancel button, or clearing the form after a failed submit).
+
+Pass `toValues` to rebaseline instead of merely reverting: each field named in `toValues` gets *that*
+value as its new initial value, not just its current one. A later plain `reset()` or `resetField`
+goes back to this new baseline, not whatever the field held before `reset(toValues)` ran — which is
+exactly the "load, then let the user edit" sequence the demo above relies on. A key in `toValues` for
+a field that isn't currently registered is ignored; a registered field with no entry in `toValues`
+keeps its previous baseline untouched.
+
+## `setValues(values)`
+
+`setValues` bulk-sets the *current* value of already-registered fields, the same as calling
+`setFieldValue` for each key — but unlike `reset`, it does not touch each field's initial-value
+baseline, and it does not clear that field's errors. Reach for it when you want to impose a value
+without asserting the form is now pristine — syncing one field from a websocket push, for instance,
+without discarding whatever validation errors already applied to it.
+
+Because `setValues` never moves the baseline, a value it sets still counts as a change: `hasChanged`
+flips true (unless the new value happens to equal what the field already held), and a later `reset()`
+reverts past it, back to the field's real initial value. The demo above's "Sync email from server"
+button demonstrates this against "Reset form": syncing the email leaves it changed, and resetting the
+form goes back to the *loaded* email, not the synced one.
+
+## `resetField(name)`
+
+Reverts a single field to its own current initial value and clears its errors — the one-field version
+of `reset()`. It doesn't touch any other field, and (like `reset`) it re-validates the reverted value
+afterward, so a field whose initial value is itself invalid (an empty required field, for example)
+shows its error immediately rather than waiting for a blur the user has no reason to trigger.
+
+## Matching dotted and array-index names
+
+`toValues`/`values` are matched against each field's own registered name, which can itself be a
+dotted or array-index path (`address.city`, `items.0.title` — see
+[Field arrays](../field-arrays/)). Passing either shape works:
+
+```tsx
+// A real nested object — reset/setValues walk into it by path.
+mutations.reset({ items: [{ title: 'Widget' }] });
+
+// An object keyed by the field's own literal dotted name.
+mutations.reset({ 'items.0.title': 'Widget' });
+```
+
+If a values object somehow has both — an exact literal key *and* a nested value that would also
+resolve to the same path — the exact literal key wins outright; the nested value is never consulted.
+This only matters for a values object assembled from field name/value pairs directly (as `onSubmit`'s
+own `values` argument is *not* — it is always the real nested shape); reaching for it is rare enough
+that this is closer to a documented edge case than a decision you'll need to make.
+
+## Effect on changed state
+
+| Mutation           | Reverts/sets value to                        | Rebaselines initial value | Clears errors           | `hasChanged` afterward                    |
+| ------------------- | ---------------------------------------------- | -------------------------- | ------------------------- | -------------------------------------------- |
+| `resetField(name)`  | the field's current initial value              | no                          | yes, then re-validates    | `false`                                       |
+| `reset(toValues?)`  | initial value, or `toValues`'s value if given  | yes, for fields in `toValues` | yes, then re-validates | `false`                                       |
+| `setValues(values)` | `values`'s value, for registered fields        | no                          | no (preserves existing)   | `true` if the value actually changed, else unchanged |
+
+Outside of `resetField`/`reset`, `hasChanged` only ever moves from `false` to `true` — `setValues`
+cannot clear it back to `false`, even when the value it sets happens to match the field's initial
+value again, because it only compares against what the field *currently* holds. The form-level
+`haveValuesChanged` (and the inspector panel above) is `true` whenever any registered field's
+`hasChanged` is `true`, so the same distinctions show up there too.
+
+## Next steps
+
+See [Field arrays](../field-arrays/) for how these same mutations reach into `items.<index>.*` names,
+and the [API reference](../api/#state-api) for the full state and mutations surface.

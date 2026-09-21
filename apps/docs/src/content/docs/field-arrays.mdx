@@ -1,0 +1,231 @@
+---
+title: Field arrays
+description: Repeating sections — line items, contacts, addresses — backed by FieldArray and useFieldArray.
+---
+
+import Demo from '../../components/Demo';
+
+A field array backs a repeating section: line items on an invoice, members on a roster, addresses
+on a profile. Every row's fields register under `${name}.<index>.*` — `items.0.title`,
+`items.1.title` — exactly like any other field, so the rest of the library (validation, `reset`,
+`setValues`, the state API) never needs to know an array is involved at all.
+
+## `FieldArray`
+
+`FieldArray` is the batteries-included version: it owns the row list and hands each row's render
+function field components already scoped to that row.
+
+<Demo client:only='solid-js' demo='lineItems' title='Line items' inspect />
+
+```tsx
+import { type FieldArrayHelpers, FieldArray, SubmitButton, createForm } from 'solid4m';
+
+export interface LineItem {
+  description: string;
+  quantity: string;
+}
+
+export interface LineItemsValues {
+  items: LineItem[];
+}
+
+const emptyItem: LineItem = { description: '', quantity: '1' };
+
+// FieldArray reads the form's context (useFormContext) internally, so it
+// must be rendered from a component *inside* <Form> — not from
+// LineItemsForm itself, which renders <Form> as its own child and would
+// mount FieldArray before that context exists.
+function LineItemFields() {
+  let itemsArray!: FieldArrayHelpers<LineItem>;
+
+  return (
+    <>
+      <FieldArray<LineItem> name='items' defaultValue={[emptyItem]} helpersRef={(helpers) => (itemsArray = helpers)}>
+        {(fields, item, remove) => (
+          <>
+            <fields.InputField name='description' label='Description' defaultValue={item.description} required />
+            <fields.InputField name='quantity' label='Quantity' defaultValue={item.quantity} required />
+            <SubmitButton variant='approve' onClick={remove}>
+              Remove
+            </SubmitButton>
+          </>
+        )}
+      </FieldArray>
+      <SubmitButton variant='approve' onClick={() => itemsArray.append({ ...emptyItem })}>
+        Add line item
+      </SubmitButton>
+    </>
+  );
+}
+
+const { Form } = createForm<LineItemsValues>();
+
+export function LineItemsForm(props: { onSubmit?: (values: LineItemsValues) => void | Promise<void> }) {
+  return (
+    <Form onSubmit={props.onSubmit ?? (() => undefined)}>
+      <LineItemFields />
+      <SubmitButton>Submit</SubmitButton>
+    </Form>
+  );
+}
+```
+
+The render prop hands you three things per row:
+
+- `fields` — field components pre-scoped to this row (see [`createScopedFields`](#usefieldarray-and-createscopedfields) below), typed against `LineItem` rather than the whole form.
+- `item` — this row's `defaultValue` (seeds the row's fields on their first mount only, the same way any field's own `defaultValue` prop works — not a live value, which lives in the form store like every other field).
+- `remove` — removes exactly this row.
+
+`helpersRef` is a synchronous, ref-style callback — the same pattern as a DOM `ref` — for wiring an
+"add" affordance of your own outside the render prop, since `append`'s seed value (what a fresh row
+starts with) is a decision only the caller can make.
+
+| Prop           | Type                                                          | Description                                                          |
+| -------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `name`         | `string`                                                        | The array's base name; rows register under `${name}.<index>.*`         |
+| `defaultValue` | `readonly Item[]`                                               | Seeds the initial rows                                                 |
+| `children`     | `(fields, item, remove) => JSX.Element`                         | Renders one row                                                        |
+| `helpersRef`   | `(helpers: FieldArrayHelpers<Item>) => void`                    | Exposes this array's helpers outside the render prop                   |
+| `rowClass`     | `string`                                                        | Extra class composed onto each row's own wrapping element              |
+
+Like every field component, `FieldArray` must be rendered from a component that is itself a
+descendant of `<Form>` — not from the component that renders `<Form>` as its own child, which is why
+the example above splits `LineItemFields` out from `LineItemsForm`. Calling it at the top of the
+component that returns `<Form>{...}</Form>` runs it before that `<Form>`'s context exists.
+
+## Row identity across reorders
+
+Each row carries a stable identity token (its `key`), generated once and never derived from index or
+reused. `<For>` keys rows by it, so a row that shifts to a different index is never torn down and
+rebuilt — its live DOM node, whatever the user has typed but not yet blurred, its focus, and its
+validation history (errors, `hasBeenValid`, `hasBeenBlurred`) all carry over untouched.
+
+That only works because `append`/`prepend`/`insert`/`remove`/`move`/`swap` re-address every affected
+row's registered field names in the very same reactive batch as the row-list update, before Solid
+re-renders anything — so by the time a shifted row re-renders under its new index, the field it reads
+from the store is already the one that used to be a different index. Removing row 0 out of three, for
+example, renames `items.1.*` to `items.0.*` and `items.2.*` to `items.1.*` in that one batch; nothing
+about row 1's own component instance changes.
+
+## `useFieldArray` and `createScopedFields`
+
+`FieldArray` is built from two lower-level pieces you can use directly when you need more control
+over row layout than a single render prop gives you — reordering controls between two field groups,
+for instance.
+
+<Demo client:only='solid-js' demo='teamRoster' title='Reorderable roster' inspect />
+
+```tsx
+import { For } from 'solid-js';
+
+import { SubmitButton, createForm, createScopedFields, useFieldArray } from 'solid4m';
+
+interface TeamMember {
+  name: string;
+  role: string;
+}
+
+interface TeamRosterValues {
+  members: TeamMember[];
+}
+
+// Like FieldArray, useFieldArray reads form context internally, so it must be
+// called from a component rendered *inside* <Form>.
+function RosterFields() {
+  const [members, roster] = useFieldArray<TeamMember>('members', [
+    { name: 'Ada Lovelace', role: 'Lead' },
+    { name: 'Alan Turing', role: 'Engineer' }
+  ]);
+
+  return (
+    <For each={members()}>
+      {(member, index) => {
+        // pathAt derives this row's own base path ('members.0', 'members.1', ...)
+        // from the array's own name and the row's reactive index, so
+        // createScopedFields never needs `members` repeated at each row.
+        const fields = createScopedFields<TeamMember>(roster.pathAt(index));
+
+        return (
+          <div>
+            <fields.InputField name='name' label='Name' defaultValue={member.defaultValue.name} />
+            <SubmitButton isDisabled={index() === 0} onClick={() => roster.move(index(), index() - 1)} variant='approve'>
+              Move up
+            </SubmitButton>
+          </div>
+        );
+      }}
+    </For>
+  );
+}
+```
+
+`useFieldArray(name, defaultValue?)` returns `[items, helpers]`: `items` is an accessor over
+`{ key, defaultValue }[]` (the same shape `FieldArray` hands to `<For>` internally), and `helpers` is
+everything below. `createScopedFields<Item>(base)` takes a *reactive* base path (an accessor, not a
+plain string) and returns field components that prefix every `name`/`match` they're given with
+`base()` — reactive so a row that shifts index on remove/insert/move keeps addressing wherever it
+currently lives.
+
+Only `InputField` and `PasswordField` go through `createScopedFields` today. For another field type
+inside a row, address it directly by joining `roster.pathAt(index)()` with the field's own name (for
+example `` `${roster.pathAt(index)()}.notes` ``) — the same dotted address `createScopedFields` would
+have produced, just without the row's own `Item` type carried along (a template-literal name like
+that can't be checked against `Item`, so the field falls back to its untyped default).
+
+## Helpers
+
+| Helper    | Signature                                        | Effect                                                             |
+| --------- | ------------------------------------------------- | ------------------------------------------------------------------- |
+| `append`  | `(value: T) => void`                              | Adds a row at the end; nothing else shifts                          |
+| `prepend` | `(value: T) => void`                              | Adds a row at the front; every existing row shifts up by one        |
+| `insert`  | `(index: number, value: T) => void`               | Adds a row at `index`; rows at or after `index` shift up by one     |
+| `remove`  | `(index: number) => void`                         | Removes the row at `index`; later rows shift down by one            |
+| `move`    | `(from: number, to: number) => void`              | Moves the row at `from` to `to`, shifting rows between them         |
+| `swap`    | `(a: number, b: number) => void`                  | Exchanges exactly the two rows at `a` and `b`                       |
+| `pathAt`  | `(index: Accessor<number>) => Accessor<string>`   | This row's own base field-name path, e.g. `'items.0'`               |
+
+## Typed nested field names
+
+A field's `name` is checked against the form's value type all the way through a dotted or
+array-index path — `FieldPath<M>` — the same way a flat name always was. Given
+
+```tsx
+interface OrderValues {
+  items: { title: string; quantity: number }[];
+}
+
+const { InputField } = createForm<OrderValues>();
+```
+
+`<InputField name='items.0.title' />` infers `string` for that field's value with no cast, and
+`<InputField name='items.0.titel' />` (typo) is a compile error — see
+[`createForm<M>()`](../api/#createformm) for how nested names are checked in general. Inside a
+`FieldArray`/`createScopedFields` row this works the same way, just against the row's own `Item`
+type rather than the whole form's `M`, since a row's fields never need to know they live under an
+array at all.
+
+## The nested submit shape
+
+`onSubmit` receives real nested values, not the dotted field names: with `items.0.title` and
+`items.1.title` both registered, `onSubmit` sees `{ items: [{ title: ... }, { title: ... }] }`. A
+form whose value type is `{ items: LineItem[] }` can therefore be declared with
+`createForm<LineItemsValues>()` and read `values.items` directly, with no cast at the `onSubmit` call
+site:
+
+```tsx
+const { Form } = createForm<LineItemsValues>();
+
+<Form
+  onSubmit={(values) => {
+    values.items; // LineItem[]
+  }}
+>
+  <LineItemFields />
+</Form>;
+```
+
+## Next steps
+
+[Loading and resetting](../loading-and-resetting/) covers `reset`/`setValues` against these same
+dotted and array-index names — useful once a field array's rows come from a resource instead of a
+fixed `defaultValue`.

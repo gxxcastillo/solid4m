@@ -3,6 +3,8 @@ title: Async submission
 description: Handle promise-based submit handlers and form-level errors.
 ---
 
+import Demo from '../../components/Demo';
+
 Return a promise from `onSubmit` when your submit flow is asynchronous.
 
 ```tsx
@@ -87,3 +89,76 @@ const form = useForm<LoginValues>();
   <SubmitButton>Log in</SubmitButton>
 </form.Form>;
 ```
+
+## Naming submit buttons for more than one action
+
+`onSubmit` can be an object instead of a single function — a map from a button's `name` to the
+handler that should run when *that* button submits the form. Give each `SubmitButton` a matching
+`name` and the right handler runs, whichever one the user pressed.
+
+Press either button below and watch which handler reports back — both are `async`, so there is a
+moment to see which one is actually running.
+
+<Demo client:only='solid-js' demo='draftPublish' title='Save as draft or publish' />
+
+```tsx
+import { SubmitButton, type SubmitResponseMapping, createForm } from 'solid4m';
+
+interface PostValues {
+  title: string;
+}
+
+const { Form, InputField } = createForm<PostValues>();
+
+async function saveDraft(values: PostValues) {
+  await api.saveDraft(values);
+}
+
+async function publish(values: PostValues) {
+  await api.publish(values);
+}
+
+function PostForm() {
+  return (
+    <Form<PostValues, SubmitResponseMapping<PostValues>> onSubmit={{ saveDraft, publish }}>
+      <InputField name='title' label='Title' required />
+      <SubmitButton name='saveDraft'>Save draft</SubmitButton>
+      <SubmitButton name='publish'>Publish</SubmitButton>
+    </Form>
+  );
+}
+```
+
+The second type argument, `SubmitResponseMapping<PostValues>`, is required for a map: TypeScript
+cannot work out from the object literal alone that `onSubmit` is a map rather than a single handler.
+With `useForm`, pass it there instead: `useForm<PostValues, SubmitResponseMapping<PostValues>>()`.
+
+Each handler is optionally passed a second argument: the name of the button that triggered it.
+
+```ts
+type OnSubmitHandler<P, R> = (values: P, buttonName: string) => Promise<R> | void;
+```
+
+That second argument matters when several buttons intentionally share one handler — it is how the
+handler tells them apart without needing a separate function per button.
+
+A map with exactly one handler needs no matching `name` on its button at all. With nothing to
+disambiguate, that single handler runs regardless of whether the button that submitted has a `name`,
+or any name at all — silently doing nothing would be worse than running the one handler there is.
+
+With two or more handlers, a button that submits without a matching `name` — unnamed, or named
+something not in the map — can't be resolved. Nothing runs: no handler is called, no error is set, and
+the form looks like it did nothing. That silence is exactly what this library tries to avoid
+everywhere else, so it is not silent here either — a `console.warn` names the problem and lists the
+handlers that were available, so the fix (add or correct a `name`) is visible in development instead
+of discovered from a support ticket.
+
+The in-flight treatment from the top of this page still applies per button: while either handler is
+running, every `SubmitButton` in the form goes `aria-disabled` — a second submit really is
+unavailable while one is in flight — but only the button that was actually pressed shows its spinner,
+so the form never claims two actions are running when only one is.
+
+## Next steps
+
+See [Accessibility](../accessibility/) for how the in-flight and invalid-submit treatment fits into
+the rest of the form's focus and live-region behavior.

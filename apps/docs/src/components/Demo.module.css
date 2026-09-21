@@ -1,0 +1,33 @@
+.demo {
+  margin-block: 1.5rem;
+  color: var(--sf-color-text);
+  font-family: var(--sf-font-family);
+}
+
+.layout,
+.layoutInspect {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.card {
+  padding: 1.75rem;
+  border: 1px solid var(--sf-color-border);
+  border-radius: 0.5rem;
+  background: var(--sf-color-surface);
+  box-shadow: 0 12px 30px -18px rgb(0 0 0 / 0.35);
+}
+
+.cardTitle {
+  margin: 0 0 1.25rem;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+@media (min-width: 860px) {
+  .layoutInspect {
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
+  }
+}

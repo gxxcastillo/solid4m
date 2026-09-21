@@ -11,7 +11,11 @@ export const fixtureForms = [
   // are inserted and removed dynamically and are addressed by generated
   // `items.<index>.*` names — so the FieldArray example carries its own routes.
   { id: 'lineItems', label: 'Line items', title: 'Line items' },
-  { id: 'settings', label: 'Settings', title: 'User settings' }
+  { id: 'settings', label: 'Settings', title: 'User settings' },
+  // Every field in the palette, including a multiple select — whose selection
+  // behavior differs between happy-dom and a real browser, so only this
+  // harness can check it.
+  { id: 'palette', label: 'Field palette', title: 'Workshop registration' }
 ] as const;
 
 export type FixtureTheme = (typeof fixtureThemes)[number]['id'];

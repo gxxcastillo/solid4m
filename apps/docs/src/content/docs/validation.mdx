@@ -3,6 +3,8 @@ title: Validation
 description: Use schema validation, built-in constraints, and custom validators.
 ---
 
+import Demo from '../../components/Demo';
+
 Use a Standard Schema-compatible schema when you want one source of truth for validation and submit
 value types. Schema issues with field paths are mapped back onto registered fields on submit.
 
@@ -175,13 +177,63 @@ only when no built-in errors exist on the field.
 The validator signature is:
 
 ```ts
-type CustomValidator<M, N extends keyof M> = (
+type CustomValidator<M, N extends FieldPath<M>> = (
   fieldName: N,
-  fieldValue: M[N],
+  fieldValue: FieldPathValue<M, N>,
   formState: FormState<M>,
   setFieldErrors: (errors: string[]) => void
-) => void | Promise<void>;
+) => void;
 ```
 
-Sync validators call `setErrors` before returning. Async validators call `setErrors` when the promise
-resolves.
+Sync validators call `setFieldErrors` before returning. An async validator (an `async` function is
+fine) calls it once its work resolves; if the field changes again in the meantime, the stale result is
+discarded rather than applied.
+
+## When an error becomes visible
+
+A field's errors do not render the moment they exist — a required field is technically "invalid" the
+instant it mounts empty, and showing that on first paint (or on the first keystroke of an email
+address) would just be shouting at someone who has not finished answering yet. An error is displayed
+once either of these becomes true for that field:
+
+- **It has been blurred.** Leaving the field is the signal that the user considers their answer
+  final, at least for now, so whatever is wrong with it is worth surfacing.
+- **It has been valid before.** Once a field has held a valid value, subsequent edits are shown live,
+  with no need to blur again. At that point the user has already demonstrated they can produce a
+  correct answer, so silently withholding feedback while they change it is the opposite of what a
+  field they are "still fixing" needs — this is what makes typing a valid username and then deleting
+  a character immediately show "too short" again, instead of waiting for another blur.
+
+A **submit** reveals every field's errors at once, including on fields nobody has touched yet, so a
+pristine required field is not the one silent exception to an otherwise-explained failure.
+
+Try it below: the username needs at least 3 characters. Type one or two and nothing appears — it has
+never been valid and you have not left the field. Type a third character and its `inspect` panel
+turns `valid` — the same moment the field's `hasBeenValid` flag latches true — then delete a character
+again and the error reappears immediately, with no blur required, because that flag never resets. The
+email field demonstrates the other trigger: type an invalid address and blur away, and `inspect` flips
+its `blurred` tag and the error appears on that blur alone, with the field never having been valid at
+all.
+
+<Demo client:only='solid-js' demo='errorVisibility' title='When errors appear' inspect />
+
+```tsx
+import { SubmitButton, createForm } from 'solid4m';
+
+interface SignupValues {
+  username: string;
+  email: string;
+}
+
+const { Form, InputField } = createForm<SignupValues>();
+
+function SignupForm() {
+  return (
+    <Form onSubmit={(values) => console.log(values)}>
+      <InputField name='username' label='Username' required minLength={3} />
+      <InputField name='email' type='email' label='Email' required />
+      <SubmitButton>Submit</SubmitButton>
+    </Form>
+  );
+}
+```

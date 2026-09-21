@@ -16,8 +16,10 @@ integration, and each is available from `createForm()` and `createFields()`.
   doesn't turn it into `0`. Pass your own `parse` to store numbers, choosing how an empty
   field should be represented.
 - `DateField` is an `InputField` locked to `type='date'`. Values stay in the
-  browser's `yyyy-mm-dd` format, the same format `min`, `max`, and `step` use;
-  use `parse` and `format` to work with `Date` objects instead.
+  browser's `yyyy-mm-dd` format, the same format `min`, `max`, and `step` use.
+  You can use `parse` and `format` to work with `Date` objects instead, but
+  `min`, `max`, and `step` are then not checked, since they compare the
+  stored string; keep the string, or check bounds in a custom `validator`.
 - `FileField` stores the selected `FileList`. Clearing the selection stores
   `undefined`, so `required` rejects it, and `reset()` or `resetField()` clears
   the native control. Browsers don't allow setting a file input's value, so the

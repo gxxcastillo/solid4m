@@ -8,14 +8,17 @@ const EXPECTED_ROUTES = [
   { path: '/minimal/signup', heading: 'Minimal Signup' },
   { path: '/minimal/lineItems', heading: 'Minimal Line items' },
   { path: '/minimal/settings', heading: 'Minimal Settings' },
+  { path: '/minimal/palette', heading: 'Minimal Field palette' },
   { path: '/midnight/login', heading: 'Midnight Login' },
   { path: '/midnight/signup', heading: 'Midnight Signup' },
   { path: '/midnight/lineItems', heading: 'Midnight Line items' },
   { path: '/midnight/settings', heading: 'Midnight Settings' },
+  { path: '/midnight/palette', heading: 'Midnight Field palette' },
   { path: '/neobrutalist/login', heading: 'Neobrutalist Login' },
   { path: '/neobrutalist/signup', heading: 'Neobrutalist Signup' },
   { path: '/neobrutalist/lineItems', heading: 'Neobrutalist Line items' },
-  { path: '/neobrutalist/settings', heading: 'Neobrutalist Settings' }
+  { path: '/neobrutalist/settings', heading: 'Neobrutalist Settings' },
+  { path: '/neobrutalist/palette', heading: 'Neobrutalist Field palette' }
 ] as const;
 
 function formatViolations(violations: AxeViolation[]): string {
@@ -311,4 +314,24 @@ test('/minimal/lineItems stays accessible after adding and removing a row', asyn
   await expect(page.getByLabel('Description')).toHaveValue('Second row');
 
   await expectNoAxeViolations(page);
+});
+
+// Chromium clears every option when a multiple select's `value` is set to a
+// string matching none of them, which is what binding the stored array
+// ("testing,performance") back to the element did — so the user's own picks
+// vanished as they made them. happy-dom does not clear it, so unit tests
+// could not see this.
+test('a multiple select keeps its default, the user’s picks, and a reset', async ({ page }) => {
+  await page.goto('/minimal/palette');
+  const topics = page.getByLabel('Topics you would attend');
+  const selected = () => topics.evaluate((select: HTMLSelectElement) => Array.from(select.selectedOptions, (o) => o.value));
+
+  await expect.poll(selected).toEqual(['a11y']);
+
+  await topics.selectOption(['testing', 'performance']);
+  await topics.blur();
+  await expect.poll(selected).toEqual(['testing', 'performance']);
+
+  await page.getByRole('button', { name: 'Reset form' }).click();
+  await expect.poll(selected).toEqual(['a11y']);
 });

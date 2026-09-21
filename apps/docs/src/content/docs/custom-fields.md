@@ -25,12 +25,10 @@ back to a string for the input.
 Use `createFormField` to integrate any input element into the form.
 
 ```tsx
-import { type StringKeyOf } from 'type-fest';
-
 import { createFormField } from 'solid4m';
-import type { FieldValueMapping, FormFieldProps } from 'solid4m';
+import type { FieldPath, FieldPathValue, FieldValueMapping, FormFieldProps } from 'solid4m';
 
-function RatingField<M extends FieldValueMapping, N extends StringKeyOf<M>>(
+function RatingField<M extends object = FieldValueMapping, N extends FieldPath<M> = FieldPath<M>>(
   props: FormFieldProps<'input', M, N>
 ) {
   const [fieldProps, createField] = createFormField<'input', M, N>(props)();
@@ -39,7 +37,7 @@ function RatingField<M extends FieldValueMapping, N extends StringKeyOf<M>>(
     'InputField',
     <div>
       {[1, 2, 3, 4, 5].map((n) => (
-        <button type='button' onClick={() => fieldProps.setValue(n as M[N])}>
+        <button type='button' onClick={() => fieldProps.setValue(n as FieldPathValue<M, N>)}>
           {n}
         </button>
       ))}
@@ -51,3 +49,11 @@ function RatingField<M extends FieldValueMapping, N extends StringKeyOf<M>>(
 
 The returned `fieldProps` contains the current value, errors, and mutation helpers. `createField`
 connects your rendered control to the surrounding form store.
+
+`FieldPath<M>` is every valid field name on `M`, including dotted paths, and `FieldPathValue<M, N>`
+is the value type at that path. Typing your component with them gives it the same name and value
+checking as the built-in fields:
+
+```tsx
+<RatingField<ReviewValues, 'review.stars'> name='review.stars' label='Stars' />
+```

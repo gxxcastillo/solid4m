@@ -41,9 +41,14 @@ export default defineConfig({
         {
           label: 'Guides',
           items: [
-            { slug: 'theming' },
+            { slug: 'fields' },
             { slug: 'validation' },
             { slug: 'submission' },
+            { slug: 'field-arrays' },
+            { slug: 'loading-and-resetting' },
+            { slug: 'accessibility' },
+            { slug: 'server-rendering' },
+            { slug: 'theming' },
             { slug: 'custom-fields' },
             { slug: 'solid-vs-react' }
           ]
