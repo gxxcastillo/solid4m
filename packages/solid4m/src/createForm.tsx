@@ -1,6 +1,6 @@
 import { type JSX } from 'solid-js';
 
-import { createFields, type FieldComponents } from '@gxxc/solid-formation-fields';
+import { createFields, type FieldComponents } from '@gxxc/solid4m-fields';
 import {
   Form,
   type FormComponentProps,
@@ -9,8 +9,8 @@ import {
   type StandardSchemaV1,
   type SubmitResponse,
   type SubmitResponseMapping
-} from '@gxxc/solid-formation-form';
-import { type FieldValueMapping } from '@gxxc/solid-formation-state';
+} from '@gxxc/solid4m-form';
+import { type FieldValueMapping } from '@gxxc/solid4m-state';
 
 export type FormComponents<M extends object, DefaultSubmitValues extends object = M> = FieldComponents<M> & {
   Form: <O extends object = DefaultSubmitValues, R extends SubmitResponse | SubmitResponseMapping<O> = O>(

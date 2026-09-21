@@ -1,7 +1,7 @@
 import { cleanup, render } from '@solidjs/testing-library';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { FormContextProvider, type FormStore, createFormStore } from '@gxxc/solid-formation-state';
+import { FormContextProvider, type FormStore, createFormStore } from '@gxxc/solid4m-state';
 
 import { FieldArray } from './FieldArray';
 import styles from './FieldArray.module.css';

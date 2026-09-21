@@ -1,4 +1,4 @@
-# solid-formation
+# solid4m
 
 ## 0.2.0
 

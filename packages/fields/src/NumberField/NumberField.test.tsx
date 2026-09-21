@@ -2,7 +2,7 @@ import { cleanup, render, screen } from '@solidjs/testing-library';
 import { createRoot } from 'solid-js';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { FormContextProvider, createFormStore } from '@gxxc/solid-formation-state';
+import { FormContextProvider, createFormStore } from '@gxxc/solid4m-state';
 
 import { NumberField } from './NumberField';
 

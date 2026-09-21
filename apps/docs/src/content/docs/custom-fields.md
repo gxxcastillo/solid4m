@@ -27,8 +27,8 @@ Use `createFormField` to integrate any input element into the form.
 ```tsx
 import { type StringKeyOf } from 'type-fest';
 
-import { createFormField } from 'solid-formation';
-import type { FieldValueMapping, FormFieldProps } from 'solid-formation';
+import { createFormField } from 'solid4m';
+import type { FieldValueMapping, FormFieldProps } from 'solid4m';
 
 function RatingField<M extends FieldValueMapping, N extends StringKeyOf<M>>(
   props: FormFieldProps<'input', M, N>

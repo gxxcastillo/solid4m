@@ -1,16 +1,16 @@
-# solid-formation
+# solid4m
 
 Typed, reactive forms for [SolidJS](https://www.solidjs.com/).
 
-**Docs:** https://gxxcastillo.github.io/solid-formation/
-**Demo:** https://gxxcastillo.github.io/solid-formation/demo/
+**Docs:** https://gxxcastillo.github.io/solid4m/
+**Demo:** https://gxxcastillo.github.io/solid4m/demo/
 
 ## Installation
 
 ```bash
-npm install solid-formation
+npm install solid4m
 # or
-pnpm add solid-formation
+pnpm add solid4m
 ```
 
 Requires SolidJS 1.x as a peer dependency.
@@ -20,11 +20,11 @@ Requires SolidJS 1.x as a peer dependency.
 Import the stylesheet once in your app entry, then use the form and field components.
 
 ```ts
-import 'solid-formation/styles.css';
+import 'solid4m/styles.css';
 ```
 
 ```tsx
-import { Form, InputField, PasswordField, SubmitButton } from 'solid-formation';
+import { Form, InputField, PasswordField, SubmitButton } from 'solid4m';
 
 function LoginForm() {
   return (
@@ -40,7 +40,7 @@ function LoginForm() {
 Use `useForm` when you need typed values or reactive form state outside the form tree:
 
 ```tsx
-import { InputField, PasswordField, SubmitButton, useForm } from 'solid-formation';
+import { InputField, PasswordField, SubmitButton, useForm } from 'solid4m';
 
 interface LoginValues {
   email: string;
@@ -74,10 +74,10 @@ to infer submit values from the schema instead of writing the values interface b
 
 ## Learn More
 
-- [Installation](https://gxxcastillo.github.io/solid-formation/installation/)
-- [Theming](https://gxxcastillo.github.io/solid-formation/theming/)
-- [Validation](https://gxxcastillo.github.io/solid-formation/validation/)
-- [Async submission](https://gxxcastillo.github.io/solid-formation/submission/)
-- [Custom fields](https://gxxcastillo.github.io/solid-formation/custom-fields/)
-- [API reference](https://gxxcastillo.github.io/solid-formation/api/)
-- [Solid vs React mental model](https://gxxcastillo.github.io/solid-formation/solid-vs-react/)
+- [Installation](https://gxxcastillo.github.io/solid4m/installation/)
+- [Theming](https://gxxcastillo.github.io/solid4m/theming/)
+- [Validation](https://gxxcastillo.github.io/solid4m/validation/)
+- [Async submission](https://gxxcastillo.github.io/solid4m/submission/)
+- [Custom fields](https://gxxcastillo.github.io/solid4m/custom-fields/)
+- [API reference](https://gxxcastillo.github.io/solid4m/api/)
+- [Solid vs React mental model](https://gxxcastillo.github.io/solid4m/solid-vs-react/)

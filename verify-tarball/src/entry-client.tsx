@@ -1,5 +1,5 @@
 import { hydrate } from 'solid-js/web';
-import 'solid-formation/styles.css';
+import 'solid4m/styles.css';
 import { App } from '../App';
 
 const root = document.getElementById('app');

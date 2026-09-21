@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '..');
-const facadeDir = resolve(repoRoot, 'packages/solid-formation');
+const facadeDir = resolve(repoRoot, 'packages/solid4m');
 const packDir = resolve(__dirname, '.pack');
 
 function run(command, args, cwd) {
@@ -33,7 +33,7 @@ const runtimeExports = JSON.parse(
     [
       '--input-type=module',
       '-e',
-      "process.stdout.write(JSON.stringify(Object.keys(await import('solid-formation')).sort()))"
+      "process.stdout.write(JSON.stringify(Object.keys(await import('solid4m')).sort()))"
     ],
     {
       cwd: __dirname,
@@ -43,7 +43,7 @@ const runtimeExports = JSON.parse(
 );
 writeFileSync(
   resolve(__dirname, 'consumer.gen.ts'),
-  `import { ${runtimeExports.join(', ')} } from 'solid-formation';\n${runtimeExports.map((name) => `void ${name};`).join('\n')}\n`
+  `import { ${runtimeExports.join(', ')} } from 'solid4m';\n${runtimeExports.map((name) => `void ${name};`).join('\n')}\n`
 );
 run('npx', ['tsc', '-p', 'tsconfig.consumer.json'], __dirname);
 

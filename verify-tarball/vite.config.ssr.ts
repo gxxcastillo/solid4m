@@ -5,9 +5,9 @@ import solid from 'vite-plugin-solid';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// `solid-formation` stays external (not bundled): the built dist-ssr/ssr-entry.js
+// `solid4m` stays external (not bundled): the built dist-ssr/ssr-entry.js
 // this produces is run directly with plain `node`, so its own
-// `import ... from 'solid-formation'` resolves through Node's real exports-map
+// `import ... from 'solid4m'` resolves through Node's real exports-map
 // resolution — the same path a deployed SolidStart server takes — rather than
 // through anything Vite does at this build step.
 export default defineConfig({
@@ -24,7 +24,7 @@ export default defineConfig({
       formats: ['es']
     },
     rollupOptions: {
-      external: [/^solid-js(\/|$)/, 'solid-formation']
+      external: [/^solid-js(\/|$)/, 'solid4m']
     }
   }
 });

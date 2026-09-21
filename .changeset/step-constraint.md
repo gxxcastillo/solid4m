@@ -1,5 +1,5 @@
 ---
-'solid-formation': minor
+'solid4m': minor
 ---
 
 Add a `step` constraint, closing the rest of the `noValidate` gap.

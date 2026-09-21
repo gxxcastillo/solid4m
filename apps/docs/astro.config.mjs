@@ -16,17 +16,17 @@ export default defineConfig({
   base: normalizeBasePath(process.env.VITE_BASE_PATH),
   integrations: [
     starlight({
-      title: 'solid-formation',
+      title: 'solid4m',
       description: 'Typed, reactive forms for SolidJS.',
       favicon: '/favicon.ico',
       editLink: {
-        baseUrl: 'https://github.com/gxxcastillo/solid-formation/edit/main/apps/docs/'
+        baseUrl: 'https://github.com/gxxcastillo/solid4m/edit/main/apps/docs/'
       },
       social: [
         {
           icon: 'github',
           label: 'GitHub',
-          href: 'https://github.com/gxxcastillo/solid-formation'
+          href: 'https://github.com/gxxcastillo/solid4m'
         }
       ],
       sidebar: [
@@ -59,9 +59,9 @@ export default defineConfig({
   vite: {
     resolve: {
       alias: {
-        '@gxxc/solid-formation-examples': resolve(__dirname, '../../packages/examples/src/index.ts'),
-        'solid-formation/themes': resolve(__dirname, '../../packages/solid-formation/themes'),
-        'solid-formation': resolve(__dirname, '../../packages/solid-formation/src/index.ts')
+        '@gxxc/solid4m-examples': resolve(__dirname, '../../packages/examples/src/index.ts'),
+        'solid4m/themes': resolve(__dirname, '../../packages/solid4m/themes'),
+        'solid4m': resolve(__dirname, '../../packages/solid4m/src/index.ts')
       }
     },
     build: {

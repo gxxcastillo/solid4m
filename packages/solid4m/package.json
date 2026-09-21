@@ -1,5 +1,5 @@
 {
-  "name": "solid-formation",
+  "name": "solid4m",
   "version": "0.2.0",
   "type": "module",
   "description": "Typed, accessible, SSR-ready forms for SolidJS",
@@ -15,10 +15,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/gxxcastillo/solid-formation",
-    "directory": "packages/solid-formation"
+    "url": "https://github.com/gxxcastillo/solid4m",
+    "directory": "packages/solid4m"
   },
-  "homepage": "https://gxxcastillo.github.io/solid-formation/",
+  "homepage": "https://gxxcastillo.github.io/solid4m/",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
@@ -67,15 +67,15 @@
   },
   "scripts": {
     "prepublishOnly": "node scripts/build.mjs",
-    "postpublish": "git tag solid-formation@$(node -p \"require('./package.json').version\") && git push origin solid-formation@$(node -p \"require('./package.json').version\")"
+    "postpublish": "git tag solid4m@$(node -p \"require('./package.json').version\") && git push origin solid4m@$(node -p \"require('./package.json').version\")"
   },
   "files": [
     "dist"
   ],
   "devDependencies": {
-    "@gxxc/solid-formation-fields": "workspace:^",
-    "@gxxc/solid-formation-form": "workspace:^",
-    "@gxxc/solid-formation-state": "workspace:^",
+    "@gxxc/solid4m-fields": "workspace:^",
+    "@gxxc/solid4m-form": "workspace:^",
+    "@gxxc/solid4m-state": "workspace:^",
     "rollup": "4.63.3",
     "rollup-plugin-dts": "^6.5.1",
     "type-fest": "^4.41.0",

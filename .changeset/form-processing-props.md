@@ -1,5 +1,5 @@
 ---
-'solid-formation': minor
+'solid4m': minor
 ---
 
 Make `<Form isProcessing>` and `<Form isLoading>` actually do something.

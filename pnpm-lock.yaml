@@ -68,15 +68,15 @@ importers:
 
   apps/a11y:
     dependencies:
-      '@gxxc/solid-formation-examples':
+      '@gxxc/solid4m-examples':
         specifier: workspace:*
         version: link:../../packages/examples
-      solid-formation:
-        specifier: workspace:^
-        version: link:../../packages/solid-formation
       solid-js:
         specifier: ^1.9.15
         version: 1.9.15
+      solid4m:
+        specifier: workspace:^
+        version: link:../../packages/solid4m
     devDependencies:
       '@axe-core/playwright':
         specifier: ^4.13.0
@@ -102,18 +102,18 @@ importers:
       '@astrojs/starlight':
         specifier: ^0.41.11
         version: 0.41.11(astro@7.3.3(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@types/node@26.6.1)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.1))(typescript@6.0.3)
-      '@gxxc/solid-formation-examples':
+      '@gxxc/solid4m-examples':
         specifier: workspace:*
         version: link:../../packages/examples
       astro:
         specifier: ^7.3.3
         version: 7.3.3(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@types/node@26.6.1)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.1)
-      solid-formation:
-        specifier: workspace:^
-        version: link:../../packages/solid-formation
       solid-js:
         specifier: ^1.9.15
         version: 1.9.15
+      solid4m:
+        specifier: workspace:^
+        version: link:../../packages/solid4m
     devDependencies:
       '@astrojs/check':
         specifier: ^0.9.10
@@ -143,12 +143,12 @@ importers:
 
   packages/examples:
     dependencies:
-      solid-formation:
-        specifier: workspace:*
-        version: link:../solid-formation
       solid-js:
         specifier: ^1.9.15
         version: 1.9.15
+      solid4m:
+        specifier: workspace:*
+        version: link:../solid4m
     devDependencies:
       typescript:
         specifier: 6.0.3
@@ -165,13 +165,13 @@ importers:
 
   packages/fields:
     dependencies:
-      '@gxxc/solid-formation-elements':
+      '@gxxc/solid4m-elements':
         specifier: workspace:*
         version: link:../elements
-      '@gxxc/solid-formation-state':
+      '@gxxc/solid4m-state':
         specifier: workspace:*
         version: link:../state
-      '@gxxc/solid-formation-validation':
+      '@gxxc/solid4m-validation':
         specifier: workspace:*
         version: link:../validation
       solid-js:
@@ -196,10 +196,10 @@ importers:
 
   packages/form:
     dependencies:
-      '@gxxc/solid-formation-state':
+      '@gxxc/solid4m-state':
         specifier: workspace:*
         version: link:../state
-      '@gxxc/solid-formation-validation':
+      '@gxxc/solid4m-validation':
         specifier: workspace:*
         version: link:../validation
       solid-js:
@@ -219,19 +219,19 @@ importers:
         specifier: ^2.11.14
         version: 2.11.14(@testing-library/jest-dom@7.0.1(@testing-library/dom@10.4.2)(vitest@5.0.1(@types/node@26.6.1)(@vitest/coverage-v8@5.0.1)(happy-dom@20.14.5)(vite@8.3.0(@types/node@26.6.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.1))))(solid-js@1.9.15)(vite@8.3.0(@types/node@26.6.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.1))
 
-  packages/solid-formation:
+  packages/solid4m:
     dependencies:
       solid-js:
         specifier: ^1.8.20
         version: 1.9.15
     devDependencies:
-      '@gxxc/solid-formation-fields':
+      '@gxxc/solid4m-fields':
         specifier: workspace:^
         version: link:../fields
-      '@gxxc/solid-formation-form':
+      '@gxxc/solid4m-form':
         specifier: workspace:^
         version: link:../form
-      '@gxxc/solid-formation-state':
+      '@gxxc/solid4m-state':
         specifier: workspace:^
         version: link:../state
       rollup:
@@ -280,7 +280,7 @@ importers:
 
   packages/validation:
     dependencies:
-      '@gxxc/solid-formation-state':
+      '@gxxc/solid4m-state':
         specifier: workspace:*
         version: link:../state
       solid-js:

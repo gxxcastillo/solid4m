@@ -1,7 +1,7 @@
 import { type JSX } from 'solid-js';
 
 // The Standard Schema protocol and the machinery for validating against it
-// live in @gxxc/solid-formation-validation (validating values is a validation
+// live in @gxxc/solid4m-validation (validating values is a validation
 // concern, not a form-orchestration one) — re-exported here so existing
 // imports from this package keep working.
 export type {
@@ -18,7 +18,7 @@ export type {
   StandardSchemaV1Result,
   StandardSchemaV1SuccessResult,
   StandardSchemaV1Types
-} from '@gxxc/solid-formation-validation';
+} from '@gxxc/solid4m-validation';
 
 export type ErrorResult = {
   message: string;

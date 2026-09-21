@@ -1,5 +1,5 @@
 ---
-'solid-formation': minor
+'solid4m': minor
 ---
 
 Add five fields to the palette: `SelectField`, `RadioGroup`, `NumberField`,

@@ -1,7 +1,7 @@
 import { batch } from 'solid-js';
 
-import { type FormFields, type FormStateMutations } from '@gxxc/solid-formation-state';
-import { type SchemaValidationFailure } from '@gxxc/solid-formation-validation';
+import { type FormFields, type FormStateMutations } from '@gxxc/solid4m-state';
+import { type SchemaValidationFailure } from '@gxxc/solid4m-validation';
 
 export function applySchemaValidationFailure<M extends object>(
   fields: FormFields<M>,

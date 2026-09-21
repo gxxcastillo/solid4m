@@ -35,7 +35,7 @@ jobs:
 
       - name: Build docs
         env:
-          VITE_BASE_PATH: /solid-formation/
+          VITE_BASE_PATH: /solid4m/
         run: pnpm --filter docs build
 
       - uses: actions/configure-pages@v6

@@ -8,8 +8,8 @@ jsxSingleQuote: true
 
 # @trivago/prettier-plugin-sort-imports
 importOrder:
-  - '^solid-formation(.*)$'
-  - '^@gxxc/solid-formation(.*)$'
+  - '^solid4m(.*)$'
+  - '^@gxxc/solid4m(.*)$'
   - '^[./]'
 importOrderSeparation: true
 importOrderSortSpecifiers: true

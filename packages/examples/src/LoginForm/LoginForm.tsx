@@ -1,4 +1,4 @@
-import { SubmitButton, createForm } from 'solid-formation';
+import { SubmitButton, createForm } from 'solid4m';
 
 export interface LoginValues {
   email: string;

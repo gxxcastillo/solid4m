@@ -1,6 +1,6 @@
 import { type StringKeyOf } from 'type-fest';
 
-import { type FormState } from '@gxxc/solid-formation-state';
+import { type FormState } from '@gxxc/solid4m-state';
 
 import { type ConstraintConfigs, type ConstraintName } from './types';
 

@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 // Imports the built SSR bundle directly (plain Node ESM, no Vite at test
-// time) — this is the artifact-level check B5 needed: solid-formation
+// time) — this is the artifact-level check B5 needed: solid4m
 // resolved through its real, packed-and-installed exports map, not a
 // workspace source alias. See run.mjs for the pack/install/build steps this
 // depends on.

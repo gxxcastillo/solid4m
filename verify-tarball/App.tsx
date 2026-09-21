@@ -1,5 +1,5 @@
 import { createSignal } from 'solid-js';
-import { SubmitButton, createForm } from 'solid-formation';
+import { SubmitButton, createForm } from 'solid4m';
 
 interface Values {
   email: string;

@@ -1,5 +1,5 @@
 {
-  "name": "@gxxc/solid-formation-fields",
+  "name": "@gxxc/solid4m-fields",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -14,9 +14,9 @@
     "dist"
   ],
   "dependencies": {
-    "@gxxc/solid-formation-elements": "workspace:*",
-    "@gxxc/solid-formation-state": "workspace:*",
-    "@gxxc/solid-formation-validation": "workspace:*"
+    "@gxxc/solid4m-elements": "workspace:*",
+    "@gxxc/solid4m-state": "workspace:*",
+    "@gxxc/solid4m-validation": "workspace:*"
   },
   "devDependencies": {
     "type-fest": "^4.41.0",

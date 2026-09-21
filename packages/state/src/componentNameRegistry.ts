@@ -4,7 +4,7 @@
 // (which reads names to classify children) and the `fields` package (which
 // writes them). Keyed off a `Symbol.for(...)` so every copy of the library on
 // the page resolves to the same WeakMap.
-const componentNameRegistryKey = Symbol.for('solid-formation/component-name-registry');
+const componentNameRegistryKey = Symbol.for('solid4m/component-name-registry');
 
 type ComponentNameRegistry = WeakMap<object, string>;
 

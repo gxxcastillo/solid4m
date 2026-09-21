@@ -1,6 +1,6 @@
 import { For, Show, createSignal, onCleanup, onMount } from 'solid-js';
 
-import { FormContextProvider, useForm } from 'solid-formation';
+import { FormContextProvider, useForm } from 'solid4m';
 import {
   LineItemsForm,
   type LineItemsValues,
@@ -10,7 +10,7 @@ import {
   type SignupValues,
   UserSettingsForm,
   type UserSettingsValues
-} from '@gxxc/solid-formation-examples';
+} from '@gxxc/solid4m-examples';
 
 import { FormStateInspector } from './FormStateInspector';
 import styles from './ThemeShowcase.module.css';

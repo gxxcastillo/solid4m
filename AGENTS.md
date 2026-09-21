@@ -3,10 +3,10 @@
 > non-trivial work — coding or not — and keep it current as you go. It holds private
 > working state; it does not replace the project's designated shared sources of truth.
 
-# solid-formation — agent instructions
+# solid4m — agent instructions
 
-Typed, reactive forms for SolidJS. pnpm + moon monorepo. `solid-formation`
-(`packages/solid-formation`) is the only published package; everything else is
+Typed, reactive forms for SolidJS. pnpm + moon monorepo. `solid4m`
+(`packages/solid4m`) is the only published package; everything else is
 private and bundled into it at build time.
 
 ## Conventions
@@ -79,6 +79,6 @@ hydrates it in real Chromium via Playwright. Run it with
 a published bundle that inlines `solid-js/web`'s DOM runtime and crashes under
 SSR — it runs in CI but is not part of the `pnpm moon` baseline below.
 
-Tests in `packages/fields` cannot import `@gxxc/solid-formation-form` (the
+Tests in `packages/fields` cannot import `@gxxc/solid4m-form` (the
 dependency runs the other way). Put cross-package integration tests in
-`packages/solid-formation`, which depends on both.
+`packages/solid4m`, which depends on both.

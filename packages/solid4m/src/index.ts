@@ -1,10 +1,10 @@
 // Ships the default design tokens with the structural CSS so a bare
-// `import 'solid-formation/styles.css'` renders a complete, usable form.
+// `import 'solid4m/styles.css'` renders a complete, usable form.
 // Themes (themes/*.css) only override these variables.
 import '../themes/base.css';
 
-export * from '@gxxc/solid-formation-fields';
-export * from '@gxxc/solid-formation-form';
+export * from '@gxxc/solid4m-fields';
+export * from '@gxxc/solid4m-form';
 export * from './createForm';
 
 // `useForm().state` is typed against these — without re-exporting them a
@@ -23,7 +23,7 @@ export type {
   FormStateGetters,
   FormStateMutations,
   FormStore
-} from '@gxxc/solid-formation-state';
+} from '@gxxc/solid4m-state';
 
 // Lets a self-contained <Form>-rendering component (one that always renders
 // its own <Form> and never accepts an external store) still expose live state
@@ -32,4 +32,4 @@ export type {
 // instead of creating its own (see useForm's existing-context check), so
 // `outer.state` reflects the same live values — no need for the component to
 // separately export its fields to be reusable under a different store.
-export { FormContextProvider, type FormContextProviderProps } from '@gxxc/solid-formation-state';
+export { FormContextProvider, type FormContextProviderProps } from '@gxxc/solid4m-state';

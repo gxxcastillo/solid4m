@@ -11,8 +11,8 @@ import {
   type FormStateMutations,
   setComponentName,
   useFormContext
-} from '@gxxc/solid-formation-state';
-import { type ValidationConstraints, constraintNames, validate } from '@gxxc/solid-formation-validation';
+} from '@gxxc/solid4m-state';
+import { type ValidationConstraints, constraintNames, validate } from '@gxxc/solid4m-validation';
 
 import type {
   AnyFormFieldEvent,

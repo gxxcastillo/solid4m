@@ -1,5 +1,5 @@
-import { type FieldValueMapping, type FormFieldProps, type FormState, createForm } from 'solid-formation';
-import type { StandardSchemaV1 } from 'solid-formation';
+import { type FieldValueMapping, type FormFieldProps, type FormState, createForm } from 'solid4m';
+import type { StandardSchemaV1 } from 'solid4m';
 
 declare const state: FormState<{ email: string }>;
 declare const fieldProps: FormFieldProps<'input', { email: string }, 'email'>;

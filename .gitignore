@@ -13,7 +13,7 @@ test-results
 
 # ts
 tsconfig.tsbuildinfo
-packages/solid-formation/.tsbuild
+packages/solid4m/.tsbuild
 
 # verify-tarball
 verify-tarball/consumer.gen.ts

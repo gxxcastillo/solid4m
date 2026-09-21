@@ -1,6 +1,6 @@
 import { type StringKeyOf } from 'type-fest';
 
-import { type ErrorMessages, type FieldValueFor, type FormState } from '@gxxc/solid-formation-state';
+import { type ErrorMessages, type FieldValueFor, type FormState } from '@gxxc/solid4m-state';
 
 import { constraintConfigs } from './constraintConfigs';
 import { type ConstraintName, type ValidationConstraints } from './types';

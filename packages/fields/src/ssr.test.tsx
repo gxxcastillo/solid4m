@@ -2,7 +2,7 @@ import { createRoot } from 'solid-js';
 import { generateHydrationScript, renderToString } from 'solid-js/web';
 import { describe, expect, it } from 'vitest';
 
-import { FormContextProvider, createFormStore } from '@gxxc/solid-formation-state';
+import { FormContextProvider, createFormStore } from '@gxxc/solid4m-state';
 
 import { InputField } from './InputField/InputField';
 import { SelectField } from './SelectField/SelectField';

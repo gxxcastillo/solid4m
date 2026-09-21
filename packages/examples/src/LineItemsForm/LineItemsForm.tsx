@@ -1,4 +1,4 @@
-import { type FieldArrayHelpers, FieldArray, Form, SubmitButton } from 'solid-formation';
+import { type FieldArrayHelpers, FieldArray, Form, SubmitButton } from 'solid4m';
 
 export interface LineItem {
   description: string;

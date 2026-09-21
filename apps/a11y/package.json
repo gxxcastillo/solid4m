@@ -10,8 +10,8 @@
     "a11y": "playwright test"
   },
   "dependencies": {
-    "@gxxc/solid-formation-examples": "workspace:*",
-    "solid-formation": "workspace:^",
+    "@gxxc/solid4m-examples": "workspace:*",
+    "solid4m": "workspace:^",
     "solid-js": "^1.9.15"
   },
   "devDependencies": {

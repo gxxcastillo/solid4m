@@ -1,5 +1,5 @@
 ---
-'solid-formation': patch
+'solid4m': patch
 ---
 
 Fix `pattern`, `type`, and `step` constraints coercing a non-string,

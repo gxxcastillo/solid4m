@@ -8,11 +8,11 @@ import { build } from 'vite';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '..');
 const bundledPackages = [
-  '@gxxc/solid-formation-elements',
-  '@gxxc/solid-formation-fields',
-  '@gxxc/solid-formation-form',
-  '@gxxc/solid-formation-state',
-  '@gxxc/solid-formation-validation',
+  '@gxxc/solid4m-elements',
+  '@gxxc/solid4m-fields',
+  '@gxxc/solid4m-form',
+  '@gxxc/solid4m-state',
+  '@gxxc/solid4m-validation',
   'type-fest'
 ];
 

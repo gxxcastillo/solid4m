@@ -1,5 +1,5 @@
 ---
-'solid-formation': minor
+'solid4m': minor
 ---
 
 Make an invalid form submittable, and make the failure explain itself.

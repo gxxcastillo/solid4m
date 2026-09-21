@@ -53,12 +53,12 @@ jobs:
 
       - name: Verify pack
         run: |
-          cd packages/solid-formation
+          cd packages/solid4m
           pnpm pack
           node -e "
             const {execSync} = require('child_process');
-            const files = execSync('tar -tzf solid-formation-*.tgz', {encoding:'utf8'});
-            const p = JSON.parse(execSync('tar -xOf solid-formation-*.tgz package/package.json', {encoding:'utf8'}));
+            const files = execSync('tar -tzf solid4m-*.tgz', {encoding:'utf8'});
+            const p = JSON.parse(execSync('tar -xOf solid4m-*.tgz package/package.json', {encoding:'utf8'}));
             if (p.dependencies && Object.keys(p.dependencies).length)
               throw new Error('unexpected dependencies: ' + JSON.stringify(p.dependencies));
             if (JSON.stringify(p.exports).includes('development'))
@@ -69,20 +69,20 @@ jobs:
             const declarations = files.split('\n').filter((file) => file.endsWith('.d.ts'));
             if (declarations.length !== 1 || declarations[0] !== 'package/dist/index.d.ts')
               throw new Error('unexpected declaration files: ' + JSON.stringify(declarations));
-            const types = execSync('tar -xOf solid-formation-*.tgz package/dist/index.d.ts', {encoding:'utf8'});
+            const types = execSync('tar -xOf solid4m-*.tgz package/dist/index.d.ts', {encoding:'utf8'});
             if (types.includes('@gxxc/'))
               throw new Error('bundled declarations reference private packages');
             // B5: solid-js/web's DOM runtime (template/delegateEvents) must
             // never be inlined — it assumes \`document\` exists, which crashes
             // the server entry, and doubles the DOM entry's bundle size.
             for (const entry of ['package/dist/index.js', 'package/dist/server/index.js']) {
-              const code = execSync(\`tar -xOf solid-formation-*.tgz \${entry}\`, {encoding:'utf8'});
+              const code = execSync(\`tar -xOf solid4m-*.tgz \${entry}\`, {encoding:'utf8'});
               if (/function template\(|function delegateEvents\(/.test(code))
                 throw new Error(entry + ' inlines solid-js/web\\'s DOM runtime');
             }
             console.log('pack ok');
           "
-          rm solid-formation-*.tgz
+          rm solid4m-*.tgz
 
       - name: Verify tarball SSR + hydration
         run: |

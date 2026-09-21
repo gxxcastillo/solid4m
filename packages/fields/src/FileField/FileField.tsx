@@ -1,8 +1,8 @@
 import { createUniqueId, mergeProps } from 'solid-js';
 import { type StringKeyOf } from 'type-fest';
 
-import { Input } from '@gxxc/solid-formation-elements';
-import { type FieldValueMapping } from '@gxxc/solid-formation-state';
+import { Input } from '@gxxc/solid4m-elements';
+import { type FieldValueMapping } from '@gxxc/solid4m-state';
 
 import { createFormField } from '../hooks';
 import { type FormFieldProps } from '../types';

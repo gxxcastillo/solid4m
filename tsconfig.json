@@ -21,7 +21,7 @@
       "path": "packages/form"
     },
     {
-      "path": "packages/solid-formation"
+      "path": "packages/solid4m"
     },
     {
       "path": "packages/state"

@@ -1,5 +1,5 @@
 ---
-'solid-formation': minor
+'solid4m': minor
 ---
 
 Forms now server-render; SolidStart is supported.

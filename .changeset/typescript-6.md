@@ -1,5 +1,5 @@
 ---
-'solid-formation': patch
+'solid4m': patch
 ---
 
 No consumer-facing change. Bumped the build toolchain's TypeScript from 5.4.2

@@ -1,8 +1,8 @@
-# solid-formation
+# solid4m
 
 Typed, reactive forms for SolidJS.
 
-**Documentation:** https://gxxcastillo.github.io/solid-formation/
+**Documentation:** https://gxxcastillo.github.io/solid4m/
 
 ---
 
@@ -63,10 +63,10 @@ pnpm changeset
 
 ```bash
 pnpm bump          # bump package versions based on changesets
-pnpm run publish   # build, pack, and publish solid-formation
+pnpm run publish   # build, pack, and publish solid4m
 ```
 
-pnpm uses `publishConfig.exports` in `packages/solid-formation/package.json` to strip the `development` export condition from the published tarball. Internal workspace packages are listed only in `devDependencies` and are bundled into `dist/index.js` at build time, so they do not appear as runtime dependencies.
+pnpm uses `publishConfig.exports` in `packages/solid4m/package.json` to strip the `development` export condition from the published tarball. Internal workspace packages are listed only in `devDependencies` and are bundled into `dist/index.js` at build time, so they do not appear as runtime dependencies.
 
 ---
 
@@ -74,11 +74,11 @@ pnpm uses `publishConfig.exports` in `packages/solid-formation/package.json` to 
 
 | Path                       | Package                            | Description                                                                                                  |
 | -------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `packages/solid-formation` | `solid-formation`                  | Public facade — re-exports the full API                                                                      |
-| `packages/state`           | `@gxxc/solid-formation-state`      | Form store, context, and field mutations                                                                     |
-| `packages/form`            | `@gxxc/solid-formation-form`       | `Form`, `useForm`, submit pipeline                                                                           |
-| `packages/fields`          | `@gxxc/solid-formation-fields`     | `InputField`, `PasswordField`, `TextAreaField`, `CheckboxField`, `SelectField`, `RadioGroup`, `SubmitButton` |
-| `packages/elements`        | `@gxxc/solid-formation-elements`   | Primitive DOM wrappers                                                                                       |
-| `packages/validation`      | `@gxxc/solid-formation-validation` | Built-in constraint validation                                                                               |
+| `packages/solid4m` | `solid4m`                  | Public facade — re-exports the full API                                                                      |
+| `packages/state`           | `@gxxc/solid4m-state`      | Form store, context, and field mutations                                                                     |
+| `packages/form`            | `@gxxc/solid4m-form`       | `Form`, `useForm`, submit pipeline                                                                           |
+| `packages/fields`          | `@gxxc/solid4m-fields`     | `InputField`, `PasswordField`, `TextAreaField`, `CheckboxField`, `SelectField`, `RadioGroup`, `SubmitButton` |
+| `packages/elements`        | `@gxxc/solid4m-elements`   | Primitive DOM wrappers                                                                                       |
+| `packages/validation`      | `@gxxc/solid4m-validation` | Built-in constraint validation                                                                               |
 | `packages/examples`        | —                                  | Standalone example components                                                                                |
 | `apps/docs`                | —                                  | Astro docs site with live demo                                                                               |

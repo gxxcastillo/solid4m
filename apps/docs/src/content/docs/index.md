@@ -1,6 +1,6 @@
 ---
 title: Quick start
-description: Build typed, reactive forms for SolidJS with solid-formation.
+description: Build typed, reactive forms for SolidJS with solid4m.
 ---
 
 Typed, reactive forms for SolidJS.
@@ -8,9 +8,9 @@ Typed, reactive forms for SolidJS.
 ## Install
 
 ```bash
-npm install solid-formation
+npm install solid4m
 # or
-pnpm add solid-formation
+pnpm add solid4m
 ```
 
 Requires SolidJS 1.x as a peer dependency.
@@ -21,7 +21,7 @@ The simplest form needs no type parameters. Import `Form`, add fields, and provi
 handler.
 
 ```tsx
-import { Form, InputField, PasswordField, SubmitButton } from 'solid-formation';
+import { Form, InputField, PasswordField, SubmitButton } from 'solid4m';
 
 function LoginForm() {
   return (
@@ -40,7 +40,7 @@ Pass your field shape as a type parameter to get typed `onSubmit` values and rea
 outside the form tree.
 
 ```tsx
-import { InputField, PasswordField, SubmitButton, useForm } from 'solid-formation';
+import { InputField, PasswordField, SubmitButton, useForm } from 'solid4m';
 
 interface LoginValues {
   [key: string]: string;

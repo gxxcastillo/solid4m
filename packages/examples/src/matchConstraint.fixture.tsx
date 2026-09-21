@@ -1,4 +1,4 @@
-import { PasswordField } from 'solid-formation';
+import { PasswordField } from 'solid4m';
 
 // Compile-only regression fixture: proves `match` is checked against the
 // form's real field names once a field is given explicit <M, N> generics —

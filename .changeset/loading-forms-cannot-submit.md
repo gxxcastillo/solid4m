@@ -1,5 +1,5 @@
 ---
-'solid-formation': patch
+'solid4m': patch
 ---
 
 Prevent forms from submitting while `isLoading` is true. Submit buttons now receive
