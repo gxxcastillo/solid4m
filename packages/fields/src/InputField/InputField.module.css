@@ -7,12 +7,9 @@
 }
 
 .title {
-  margin-bottom: 0.5rem;
+  composes: label from '../shared/label.module.css';
   color: var(--sf-color-text);
   font-family: var(--sf-font-family);
-  font-size: var(--sf-font-size-title);
-  font-weight: var(--sf-font-weight-label);
-  text-transform: var(--sf-text-transform-label);
 
   &::first-letter {
     text-transform: capitalize;
@@ -182,7 +179,5 @@
 }
 
 .error {
-  composes: error from '../shared/error.module.css';
-  margin-top: 0.35rem;
   padding-left: var(--sf-label-inset-x);
 }

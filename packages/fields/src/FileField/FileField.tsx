@@ -1,9 +1,10 @@
-import { createUniqueId, mergeProps } from 'solid-js';
+import { mergeProps } from 'solid-js';
 
 import { type FieldPath, type FieldValueMapping } from '@gxxc/solid4m-state';
 
 import { Input } from '../elements';
 import { createFormField } from '../hooks';
+import { createFieldError } from '../shared/fieldError';
 import { type FormFieldProps } from '../types';
 import styles from './FileField.module.css';
 
@@ -20,23 +21,18 @@ export function FileField<M extends object = FieldValueMapping, N extends FieldP
   const [props, createField] = createFormField<'input', M, N>(
     mergeProps(initialProps, { type: 'file', format: () => '' })
   )();
-  const errorId = createUniqueId();
+  const error = createFieldError(() => props.errors);
 
   return createField(
     'FileField',
     <div class={styles.FileField}>
-      {props.label && <label for={props.id}>{props.label}</label>}
-      <Input
-        {...props}
-        class={styles.input}
-        aria-invalid={!!props.errors?.length}
-        aria-describedby={props.errors?.length ? errorId : undefined}
-      />
-      {props.errors?.[0] && (
-        <div id={errorId} class={styles.error} role='alert'>
-          {props.errors[0]}
-        </div>
+      {props.label && (
+        <label for={props.id} class={styles.label}>
+          {props.label}
+        </label>
       )}
+      <Input {...props} class={styles.input} {...error.aria} />
+      <error.Message />
     </div>
   );
 }

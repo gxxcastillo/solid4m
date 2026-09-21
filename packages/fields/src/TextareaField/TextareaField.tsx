@@ -1,9 +1,10 @@
-import { createMemo, createUniqueId, splitProps } from 'solid-js';
+import { createMemo, splitProps } from 'solid-js';
 
 import { type FieldPath, type FieldValueMapping, useFormContext } from '@gxxc/solid4m-state';
 
 import { Textarea } from '../elements';
 import { createFormField } from '../hooks';
+import { createFieldError } from '../shared/fieldError';
 import { type FormFieldProps } from '../types';
 import styles from './TextareaField.module.css';
 
@@ -22,7 +23,7 @@ export function TextAreaField<
   const [localProps, parsedProps] = splitProps(initialProps, ['title']);
 
   const [props, createField] = createFormField<'textarea', M, N>(parsedProps)();
-  const errorId = createUniqueId();
+  const error = createFieldError(() => props.errors);
   const visibleLabel = createMemo(() => localProps.title ?? props.label);
   // With a title, the label moves into the placeholder. Tested against the
   // stored value, not props.value, which is already formatted to a string.
@@ -43,15 +44,10 @@ export function TextAreaField<
           {...props}
           placeholder={placeholder()}
           class={styles.textAreaEl}
-          aria-invalid={!!props.errors?.length}
-          aria-describedby={props.errors?.length ? errorId : undefined}
+          {...error.aria}
         />
       </div>
-      {props.errors?.[0] && (
-        <div id={errorId} class={styles.error} role='alert'>
-          {props.errors[0]}
-        </div>
-      )}
+      <error.Message />
     </div>
   );
 }

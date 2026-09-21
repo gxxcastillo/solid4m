@@ -1,0 +1,8 @@
+/* The visible label or title above a field, composed into each field's own
+   rule. Fields add their own differences (display, ::first-letter). */
+.label {
+  margin-bottom: 0.5rem;
+  font-size: var(--sf-font-size-title);
+  font-weight: var(--sf-font-weight-label);
+  text-transform: var(--sf-text-transform-label);
+}

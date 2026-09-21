@@ -1,9 +1,10 @@
-import { createUniqueId, mergeProps, splitProps } from 'solid-js';
+import { mergeProps, splitProps } from 'solid-js';
 
 import { type FieldPath, type FieldValueMapping } from '@gxxc/solid4m-state';
 
 import { Checkbox } from '../elements';
 import { createFormField } from '../hooks';
+import { createFieldError } from '../shared/fieldError';
 import { type FormFieldProps } from '../types';
 import styles from './CheckboxField.module.css';
 
@@ -20,7 +21,7 @@ export function CheckboxField<
   const [props, createField] = createFormField<'input', M, N>(
     mergeProps({ isSelectable: true }, parsedProps)
   )();
-  const errorId = createUniqueId();
+  const error = createFieldError(() => props.errors);
 
   return createField(
     'CheckboxField',
@@ -34,19 +35,14 @@ export function CheckboxField<
       <Checkbox
         {...props}
         value={localProps.value}
-        aria-invalid={!!props.errors?.length}
-        aria-describedby={props.errors?.length ? errorId : undefined}
+        {...error.aria}
       />
       {localProps.label && (
         <label classList={{ [styles.label]: true, [styles.disabled]: !!props.disabled }} for={props.id}>
           {localProps.label}
         </label>
       )}
-      {props.errors?.[0] && (
-        <div id={errorId} class={styles.error} role='alert'>
-          {props.errors[0]}
-        </div>
-      )}
+      <error.Message class={styles.error} />
     </div>
   );
 }

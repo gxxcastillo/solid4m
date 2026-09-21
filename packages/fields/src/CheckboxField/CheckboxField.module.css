@@ -47,7 +47,5 @@
 }
 
 .error {
-  composes: error from '../shared/error.module.css';
   flex-basis: 100%;
-  margin-top: 0.35rem;
 }

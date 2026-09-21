@@ -4,6 +4,7 @@ import { type FieldPath, type FieldValueMapping } from '@gxxc/solid4m-state';
 
 import { Input } from '../elements';
 import { createFormField } from '../hooks';
+import { createFieldError } from '../shared/fieldError';
 import { type FormFieldProps } from '../types';
 import styles from './RadioGroup.module.css';
 
@@ -25,17 +26,17 @@ export function RadioGroup<M extends object = FieldValueMapping, N extends Field
 ) {
   const [localProps, parsedProps] = splitProps(initialProps, ['options', 'label']);
   const [props, createField] = createFormField<'input', M, N>(parsedProps)();
-  const errorId = createUniqueId();
+  const error = createFieldError(() => props.errors);
   const labelId = createUniqueId();
 
   return createField(
     'RadioGroup',
-    <fieldset
-      class={styles.RadioGroup}
-      aria-invalid={!!props.errors?.length}
-      aria-describedby={props.errors?.length ? errorId : undefined}
-    >
-      {localProps.label && <legend id={labelId}>{localProps.label}</legend>}
+    <fieldset class={styles.RadioGroup} {...error.aria}>
+      {localProps.label && (
+        <legend id={labelId} class={styles.legend}>
+          {localProps.label}
+        </legend>
+      )}
       <div role='radiogroup' aria-labelledby={localProps.label ? labelId : undefined} class={styles.options}>
         <For each={localProps.options}>
           {(option, index) => {
@@ -68,11 +69,7 @@ export function RadioGroup<M extends object = FieldValueMapping, N extends Field
           }}
         </For>
       </div>
-      {props.errors?.[0] && (
-        <div id={errorId} class={styles.error} role='alert'>
-          {props.errors[0]}
-        </div>
-      )}
+      <error.Message />
     </fieldset>
   );
 }

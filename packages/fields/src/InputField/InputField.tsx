@@ -1,4 +1,4 @@
-import { type JSX, createMemo, createUniqueId, splitProps } from 'solid-js';
+import { type JSX, createMemo, splitProps } from 'solid-js';
 
 import {
   type FieldPath,
@@ -10,6 +10,7 @@ import {
 
 import { Input } from '../elements';
 import { createFormField } from '../hooks';
+import { createFieldError } from '../shared/fieldError';
 import { type FormFieldProps } from '../types';
 import styles from './InputField.module.css';
 
@@ -58,7 +59,7 @@ export function InputField<M extends object = FieldValueMapping, N extends Field
   const icon = createMemo(() => localProps.icon);
   const context = createMemo(() => localProps.context);
   const hasValue = createMemo(() => !!value());
-  const errorId = createUniqueId();
+  const error = createFieldError(() => props.errors);
   const placeholder = createMemo(() => (withLabel() ? undefined : props.label));
 
   // Returned as a thunk and applied inline below so Solid tracks the memos and
@@ -76,13 +77,7 @@ export function InputField<M extends object = FieldValueMapping, N extends Field
       {props.title && <div class={styles.title}>{props.title}</div>}
       <div class={styles.inputContainer}>
         <div class={styles.leadingIcon}>{leadingIcon()}</div>
-        <Input
-          {...props}
-          class={styles.input}
-          placeholder={placeholder()}
-          aria-invalid={!!props.errors?.length}
-          aria-describedby={props.errors?.length ? errorId : undefined}
-        />
+        <Input {...props} class={styles.input} placeholder={placeholder()} {...error.aria} />
         {withIcon() && <div class={styles.icon}>{icon()}</div>}
         {context() && <div class={styles.context}>{context()}</div>}
         {props.label && (
@@ -91,11 +86,7 @@ export function InputField<M extends object = FieldValueMapping, N extends Field
           </label>
         )}
       </div>
-      {props.errors?.[0] && (
-        <div id={errorId} class={styles.error} role='alert'>
-          {props.errors[0]}
-        </div>
-      )}
+      <error.Message class={styles.error} />
     </div>
   );
 }

@@ -1,9 +1,10 @@
-import { createEffect, createUniqueId, splitProps } from 'solid-js';
+import { createEffect, splitProps } from 'solid-js';
 
 import { type FieldPath, type FieldValueMapping, useFormContext } from '@gxxc/solid4m-state';
 
 import { Select } from '../elements';
 import { createFormField } from '../hooks';
+import { createFieldError } from '../shared/fieldError';
 import { type FormFieldProps } from '../types';
 import styles from './SelectField.module.css';
 
@@ -22,7 +23,7 @@ export function SelectField<M extends object = FieldValueMapping, N extends Fiel
   const [props, createField] = createFormField<'select', M, N>(parsedProps)();
   const [formState] = useFormContext<M>();
   const [valueProps, selectProps] = splitProps(props, ['value']);
-  const errorId = createUniqueId();
+  const error = createFieldError(() => props.errors);
   const label = () => localProps.title ?? props.label;
   let select: HTMLSelectElement | undefined;
 
@@ -56,14 +57,9 @@ export function SelectField<M extends object = FieldValueMapping, N extends Fiel
           selectProps.ref(element);
         }}
         class={styles.select}
-        aria-invalid={!!props.errors?.length}
-        aria-describedby={props.errors?.length ? errorId : undefined}
+        {...error.aria}
       />
-      {props.errors?.[0] && (
-        <div id={errorId} class={styles.error} role='alert'>
-          {props.errors[0]}
-        </div>
-      )}
+      <error.Message />
     </div>
   );
 }
