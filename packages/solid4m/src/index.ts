@@ -1,6 +1,14 @@
 // Ships the default design tokens with the structural CSS so a bare
 // `import 'solid4m/styles.css'` renders a complete, usable form.
 // Themes (themes/*.css) only override these variables.
+//
+// Also why package.json must not declare `sideEffects`, even as
+// `["**/*.css"]`: that marks this module side-effect-free, and since
+// everything else here is a re-export, a production bundler of the source
+// (the docs site aliases `solid4m` to this file) skips it and this import
+// with it — the docs shipped without their spacing and sizing tokens. It
+// gained nothing measurable anyway: Vite and esbuild already tree-shake the
+// single-file dist by statement.
 import '../themes/base.css';
 
 export * from '@gxxc/solid4m-fields';

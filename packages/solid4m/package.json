@@ -19,9 +19,6 @@
     "directory": "packages/solid4m"
   },
   "homepage": "https://gxxcastillo.github.io/solid4m/",
-  "sideEffects": [
-    "**/*.css"
-  ],
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
