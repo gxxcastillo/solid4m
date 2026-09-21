@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { createOnBlur, createOnInput, createValueSetter } from './createFormField';
+import { createOnBlur, createOnInput, createValueSetter } from './fieldBindings';
 
 function makeState(value?: unknown) {
   return {

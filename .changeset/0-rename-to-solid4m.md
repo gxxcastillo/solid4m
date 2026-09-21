@@ -59,6 +59,10 @@ in full in its own entry below.
   Snapshot tests and selectors that depend on a form's exact children may need
   updating.
 - **`deepEqual` is no longer exported.**
+- **Internal field helpers are no longer exported:** `parse`, `format`,
+  `formFieldDefaultProps`, `createValueSetter`, `createOnInput`,
+  `createOnBlur`, `isSelectableEvent`, `getDisplayableErrors`,
+  `useFormFieldLabel`, and `UseFormFieldLabelProps`. Use `createFormField`.
 - **New export conditions.** `node`, `worker`, and `deno` resolve a
   server-rendering entry, and `browser` and `import` a hydratable client entry,
   which is what makes forms server-render.
