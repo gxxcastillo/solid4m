@@ -1,16 +1,15 @@
 import { type JSX } from 'solid-js';
 
 import { type FieldValueMapping } from '@gxxc/solid4m-state';
-
-import { type BaseFormProps, type BaseFormPropsWithSubmit } from '../BaseForm/BaseForm';
-import { useForm } from '../hooks/useForm';
 import {
   type StandardSchemaFormValues,
   type StandardSchemaSubmitValues,
-  type StandardSchemaV1,
-  type SubmitResponse,
-  type SubmitResponseMapping
-} from '../types';
+  type StandardSchemaV1
+} from '@gxxc/solid4m-validation';
+
+import { type BaseFormProps, type BaseFormPropsWithSubmit } from '../BaseForm/BaseForm';
+import { useForm } from '../hooks/useForm';
+import { type SubmitResponse, type SubmitResponseMapping } from '../types';
 
 export type SchemaFormProps<
   S extends StandardSchemaV1,

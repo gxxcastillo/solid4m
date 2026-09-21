@@ -80,4 +80,20 @@ describe('TextAreaField', () => {
     ));
     expect(screen.getByText('Tell us about yourself')).toBeInTheDocument();
   });
+
+  it('shows the label as a placeholder only while a titled textarea is empty', () => {
+    const { store } = makeStore();
+    render(() => (
+      <FormContextProvider store={store}>
+        <TextAreaField<TestForm, 'bio'> name='bio' label='Bio' title='Tell us about yourself' />
+        <TextAreaField<TestForm, 'notes'> name='notes' label='Notes' />
+      </FormContextProvider>
+    ));
+    const [titled, untitled] = screen.getAllByRole('textbox');
+    expect(titled).toHaveAttribute('placeholder', 'Bio');
+    expect(untitled).not.toHaveAttribute('placeholder');
+
+    fireEvent.input(titled, { target: { value: 'Hello' } });
+    expect(titled).not.toHaveAttribute('placeholder');
+  });
 });

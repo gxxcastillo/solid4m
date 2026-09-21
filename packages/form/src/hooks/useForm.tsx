@@ -8,16 +8,14 @@ import {
   createFormStore,
   useFormContext
 } from '@gxxc/solid4m-state';
-
-import { BaseForm, type BaseFormPropsWithSubmit } from '../BaseForm/BaseForm';
 import {
-  type RequestProps,
   type StandardSchemaFormValues,
   type StandardSchemaSubmitValues,
-  type StandardSchemaV1,
-  type SubmitResponse,
-  type SubmitResponseMapping
-} from '../types';
+  type StandardSchemaV1
+} from '@gxxc/solid4m-validation';
+
+import { BaseForm, type BaseFormPropsWithSubmit } from '../BaseForm/BaseForm';
+import { type RequestProps, type SubmitResponse, type SubmitResponseMapping } from '../types';
 
 export type FormComponentProps<
   FieldValues extends RequestProps,

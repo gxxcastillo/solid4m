@@ -20,7 +20,6 @@ import {
   type SubmitResponseMapping
 } from '../types';
 import { type BaseFormPropsWithSubmit } from './BaseForm';
-import { applySchemaValidationFailure } from './schema';
 
 export function isSubmitHandlerFn<P extends RequestProps, R extends SubmitResponse>(
   onSubmit: unknown
@@ -292,7 +291,8 @@ export function createBaseFormOnSubmitHandler<
 
       if (!schemaResult.valid) {
         batch(() => {
-          applySchemaValidationFailure(formState.fields, formStateMutations, schemaResult);
+          formStateMutations.setErrors(schemaResult.formErrors);
+          formStateMutations.setFieldsErrors(schemaResult.fieldErrors);
           formStateMutations.setBlurredFields();
         });
         // Read after the batch commits, so the walk sees the errors the schema

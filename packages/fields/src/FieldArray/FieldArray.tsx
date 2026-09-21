@@ -56,5 +56,3 @@ export function FieldArray<Item extends object>(props: FieldArrayProps<Item>): J
     </For>
   );
 }
-
-export default FieldArray;

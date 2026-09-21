@@ -1,5 +1,5 @@
 import { cleanup, render, screen } from '@solidjs/testing-library';
-import { createRoot } from 'solid-js';
+import { createRoot, createSignal } from 'solid-js';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { FormContextProvider, createFormStore } from '@gxxc/solid4m-state';
@@ -28,6 +28,20 @@ describe('PasswordField', () => {
     const input = container.querySelector('input');
     expect(input).toHaveAttribute('type', 'password');
     expect(input).toHaveAttribute('id', 'password');
+  });
+
+  // A reactive prop compiles to a getter-only property, so the component
+  // assigning `props.type` used to throw here.
+  it('keeps type="password" when a reactive type is passed anyway', () => {
+    const { store } = makeStore();
+    const [type] = createSignal('text');
+    const { container } = render(() => (
+      <FormContextProvider store={store}>
+        {/* @ts-expect-error `type` is fixed by PasswordField */}
+        <PasswordField<TestForm, 'password'> name='password' label='Password' type={type()} />
+      </FormContextProvider>
+    ));
+    expect(container.querySelector('input')).toHaveAttribute('type', 'password');
   });
 
   it('shows an error when errors are displayable', () => {

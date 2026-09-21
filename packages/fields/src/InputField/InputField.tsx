@@ -13,15 +13,12 @@ import { createFormField } from '../hooks';
 import { type FormFieldProps } from '../types';
 import styles from './InputField.module.css';
 
-export type ShowIconFn<M extends object, N extends FieldPath<M>> = (
-  value: FieldValueFor<M, N> | undefined,
-  formState?: FormState<M>
-) => boolean;
-
 export type ShowLabelFn<M extends object, N extends FieldPath<M>> = (
   value: FieldValueFor<M, N> | undefined,
   formState?: FormState<M>
 ) => boolean;
+
+export type ShowIconFn<M extends object, N extends FieldPath<M>> = ShowLabelFn<M, N>;
 
 export type InputFieldProps<
   M extends object = FieldValueMapping,
@@ -48,21 +45,21 @@ export function InputField<M extends object = FieldValueMapping, N extends Field
 
   const [props, createField] = createFormField<'input', M, N>(parsedProps)();
   const value = createMemo(() => formState.getFieldValue(props.name));
-  const leadingIcon = createMemo(() => localProps.leadingIcon);
   const withLabel = createMemo(
-    () =>
-      typeof localProps.showLabel === 'function' && localProps.showLabel(value()!, formState as FormState<M>)
+    () => typeof localProps.showLabel === 'function' && localProps.showLabel(value(), formState)
   );
   const withIcon = createMemo(
-    () =>
-      typeof localProps.showIcon === 'function' && localProps.showIcon(value()!, formState as FormState<M>)
+    () => typeof localProps.showIcon === 'function' && localProps.showIcon(value(), formState)
   );
+  // A JSX-valued prop compiles to a getter that builds a new element on every
+  // read, and leadingIcon and context are each read twice below. The memos
+  // keep one instance of each.
+  const leadingIcon = createMemo(() => localProps.leadingIcon);
   const icon = createMemo(() => localProps.icon);
   const context = createMemo(() => localProps.context);
-  const initialLabel = createMemo(() => props.label);
   const hasValue = createMemo(() => !!value());
   const errorId = createUniqueId();
-  const placeholder = createMemo(() => (withLabel() ? undefined : initialLabel()));
+  const placeholder = createMemo(() => (withLabel() ? undefined : props.label));
 
   // Returned as a thunk and applied inline below so Solid tracks the memos and
   // re-evaluates the classes (e.g. the floating-label `hasValue` state) reactively.
@@ -82,16 +79,15 @@ export function InputField<M extends object = FieldValueMapping, N extends Field
         <Input
           {...props}
           class={styles.input}
-          id={props.id}
           placeholder={placeholder()}
           aria-invalid={!!props.errors?.length}
           aria-describedby={props.errors?.length ? errorId : undefined}
         />
         {withIcon() && <div class={styles.icon}>{icon()}</div>}
         {context() && <div class={styles.context}>{context()}</div>}
-        {initialLabel() && (
+        {props.label && (
           <label for={props.id} class={withLabel() ? styles.label : styles.screenReaderOnly}>
-            {initialLabel()}
+            {props.label}
           </label>
         )}
       </div>

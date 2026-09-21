@@ -50,5 +50,3 @@ export function CheckboxField<
     </div>
   );
 }
-
-export default CheckboxField;

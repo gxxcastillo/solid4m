@@ -13,7 +13,6 @@ export type {
   StandardSchemaV1Props,
   StandardSchemaV1Result,
   StandardSchemaV1SuccessResult,
-  StandardSchemaV1Types,
-  SubmitResponse,
-  SubmitResponseMapping
-} from './types';
+  StandardSchemaV1Types
+} from '@gxxc/solid4m-validation';
+export type { SubmitResponse, SubmitResponseMapping } from './types';

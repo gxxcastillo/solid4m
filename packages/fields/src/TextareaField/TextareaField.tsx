@@ -3,7 +3,7 @@ import { createMemo, createUniqueId, splitProps } from 'solid-js';
 import { Textarea } from '@gxxc/solid4m-elements';
 import { type FieldPath, type FieldValueMapping, useFormContext } from '@gxxc/solid4m-state';
 
-import { createFormField, useFormFieldLabel } from '../hooks';
+import { createFormField } from '../hooks';
 import { type FormFieldProps } from '../types';
 import styles from './TextareaField.module.css';
 
@@ -22,17 +22,13 @@ export function TextAreaField<
   const [localProps, parsedProps] = splitProps(initialProps, ['title']);
 
   const [props, createField] = createFormField<'textarea', M, N>(parsedProps)();
-  const value = createMemo(() => formState.getFieldValue(props.name));
   const errorId = createUniqueId();
-  const initialLabel = createMemo(() => props.label);
-  const label = createMemo(() =>
-    useFormFieldLabel({
-      value: value(),
-      label: initialLabel()
-    })
+  const visibleLabel = createMemo(() => localProps.title ?? props.label);
+  // With a title, the label moves into the placeholder. Tested against the
+  // stored value, not props.value, which is already formatted to a string.
+  const placeholder = createMemo(() =>
+    localProps.title && !formState.getFieldValue(props.name) ? props.label : undefined
   );
-  const visibleLabel = createMemo(() => localProps.title ?? initialLabel());
-  const placeholder = createMemo(() => (localProps.title ? label().placeholder : undefined));
 
   return createField(
     'TextareaField',

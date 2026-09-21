@@ -53,6 +53,30 @@ describe('InputField', () => {
     expect(container.querySelector(`.${styles.context}`)).toHaveTextContent('Hint');
   });
 
+  it('instantiates each JSX-valued prop once, even as the field value changes', () => {
+    const calls = { leadingIcon: 0, icon: 0, context: 0 };
+    const LeadingIcon = () => (calls.leadingIcon++, <span />);
+    const Icon = () => (calls.icon++, <span />);
+    const Context = () => (calls.context++, <span />);
+    const { store } = makeStore();
+    render(() => (
+      <FormContextProvider store={store}>
+        <InputField<TestForm, 'username'>
+          name='username'
+          label='Username'
+          showIcon={() => true}
+          leadingIcon={<LeadingIcon />}
+          icon={<Icon />}
+          context={<Context />}
+        />
+      </FormContextProvider>
+    ));
+    store[1].setFieldValue('username', 'ada', []);
+    store[1].setFieldValue('username', '', []);
+
+    expect(calls).toEqual({ leadingIcon: 1, icon: 1, context: 1 });
+  });
+
   it('associates the default placeholder-style input with its label', () => {
     const { store } = makeStore();
     render(() => (
