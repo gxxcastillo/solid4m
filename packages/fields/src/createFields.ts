@@ -1,7 +1,6 @@
 import { type JSX } from 'solid-js';
-import { type StringKeyOf } from 'type-fest';
 
-import { type FieldValueMapping } from '@gxxc/solid4m-state';
+import { type FieldPath, type FieldValueMapping } from '@gxxc/solid4m-state';
 
 import { CheckboxField, type CheckboxFieldProps } from './CheckboxField/CheckboxField';
 import { DateField, type DateFieldProps } from './DateField/DateField';
@@ -14,15 +13,15 @@ import { SelectField, type SelectFieldProps } from './SelectField/SelectField';
 import { TextAreaField, type TextAreaFieldProps } from './TextareaField/TextareaField';
 
 export type FieldComponents<M extends object> = {
-  InputField: <N extends StringKeyOf<M> = StringKeyOf<M>>(props: InputFieldProps<M, N>) => JSX.Element;
-  NumberField: <N extends StringKeyOf<M> = StringKeyOf<M>>(props: NumberFieldProps<M, N>) => JSX.Element;
-  DateField: <N extends StringKeyOf<M> = StringKeyOf<M>>(props: DateFieldProps<M, N>) => JSX.Element;
-  FileField: <N extends StringKeyOf<M> = StringKeyOf<M>>(props: FileFieldProps<M, N>) => JSX.Element;
-  PasswordField: <N extends StringKeyOf<M> = StringKeyOf<M>>(props: PasswordFieldProps<M, N>) => JSX.Element;
-  TextAreaField: <N extends StringKeyOf<M> = StringKeyOf<M>>(props: TextAreaFieldProps<M, N>) => JSX.Element;
-  CheckboxField: <N extends StringKeyOf<M> = StringKeyOf<M>>(props: CheckboxFieldProps<M, N>) => JSX.Element;
-  SelectField: <N extends StringKeyOf<M> = StringKeyOf<M>>(props: SelectFieldProps<M, N>) => JSX.Element;
-  RadioGroup: <N extends StringKeyOf<M> = StringKeyOf<M>>(props: RadioGroupProps<M, N>) => JSX.Element;
+  InputField: <N extends FieldPath<M> = FieldPath<M>>(props: InputFieldProps<M, N>) => JSX.Element;
+  NumberField: <N extends FieldPath<M> = FieldPath<M>>(props: NumberFieldProps<M, N>) => JSX.Element;
+  DateField: <N extends FieldPath<M> = FieldPath<M>>(props: DateFieldProps<M, N>) => JSX.Element;
+  FileField: <N extends FieldPath<M> = FieldPath<M>>(props: FileFieldProps<M, N>) => JSX.Element;
+  PasswordField: <N extends FieldPath<M> = FieldPath<M>>(props: PasswordFieldProps<M, N>) => JSX.Element;
+  TextAreaField: <N extends FieldPath<M> = FieldPath<M>>(props: TextAreaFieldProps<M, N>) => JSX.Element;
+  CheckboxField: <N extends FieldPath<M> = FieldPath<M>>(props: CheckboxFieldProps<M, N>) => JSX.Element;
+  SelectField: <N extends FieldPath<M> = FieldPath<M>>(props: SelectFieldProps<M, N>) => JSX.Element;
+  RadioGroup: <N extends FieldPath<M> = FieldPath<M>>(props: RadioGroupProps<M, N>) => JSX.Element;
 };
 
 // Field components are generic over both the form's value type (M) and each

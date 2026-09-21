@@ -1,5 +1,3 @@
-import { type StringKeyOf } from 'type-fest';
-
 export type FieldName = string;
 
 // File inputs expose a FileList rather than a string. It belongs in the DOM
@@ -7,12 +5,113 @@ export type FieldName = string;
 // without pretending a file selection is text.
 export type DisplayValue = string | number | string[] | FileList | undefined;
 export type FieldValue = unknown;
-export type FieldValueFor<M extends object, N extends StringKeyOf<M>> = N extends keyof M ? M[N] : FieldValue;
+
+// Recursion depth cap for dotted/array field paths (e.g. `items.0.title`).
+// Deeper than any real form model needs (a top-level array of row objects
+// with a nested array inside a row — `sections.0.items.1.title` — is depth
+// 4), with headroom, while staying bounded so a self-referential or very
+// wide M can't make `tsc` recurse indefinitely.
+type FieldPathDepth = 6;
+type Prev<D extends number> = D extends 6
+  ? 5
+  : D extends 5
+    ? 4
+    : D extends 4
+      ? 3
+      : D extends 3
+        ? 2
+        : D extends 2
+          ? 1
+          : D extends 1
+            ? 0
+            : never;
+
+// Hand-rolled, not type-fest's `Paths`/`Get`: both were tried first (already
+// a devDependency, already proven to bundle into the published `.d.ts` via
+// `StringKeyOf`) and both broke real inference in this codebase, verified
+// directly against `tsc` — not a hypothetical:
+//
+// - `Paths<M>` (at *any* `maxRecursionDepth`, including 0) makes TS fall
+//   back to `object`/`never` instead of a real name/value when `N` is
+//   inferred through a second layer of generics — exactly `createFields<M>()`
+//   and `createScopedFields<Item>()`, this library's own documented pattern
+//   for binding M once. `packages/examples/src/createFields.fixture.tsx`'s
+//   `@ts-expect-error` cases (bogus name, self-`match`) stopped erroring:
+//   the bogus cases silently compiled.
+// - `Get<M, P>` similarly breaks schema-inferred value typing:
+//   `standardSchema.fixture.tsx`'s check that `form.state.getFieldValue`
+//   returns the schema's *input* type (not its output type) stopped
+//   erroring on the wrong-type case.
+//
+// A plain recursive conditional type (no options object, no bracket-notation
+// branch, no separate depth/leavesOnly machinery) does not hit either
+// failure — verified the same way, by watching those two fixtures'
+// `@ts-expect-error` lines go back to actually erring on the bad case.
+//
+// Known gap: this has no notion of a "leaf" class instance. A field typed as
+// `Date`/`RegExp`/`FileList`/etc. still satisfies `extends object`, so its
+// own instance methods (`birthDate.getTime`, `avatar.item`, ...) type-check
+// as valid `FieldPath<M>` values even though `getValueAtFieldPath` only ever
+// finds *own* enumerable properties and reports them as not found — a
+// method-shaped nested name compiles but silently resolves to `undefined` at
+// runtime instead of failing to compile. Excluding those types was not
+// attempted here: type-fest's own `BuiltIns` exclusion is exactly the kind of
+// extra branch that broke inference above, so doing this safely needs the
+// same fixture-driven verification before landing it.
+type FieldPathImpl<T, Depth extends number> = Depth extends 0
+  ? never
+  : T extends readonly (infer Item)[]
+    ? NonNullable<Item> extends object
+      ? `${number}` | `${number}.${FieldPathImpl<NonNullable<Item>, Prev<Depth>>}`
+      : `${number}`
+    : T extends object
+      ? {
+          // NonNullable, not a bare `T[K] extends object` check: an optional
+          // nested property (`customer?: {...}`) has a `T[K]` that includes
+          // `undefined`, which fails `extends object` outright and would
+          // otherwise silently drop every path under it (falling back to just
+          // `K`) even though the property is present and nested at runtime
+          // whenever it's actually set.
+          [K in keyof T & string]: NonNullable<T[K]> extends object
+            ? K | `${K}.${FieldPathImpl<NonNullable<T[K]>, Prev<Depth>>}`
+            : K;
+        }[keyof T & string]
+      : never;
+
+// The `string extends keyof M` branch is load-bearing, not an optimization:
+// for `M extends object = FieldValueMapping` (`Record<string, FieldValue |
+// undefined>`) — every default-`M` call site in this codebase, i.e. the
+// untyped/dynamic-forms path — `FieldPathImpl` alone resolves to `never`
+// (`keyof` a string-indexed type is the whole `string` type, not a finite
+// set of literal keys for the mapped type above to iterate), which would
+// silently reject every field name. Short-circuiting to plain `string` here
+// reproduces exactly what `StringKeyOf<Record<string, X>>` gave before this
+// type existed.
+export type FieldPath<M extends object> = string extends keyof M ? string : FieldPathImpl<M, FieldPathDepth>;
+
+type FieldPathValueImpl<T, P extends string> = P extends `${infer Head}.${infer Rest}`
+  ? Head extends keyof T
+    ? FieldPathValueImpl<T[Head], Rest>
+    : T extends readonly (infer Item)[]
+      ? Head extends `${number}`
+        ? FieldPathValueImpl<Item, Rest>
+        : FieldValue
+      : FieldValue
+  : P extends keyof T
+    ? T[P]
+    : T extends readonly (infer Item)[]
+      ? P extends `${number}`
+        ? Item
+        : FieldValue
+      : FieldValue;
+
+export type FieldPathValue<M extends object, P extends FieldPath<M>> = FieldPathValueImpl<M, P>;
+export type FieldValueFor<M extends object, N extends FieldPath<M>> = FieldPathValue<M, N>;
 
 export type ErrorMessage = string;
 export type ErrorMessages = ErrorMessage[] | [];
 
-export type FormField<M extends object, N extends StringKeyOf<M>> = {
+export type FormField<M extends object, N extends FieldPath<M>> = {
   name: N;
   value: FieldValueFor<M, N> | undefined;
   initialValue: FieldValueFor<M, N> | undefined;
@@ -40,7 +139,7 @@ export type FormField<M extends object, N extends StringKeyOf<M>> = {
   wasReset: boolean;
 };
 
-export type FormFields<M extends object> = FormField<M, StringKeyOf<M>>[];
+export type FormFields<M extends object> = FormField<M, FieldPath<M>>[];
 
 export type FieldValueMapping = Record<string, FieldValue | undefined>;
 
@@ -99,19 +198,19 @@ export type InternalFormState<M extends object = FieldValueMapping> = BaseFormSt
 export type FormStateGetters<M extends object = FieldValueMapping> = {
   haveValuesChanged: boolean;
   isFormValid: boolean;
-  isFieldValid: <N extends StringKeyOf<M>>(n: N) => boolean | undefined;
-  getField: <N extends StringKeyOf<M>>(n: N) => FormField<M, N> | undefined;
-  getFieldValue: <N extends StringKeyOf<M>>(n: N) => FieldValueFor<M, N> | undefined;
-  getFieldErrors: <N extends StringKeyOf<M>>(n: N) => ErrorMessages | undefined;
-  hasFieldBeenInitialized: <N extends StringKeyOf<M>>(n: N) => boolean;
-  hasFieldBeenValid: <N extends StringKeyOf<M>>(n: N) => boolean | undefined;
-  hasFieldChanged: <N extends StringKeyOf<M>>(n: N) => boolean | undefined;
-  hasFieldBlurred: <N extends StringKeyOf<M>>(n: N) => boolean | undefined;
+  isFieldValid: <N extends FieldPath<M>>(n: N) => boolean | undefined;
+  getField: <N extends FieldPath<M>>(n: N) => FormField<M, N> | undefined;
+  getFieldValue: <N extends FieldPath<M>>(n: N) => FieldValueFor<M, N> | undefined;
+  getFieldErrors: <N extends FieldPath<M>>(n: N) => ErrorMessages | undefined;
+  hasFieldBeenInitialized: <N extends FieldPath<M>>(n: N) => boolean;
+  hasFieldBeenValid: <N extends FieldPath<M>>(n: N) => boolean | undefined;
+  hasFieldChanged: <N extends FieldPath<M>>(n: N) => boolean | undefined;
+  hasFieldBlurred: <N extends FieldPath<M>>(n: N) => boolean | undefined;
 };
 
 export type FormStateMutations<M extends object = FieldValueMapping> = {
   /** Returns the field's resulting generation, so callers can capture a staleness baseline without a second lookup. */
-  initializeField: <N extends StringKeyOf<M>>(
+  initializeField: <N extends FieldPath<M>>(
     name: N,
     value?: FieldValueFor<M, N>,
     errors?: ErrorMessages,
@@ -127,22 +226,22 @@ export type FormStateMutations<M extends object = FieldValueMapping> = {
    * targets whatever name it was last rendered with) could delete the
    * unrelated field that now lives there instead of correctly no-op'ing.
    */
-  removeField: <N extends StringKeyOf<M>>(name: N, expectedGeneration?: number) => void;
+  removeField: <N extends FieldPath<M>>(name: N, expectedGeneration?: number) => void;
   /** Returns the field's resulting generation, so callers can capture a staleness baseline without a second lookup. */
-  setFieldValue: <N extends StringKeyOf<M>>(
+  setFieldValue: <N extends FieldPath<M>>(
     name: N,
     value?: FieldValueFor<M, N>,
     errors?: ErrorMessages
   ) => number;
-  setFieldErrors: <N extends StringKeyOf<M>>(name: N, errors?: ErrorMessages) => void;
+  setFieldErrors: <N extends FieldPath<M>>(name: N, errors?: ErrorMessages) => void;
   /**
    * Bulk-sets errors per field name in one pass, same as calling
    * `setFieldErrors` for each key — fields with no entry in the map are
    * cleared to `[]`. Keys for fields that are not currently registered are ignored.
    */
   setFieldsErrors: (errorsByField: ReadonlyMap<string, ErrorMessages>) => void;
-  setChangedField: <N extends StringKeyOf<M>>(name: N) => void;
-  setBlurredField: <N extends StringKeyOf<M>>(name: N) => void;
+  setChangedField: <N extends FieldPath<M>>(name: N) => void;
+  setBlurredField: <N extends FieldPath<M>>(name: N) => void;
   /** Marks every registered field as blurred in one pass, same as calling `setBlurredField` for each one. */
   setBlurredFields: () => void;
   /**
@@ -156,7 +255,7 @@ export type FormStateMutations<M extends object = FieldValueMapping> = {
    */
   remapFieldNames: (remap: (name: string) => string | null) => void;
   /** Reverts one field to its initial value and clears its errors. No-op for an unregistered field. */
-  resetField: <N extends StringKeyOf<M>>(name: N) => void;
+  resetField: <N extends FieldPath<M>>(name: N) => void;
   /**
    * Reverts every registered field to its initial value and clears form-level
    * errors. Passing `toValues` rebaselines the given fields' initial value to

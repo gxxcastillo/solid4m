@@ -1,8 +1,7 @@
 import { createMemo, createUniqueId, splitProps } from 'solid-js';
-import { type StringKeyOf } from 'type-fest';
 
 import { Textarea } from '@gxxc/solid4m-elements';
-import { type FieldValueMapping, useFormContext } from '@gxxc/solid4m-state';
+import { type FieldPath, type FieldValueMapping, useFormContext } from '@gxxc/solid4m-state';
 
 import { createFormField, useFormFieldLabel } from '../hooks';
 import { type FormFieldProps } from '../types';
@@ -10,14 +9,14 @@ import styles from './TextareaField.module.css';
 
 export type TextAreaFieldProps<
   M extends object = FieldValueMapping,
-  N extends StringKeyOf<M> = StringKeyOf<M>
+  N extends FieldPath<M> = FieldPath<M>
 > = FormFieldProps<'textarea', M, N> & {
   title?: string;
 };
 
 export function TextAreaField<
   M extends object = FieldValueMapping,
-  N extends StringKeyOf<M> = StringKeyOf<M>
+  N extends FieldPath<M> = FieldPath<M>
 >(initialProps: TextAreaFieldProps<M, N>) {
   const [formState] = useFormContext<M>();
   const [localProps, parsedProps] = splitProps(initialProps, ['title']);

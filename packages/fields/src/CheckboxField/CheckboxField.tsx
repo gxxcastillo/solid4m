@@ -1,8 +1,7 @@
 import { createUniqueId, mergeProps, splitProps } from 'solid-js';
-import { type StringKeyOf } from 'type-fest';
 
 import { Checkbox } from '@gxxc/solid4m-elements';
-import { type FieldValueMapping } from '@gxxc/solid4m-state';
+import { type FieldPath, type FieldValueMapping } from '@gxxc/solid4m-state';
 
 import { createFormField } from '../hooks';
 import { type FormFieldProps } from '../types';
@@ -10,12 +9,12 @@ import styles from './CheckboxField.module.css';
 
 export type CheckboxFieldProps<
   M extends object = FieldValueMapping,
-  N extends StringKeyOf<M> = StringKeyOf<M>
+  N extends FieldPath<M> = FieldPath<M>
 > = FormFieldProps<'input', M, N>;
 
 export function CheckboxField<
   M extends object = FieldValueMapping,
-  N extends StringKeyOf<M> = StringKeyOf<M>
+  N extends FieldPath<M> = FieldPath<M>
 >(initialProps: CheckboxFieldProps<M, N>) {
   const [localProps, parsedProps] = splitProps(initialProps, ['label', 'value']);
   const [props, createField] = createFormField<'input', M, N>(

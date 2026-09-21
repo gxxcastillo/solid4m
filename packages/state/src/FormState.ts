@@ -1,11 +1,11 @@
 import { batch, mergeProps } from 'solid-js';
 import { createStore } from 'solid-js/store';
-import type { StringKeyOf } from 'type-fest';
 
 import { getValueAtFieldPath } from './fieldPaths';
 import {
   type BaseFormState,
   type InternalFormState,
+  type FieldPath,
   type FieldValueFor,
   type FieldValueMapping,
   type FormField,
@@ -47,28 +47,28 @@ export function createFormState<M extends object = FieldValueMapping>(state?: Ba
     get isFormValid() {
       return !formState.fields.some((f) => !!f.errors?.length);
     },
-    getField<N extends StringKeyOf<M>>(name: N) {
+    getField<N extends FieldPath<M>>(name: N) {
       return formState.fields?.find((f): f is FormField<M, N> => f.name === name);
     },
-    getFieldValue<N extends StringKeyOf<M>>(name: N) {
+    getFieldValue<N extends FieldPath<M>>(name: N) {
       return getters.getField(name)?.value;
     },
-    getFieldErrors<N extends StringKeyOf<M>>(name: N) {
+    getFieldErrors<N extends FieldPath<M>>(name: N) {
       return getters.getField<N>(name)?.errors;
     },
-    hasFieldBeenInitialized<N extends StringKeyOf<M>>(name: N) {
+    hasFieldBeenInitialized<N extends FieldPath<M>>(name: N) {
       return !!getters.getField<N>(name);
     },
-    hasFieldBeenValid<N extends StringKeyOf<M>>(name: N) {
+    hasFieldBeenValid<N extends FieldPath<M>>(name: N) {
       return getters.getField<N>(name)?.hasBeenValid;
     },
-    hasFieldChanged<N extends StringKeyOf<M>>(name: N) {
+    hasFieldChanged<N extends FieldPath<M>>(name: N) {
       return getters.getField<N>(name)?.hasChanged;
     },
-    hasFieldBlurred<N extends StringKeyOf<M>>(name: N) {
+    hasFieldBlurred<N extends FieldPath<M>>(name: N) {
       return getters.getField<N>(name)?.hasBeenBlurred;
     },
-    isFieldValid<N extends StringKeyOf<M>>(name: N) {
+    isFieldValid<N extends FieldPath<M>>(name: N) {
       const field = getters.getField<N>(name);
       if (!field) return undefined;
       return !field.errors?.length;
@@ -83,7 +83,7 @@ export function createFormStore<M extends object = FieldValueMapping>(
 ): FormStore<M> {
   const [formState, getters, setFormState] = createFormState<M>(state);
 
-  type FName = StringKeyOf<M>;
+  type FName = FieldPath<M>;
   type FErrors = (typeof formState)['fields'][number]['errors'];
 
   // Store-scoped, not per-field: a field that unmounts (removeField deletes
@@ -229,7 +229,7 @@ export function createFormStore<M extends object = FieldValueMapping>(
   return [
     mergeProps(formState, getters),
     {
-      initializeField: <N extends StringKeyOf<M>>(
+      initializeField: <N extends FieldPath<M>>(
         name: N,
         value?: FieldValueFor<M, N>,
         errors: FErrors = [],

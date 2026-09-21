@@ -1,11 +1,9 @@
-import { type StringKeyOf } from 'type-fest';
-
-import { type ErrorMessages, type FieldValueFor, type FormState } from '@gxxc/solid4m-state';
+import { type ErrorMessages, type FieldPath, type FieldValueFor, type FormState } from '@gxxc/solid4m-state';
 
 import { constraintConfigs } from './constraintConfigs';
 import { type ConstraintName, type ValidationConstraints } from './types';
 
-export interface ValidateFieldArgs<M extends object, N extends StringKeyOf<M>, C extends ConstraintName> {
+export interface ValidateFieldArgs<M extends object, N extends FieldPath<M>, C extends ConstraintName> {
   // Display text only (e.g. a field's configured `label`) — never used as a form key.
   fieldName: string;
   fieldValue: FieldValueFor<M, N> | undefined;
@@ -21,7 +19,7 @@ export interface ValidateFieldArgs<M extends object, N extends StringKeyOf<M>, C
 
 export function validateAgainstConstraint<
   M extends object,
-  N extends StringKeyOf<M>,
+  N extends FieldPath<M>,
   C extends ConstraintName
 >({
   fieldName,
@@ -36,7 +34,7 @@ export function validateAgainstConstraint<
   return isValid ? '' : validator.message(fieldName, constraint, formState, siblings);
 }
 
-export function validate<M extends object, N extends StringKeyOf<M>>(
+export function validate<M extends object, N extends FieldPath<M>>(
   fieldName: N,
   fieldValue: FieldValueFor<M, N> | undefined,
   constraints: ValidationConstraints,

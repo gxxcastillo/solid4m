@@ -1,8 +1,8 @@
 import { type JSX, createMemo, createUniqueId, splitProps } from 'solid-js';
-import { type StringKeyOf } from 'type-fest';
 
 import { Input } from '@gxxc/solid4m-elements';
 import {
+  type FieldPath,
   type FieldValueFor,
   type FieldValueMapping,
   type FormState,
@@ -13,19 +13,19 @@ import { createFormField } from '../hooks';
 import { type FormFieldProps } from '../types';
 import styles from './InputField.module.css';
 
-export type ShowIconFn<M extends object, N extends StringKeyOf<M>> = (
+export type ShowIconFn<M extends object, N extends FieldPath<M>> = (
   value: FieldValueFor<M, N> | undefined,
   formState?: FormState<M>
 ) => boolean;
 
-export type ShowLabelFn<M extends object, N extends StringKeyOf<M>> = (
+export type ShowLabelFn<M extends object, N extends FieldPath<M>> = (
   value: FieldValueFor<M, N> | undefined,
   formState?: FormState<M>
 ) => boolean;
 
 export type InputFieldProps<
   M extends object = FieldValueMapping,
-  N extends StringKeyOf<M> = StringKeyOf<M>
+  N extends FieldPath<M> = FieldPath<M>
 > = FormFieldProps<'input', M, N> & {
   leadingIcon?: JSX.Element;
   showLabel?: ShowLabelFn<M, N>;
@@ -34,7 +34,7 @@ export type InputFieldProps<
   context?: JSX.Element;
 };
 
-export function InputField<M extends object = FieldValueMapping, N extends StringKeyOf<M> = StringKeyOf<M>>(
+export function InputField<M extends object = FieldValueMapping, N extends FieldPath<M> = FieldPath<M>>(
   initialProps: InputFieldProps<M, N>
 ) {
   const [formState] = useFormContext<M>();

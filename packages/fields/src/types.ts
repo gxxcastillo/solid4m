@@ -1,9 +1,9 @@
 import { type JSX } from 'solid-js';
-import { type StringKeyOf } from 'type-fest';
 
 import {
   type DisplayValue,
   type ErrorMessages,
+  type FieldPath,
   type FieldValue,
   type FieldValueFor,
   type FieldValueMapping,
@@ -11,7 +11,7 @@ import {
 } from '@gxxc/solid4m-state';
 import { type ValidationConstraints } from '@gxxc/solid4m-validation';
 
-export type CustomValidator<M extends object, N extends StringKeyOf<M>> = (
+export type CustomValidator<M extends object, N extends FieldPath<M>> = (
   fieldName: N,
   fieldValue: FieldValueFor<M, N>,
   formState: FormState<M>,
@@ -22,7 +22,7 @@ export type FormElementTag = 'button' | 'input' | 'select' | 'textarea';
 
 export type BaseFormFieldProps<G extends FormElementTag> = Omit<JSX.HTMLElementTags[G], 'name' | 'label'>;
 
-export type FieldProps<M extends object, N extends StringKeyOf<M>> = {
+export type FieldProps<M extends object, N extends FieldPath<M>> = {
   name: N;
   label?: string;
   defaultValue?: FieldValueFor<M, N>;
@@ -32,14 +32,14 @@ export type FieldProps<M extends object, N extends StringKeyOf<M>> = {
   checked?: boolean;
 };
 
-export type FieldInternalProps<M extends object, N extends StringKeyOf<M>> = {
+export type FieldInternalProps<M extends object, N extends FieldPath<M>> = {
   isInitialized?: boolean;
   isValid?: boolean;
   isControlled?: boolean;
   isDisabled?: boolean;
   isSelectable?: boolean;
   errors?: ErrorMessages;
-  match?: Exclude<StringKeyOf<M>, N>;
+  match?: Exclude<FieldPath<M>, N>;
   setValue?: (value?: FieldValue, initialize?: boolean) => void;
   validator?: CustomValidator<M, N>;
   parse?: ParseFunction<FieldValueFor<M, N>>;
@@ -49,7 +49,7 @@ export type FieldInternalProps<M extends object, N extends StringKeyOf<M>> = {
 export type FormFieldProps<
   G extends FormElementTag,
   M extends object = FieldValueMapping,
-  N extends StringKeyOf<M> = StringKeyOf<M>
+  N extends FieldPath<M> = FieldPath<M>
 > = BaseFormFieldProps<G> & FieldProps<M, N> & FieldInternalProps<M, N> & ValidationConstraints;
 
 export type SetValue = (value: FieldValue, isInitialization?: boolean) => void;

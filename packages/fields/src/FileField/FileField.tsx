@@ -1,8 +1,7 @@
 import { createUniqueId, mergeProps } from 'solid-js';
-import { type StringKeyOf } from 'type-fest';
 
 import { Input } from '@gxxc/solid4m-elements';
-import { type FieldValueMapping } from '@gxxc/solid4m-state';
+import { type FieldPath, type FieldValueMapping } from '@gxxc/solid4m-state';
 
 import { createFormField } from '../hooks';
 import { type FormFieldProps } from '../types';
@@ -10,10 +9,10 @@ import styles from './FileField.module.css';
 
 export type FileFieldProps<
   M extends object = FieldValueMapping,
-  N extends StringKeyOf<M> = StringKeyOf<M>
+  N extends FieldPath<M> = FieldPath<M>
 > = Omit<FormFieldProps<'input', M, N>, 'type' | 'value' | 'parse' | 'format'>;
 
-export function FileField<M extends object = FieldValueMapping, N extends StringKeyOf<M> = StringKeyOf<M>>(
+export function FileField<M extends object = FieldValueMapping, N extends FieldPath<M> = FieldPath<M>>(
   initialProps: FileFieldProps<M, N>
 ) {
   // format is overridden: the default calls `.toString()`, which would render

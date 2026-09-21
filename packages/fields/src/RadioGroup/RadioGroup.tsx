@@ -1,7 +1,6 @@
 import { For, createUniqueId, splitProps } from 'solid-js';
-import { type StringKeyOf } from 'type-fest';
 
-import { type FieldValueMapping } from '@gxxc/solid4m-state';
+import { type FieldPath, type FieldValueMapping } from '@gxxc/solid4m-state';
 
 import { createFormField } from '../hooks';
 import { type FormFieldProps } from '../types';
@@ -11,7 +10,7 @@ export type RadioOption = { value: string; label: string; disabled?: boolean };
 
 export type RadioGroupProps<
   M extends object = FieldValueMapping,
-  N extends StringKeyOf<M> = StringKeyOf<M>
+  N extends FieldPath<M> = FieldPath<M>
 > = Omit<FormFieldProps<'input', M, N>, 'type' | 'value'> & {
   options: readonly RadioOption[];
 };
@@ -20,7 +19,7 @@ export type RadioGroupProps<
 // boolean checkbox-like fields. Keep `isSelectable` false so createFormField
 // stores the selected input's value; its checkbox path would store `checked`
 // and lose which option the user chose.
-export function RadioGroup<M extends object = FieldValueMapping, N extends StringKeyOf<M> = StringKeyOf<M>>(
+export function RadioGroup<M extends object = FieldValueMapping, N extends FieldPath<M> = FieldPath<M>>(
   initialProps: RadioGroupProps<M, N>
 ) {
   const [localProps, parsedProps] = splitProps(initialProps, ['options', 'label']);

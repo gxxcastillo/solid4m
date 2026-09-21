@@ -1,8 +1,7 @@
 import { createUniqueId, splitProps } from 'solid-js';
-import { type StringKeyOf } from 'type-fest';
 
 import { Select } from '@gxxc/solid4m-elements';
-import { type FieldValueMapping } from '@gxxc/solid4m-state';
+import { type FieldPath, type FieldValueMapping } from '@gxxc/solid4m-state';
 
 import { createFormField } from '../hooks';
 import { type FormFieldProps } from '../types';
@@ -10,13 +9,13 @@ import styles from './SelectField.module.css';
 
 export type SelectFieldProps<
   M extends object = FieldValueMapping,
-  N extends StringKeyOf<M> = StringKeyOf<M>
+  N extends FieldPath<M> = FieldPath<M>
 > = FormFieldProps<'select', M, N> & { title?: string };
 
 // Keep this separate from InputField even though both are string-valued: a
 // select's visible label must always remain visible because it has no useful
 // placeholder/floating-label state, and its children are the caller's options.
-export function SelectField<M extends object = FieldValueMapping, N extends StringKeyOf<M> = StringKeyOf<M>>(
+export function SelectField<M extends object = FieldValueMapping, N extends FieldPath<M> = FieldPath<M>>(
   initialProps: SelectFieldProps<M, N>
 ) {
   const [localProps, parsedProps] = splitProps(initialProps, ['title']);

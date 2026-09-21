@@ -15,6 +15,8 @@ export type {
   ErrorMessage,
   ErrorMessages,
   FieldName,
+  FieldPath,
+  FieldPathValue,
   FieldValue,
   FieldValueMapping,
   FormField,

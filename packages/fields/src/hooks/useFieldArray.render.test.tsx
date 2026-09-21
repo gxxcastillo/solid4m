@@ -18,7 +18,11 @@ function LineItems(props: { onRowKeys: (keys: string[]) => void }) {
     <For each={items()}>
       {(item, index) => (
         <div>
-          <InputField
+          {/* Explicit <TestFields>: TS can't infer M from a template-literal
+              `name` alone (no naked M appears in the props passed here), and
+              without it falls back to the `object` constraint instead of the
+              `FieldValueMapping` default — matches the store's own <TestFields>. */}
+          <InputField<TestFields>
             name={`items.${index()}.title`}
             label='Title'
             defaultValue={item.defaultValue.title}

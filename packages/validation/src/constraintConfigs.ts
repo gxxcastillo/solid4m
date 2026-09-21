@@ -1,6 +1,4 @@
-import { type StringKeyOf } from 'type-fest';
-
-import { type FormState } from '@gxxc/solid4m-state';
+import { type FieldPath, type FormState } from '@gxxc/solid4m-state';
 
 import { type ConstraintConfigs, type ConstraintName } from './types';
 
@@ -390,13 +388,13 @@ export const constraintConfigs: ConstraintConfigs = {
   match: {
     validate: <M extends object>(val: unknown, matchFieldName: unknown, formState: FormState<M>) => {
       if (typeof matchFieldName !== 'string') return true;
-      const name = matchFieldName as StringKeyOf<M>;
+      const name = matchFieldName as FieldPath<M>;
       if (!formState.hasFieldBeenInitialized(name)) return true;
       return val === formState.getFieldValue(name);
     },
     message: <M extends object>(fieldName: string, matchFieldName: unknown, formState: FormState<M>) => {
       const matchLabel =
-        (typeof matchFieldName === 'string' && formState.getField(matchFieldName as StringKeyOf<M>)?.label) ||
+        (typeof matchFieldName === 'string' && formState.getField(matchFieldName as FieldPath<M>)?.label) ||
         String(matchFieldName);
       return `"${fieldName}" does not match "${matchLabel}"`;
     }

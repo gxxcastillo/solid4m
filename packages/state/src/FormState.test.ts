@@ -688,9 +688,13 @@ describe('setValues', () => {
   });
 
   it('sets a value at a dotted array-path field name from a nested source object', () => {
-    // The public name/value types stay flat (StringKeyOf<M>) for now — the
-    // casts just exercise the runtime path-lookup that a future FieldArray
-    // API would build on, per fieldPaths.getValueAtFieldPath.
+    // FieldPath<M> does type dotted/array paths now, but only ones that are
+    // real on M — TestFields ({username, password}) has no `items` at all, so
+    // this is deliberately exercising getValueAtFieldPath's runtime lookup
+    // beyond what the store's own declared type admits, same as any other
+    // name the type system doesn't know about. See
+    // packages/examples/src/deepPathTyping.fixture.tsx for the positive case
+    // (a real nested M with no cast needed).
     const { store, dispose } = makeStore();
     const [state, mutations] = store;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

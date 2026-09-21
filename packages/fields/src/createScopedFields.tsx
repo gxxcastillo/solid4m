@@ -1,7 +1,6 @@
 import { type Accessor, type JSX, mergeProps } from 'solid-js';
-import { type StringKeyOf } from 'type-fest';
 
-import { type ErrorMessages, type FormField, type FormState } from '@gxxc/solid4m-state';
+import { type ErrorMessages, type FieldPath, type FormField, type FormState } from '@gxxc/solid4m-state';
 
 import { InputField, type InputFieldProps } from './InputField/InputField';
 import { PasswordField, type PasswordFieldProps } from './PasswordField/PasswordField';
@@ -14,7 +13,7 @@ import { PasswordField, type PasswordFieldProps } from './PasswordField/Password
 type RuntimeFormState = FormState<Record<string, unknown>>;
 type RuntimeField = FormField<Record<string, unknown>, string>;
 type ScopedValidator<Item extends object> = (
-  fieldName: StringKeyOf<Item>,
+  fieldName: FieldPath<Item>,
   fieldValue: unknown,
   formState: FormState<Item>,
   setFieldErrors: (errors: ErrorMessages) => void
@@ -46,9 +45,9 @@ function unscopedName(basePath: string, name: string) {
 function scopedField<Item extends object>(basePath: string, field: RuntimeField) {
   return mergeProps(field, {
     get name() {
-      return unscopedName(basePath, field.name) as StringKeyOf<Item>;
+      return unscopedName(basePath, field.name) as FieldPath<Item>;
     }
-  }) as FormField<Item, StringKeyOf<Item>>;
+  }) as FormField<Item, FieldPath<Item>>;
 }
 
 function scopedFormState<Item extends object>(base: Accessor<string>, formState: RuntimeFormState) {
@@ -69,31 +68,31 @@ function scopedFormState<Item extends object>(base: Accessor<string>, formState:
       const basePath = base();
       return !formState.fields.some((field) => isInScope(basePath, field.name) && !!field.errors?.length);
     },
-    isFieldValid<N extends StringKeyOf<Item>>(name: N) {
-      return formState.isFieldValid(runtimeName(name) as StringKeyOf<Record<string, unknown>>);
+    isFieldValid<N extends FieldPath<Item>>(name: N) {
+      return formState.isFieldValid(runtimeName(name) as FieldPath<Record<string, unknown>>);
     },
-    getField<N extends StringKeyOf<Item>>(name: N) {
+    getField<N extends FieldPath<Item>>(name: N) {
       const basePath = base();
-      const field = formState.getField(runtimeName(name) as StringKeyOf<Record<string, unknown>>);
+      const field = formState.getField(runtimeName(name) as FieldPath<Record<string, unknown>>);
       return field ? (scopedField<Item>(basePath, field) as FormField<Item, N>) : undefined;
     },
-    getFieldValue<N extends StringKeyOf<Item>>(name: N) {
-      return formState.getFieldValue(runtimeName(name) as StringKeyOf<Record<string, unknown>>);
+    getFieldValue<N extends FieldPath<Item>>(name: N) {
+      return formState.getFieldValue(runtimeName(name) as FieldPath<Record<string, unknown>>);
     },
-    getFieldErrors<N extends StringKeyOf<Item>>(name: N) {
-      return formState.getFieldErrors(runtimeName(name) as StringKeyOf<Record<string, unknown>>);
+    getFieldErrors<N extends FieldPath<Item>>(name: N) {
+      return formState.getFieldErrors(runtimeName(name) as FieldPath<Record<string, unknown>>);
     },
-    hasFieldBeenInitialized<N extends StringKeyOf<Item>>(name: N) {
-      return formState.hasFieldBeenInitialized(runtimeName(name) as StringKeyOf<Record<string, unknown>>);
+    hasFieldBeenInitialized<N extends FieldPath<Item>>(name: N) {
+      return formState.hasFieldBeenInitialized(runtimeName(name) as FieldPath<Record<string, unknown>>);
     },
-    hasFieldBeenValid<N extends StringKeyOf<Item>>(name: N) {
-      return formState.hasFieldBeenValid(runtimeName(name) as StringKeyOf<Record<string, unknown>>);
+    hasFieldBeenValid<N extends FieldPath<Item>>(name: N) {
+      return formState.hasFieldBeenValid(runtimeName(name) as FieldPath<Record<string, unknown>>);
     },
-    hasFieldChanged<N extends StringKeyOf<Item>>(name: N) {
-      return formState.hasFieldChanged(runtimeName(name) as StringKeyOf<Record<string, unknown>>);
+    hasFieldChanged<N extends FieldPath<Item>>(name: N) {
+      return formState.hasFieldChanged(runtimeName(name) as FieldPath<Record<string, unknown>>);
     },
-    hasFieldBlurred<N extends StringKeyOf<Item>>(name: N) {
-      return formState.hasFieldBlurred(runtimeName(name) as StringKeyOf<Record<string, unknown>>);
+    hasFieldBlurred<N extends FieldPath<Item>>(name: N) {
+      return formState.hasFieldBlurred(runtimeName(name) as FieldPath<Record<string, unknown>>);
     }
   }) as FormState<Item>;
 }
@@ -117,7 +116,7 @@ function scoped<Item extends object, P extends ScopableProps<Item>>(base: Access
         setFieldErrors: (errors: ErrorMessages) => void
       ) => {
         validator(
-          props.name as StringKeyOf<Item>,
+          props.name as FieldPath<Item>,
           fieldValue,
           scopedFormState<Item>(base, formState),
           setFieldErrors
@@ -154,10 +153,10 @@ function withBasePath<Item extends object>(Component: (props: any) => JSX.Elemen
 }
 
 export type ScopedFieldComponents<Item extends object> = {
-  InputField: <N extends StringKeyOf<Item> = StringKeyOf<Item>>(
+  InputField: <N extends FieldPath<Item> = FieldPath<Item>>(
     props: InputFieldProps<Item, N>
   ) => JSX.Element;
-  PasswordField: <N extends StringKeyOf<Item> = StringKeyOf<Item>>(
+  PasswordField: <N extends FieldPath<Item> = FieldPath<Item>>(
     props: PasswordFieldProps<Item, N>
   ) => JSX.Element;
 };

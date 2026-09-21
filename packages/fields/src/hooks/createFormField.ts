@@ -1,9 +1,9 @@
 import { type JSX, createEffect, createMemo, mergeProps, onCleanup, splitProps, untrack } from 'solid-js';
-import { type StringKeyOf } from 'type-fest';
 
 import {
   type DisplayValue,
   type FieldName,
+  type FieldPath,
   type FieldValue,
   type FieldValueFor,
   type FieldValueMapping,
@@ -45,7 +45,7 @@ export function getDisplayableErrors<M extends object, K extends FieldName>(
   fieldName: K,
   { hasFieldBeenValid, hasFieldBlurred, getFieldErrors }: FormState<M>
 ) {
-  const name = fieldName as StringKeyOf<M>;
+  const name = fieldName as unknown as FieldPath<M>;
   return hasFieldBeenValid(name) || hasFieldBlurred(name) ? getFieldErrors(name) : undefined;
 }
 
@@ -59,7 +59,7 @@ export function isSelectableEvent(
 export function createValueSetter<
   G extends FormElementTag,
   M extends object,
-  N extends StringKeyOf<M>,
+  N extends FieldPath<M>,
   C extends ValidationConstraints
 >(
   formState: FormState<M>,
@@ -177,7 +177,7 @@ function applyFieldEvent(setValue: SetValue, event: AnyFormFieldEvent, isSelecta
   }
 }
 
-export function createOnInput<G extends FormElementTag, M extends object, N extends StringKeyOf<M>>(
+export function createOnInput<G extends FormElementTag, M extends object, N extends FieldPath<M>>(
   setValue: SetValue,
   props: FormFieldProps<G, M, N>
 ) {
@@ -186,7 +186,7 @@ export function createOnInput<G extends FormElementTag, M extends object, N exte
   };
 }
 
-export function createOnBlur<G extends FormElementTag, M extends object, N extends StringKeyOf<M>>(
+export function createOnBlur<G extends FormElementTag, M extends object, N extends FieldPath<M>>(
   setField: SetValue,
   props: FormFieldProps<G, M, N>,
   setBlurredField: (name: N) => void
@@ -208,7 +208,7 @@ export function createField(componentName: ComponentName, el: JSX.Element) {
 export function createFormField<
   G extends FormElementTag,
   M extends object = FieldValueMapping,
-  N extends StringKeyOf<M> = StringKeyOf<M>
+  N extends FieldPath<M> = FieldPath<M>
 >(initialProps: FormFieldProps<G, M, N>) {
   const [formState, formStateMutations] = useFormContext<M>();
 
@@ -275,7 +275,7 @@ export function createFormField<
   // stale "does not match" verdict can't linger after the matched field is edited.
   if (props.match) {
     createEffect(() => {
-      formState.getFieldValue(props.match as StringKeyOf<M>); // track the matched field
+      formState.getFieldValue(props.match as FieldPath<M>); // track the matched field
       setValue.revalidate();
     });
   }
@@ -305,7 +305,7 @@ export function createFormField<
   // bump that happens *after* this effect is watching reflects an actual reset
   // of the mounted field, which is what should trigger the follow-up pass.
   createEffect((prevGeneration: number | undefined) => {
-    const fieldName = props.name as StringKeyOf<M>;
+    const fieldName = props.name as FieldPath<M>;
     const field = formState.getField(fieldName);
     if (field?.generation === undefined) return prevGeneration;
     lastKnownGeneration = field.generation;

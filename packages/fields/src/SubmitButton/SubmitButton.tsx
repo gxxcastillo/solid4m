@@ -1,8 +1,7 @@
 import { type JSX, Show, createMemo, createUniqueId, children as prepareChildren, splitProps } from 'solid-js';
-import { type StringKeyOf } from 'type-fest';
 
 import { Button, type ButtonElementProps } from '@gxxc/solid4m-elements';
-import { type FieldValueMapping, type InternalFormState, useFormContext } from '@gxxc/solid4m-state';
+import { type FieldPath, type FieldValueMapping, type InternalFormState, useFormContext } from '@gxxc/solid4m-state';
 
 import { createField } from '../hooks';
 import { type FormFieldProps } from '../types';
@@ -10,17 +9,17 @@ import styles from './SubmitButton.module.css';
 
 export type SubmitButtonProps<
   M extends object = FieldValueMapping,
-  N extends StringKeyOf<M> = StringKeyOf<M>
+  N extends FieldPath<M> = FieldPath<M>
 > = Omit<FormFieldProps<'input', M, N>, 'name'> & {
   name?: string;
   variant?: 'approve' | 'primary';
   isFullWidth?: boolean;
 };
 
-export function SubmitButton<M extends object = FieldValueMapping, N extends StringKeyOf<M> = StringKeyOf<M>>(
+export function SubmitButton<M extends object = FieldValueMapping, N extends FieldPath<M> = FieldPath<M>>(
   initialProps: SubmitButtonProps<M, N>
 ) {
-  const [formState] = useFormContext();
+  const [formState] = useFormContext<M>();
   const [localProps, parsedProps] = splitProps(initialProps, [
     'variant',
     'isDisabled',

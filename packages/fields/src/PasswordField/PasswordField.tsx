@@ -1,17 +1,15 @@
-import { type StringKeyOf } from 'type-fest';
-
-import { type FieldValueMapping } from '@gxxc/solid4m-state';
+import { type FieldPath, type FieldValueMapping } from '@gxxc/solid4m-state';
 
 import { InputField, type InputFieldProps } from '../InputField/InputField';
 
 export type PasswordFieldProps<
   M extends object = FieldValueMapping,
-  N extends StringKeyOf<M> = StringKeyOf<M>
+  N extends FieldPath<M> = FieldPath<M>
 > = InputFieldProps<M, N>;
 
 export function PasswordField<
   M extends object = FieldValueMapping,
-  N extends StringKeyOf<M> = StringKeyOf<M>
+  N extends FieldPath<M> = FieldPath<M>
 >(props: PasswordFieldProps<M, N>) {
   props.type = 'password';
   return <InputField {...props} />;
