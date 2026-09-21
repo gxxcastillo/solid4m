@@ -183,6 +183,40 @@ function RowsWithFormStateInspector(props: { onSnapshot: (snapshot: FormStateSna
   );
 }
 
+function RowsExposingScopedState(props: { onScopedState: (state: Record<string, unknown>) => void }) {
+  const [items] = useFieldArray<Row>('rows', [
+    { password: '', confirm: '' },
+    { password: '', confirm: '' }
+  ]);
+
+  return (
+    <For each={items()}>
+      {(item, index) => {
+        const fields = createScopedFields<Row>(() => `rows.${index()}`);
+        return (
+          <div>
+            <fields.PasswordField
+              name='password'
+              label='Password'
+              defaultValue={item.defaultValue.password}
+              data-testid={`exposed-password-${index()}`}
+            />
+            <fields.PasswordField
+              name='confirm'
+              label='Confirm'
+              defaultValue={item.defaultValue.confirm}
+              validator={(_name, _value, formState, setErrors) => {
+                if (index() === 1) props.onScopedState(formState as unknown as Record<string, unknown>);
+                setErrors([]);
+              }}
+            />
+          </div>
+        );
+      }}
+    </For>
+  );
+}
+
 describe('createScopedFields + useFieldArray integration', () => {
   afterEach(cleanup);
 
@@ -294,5 +328,34 @@ describe('createScopedFields + useFieldArray integration', () => {
       wasPasswordValid: true
     });
     expect(mismatchSnapshot?.missingFieldName).toBeUndefined();
+  });
+
+  // Loops over the scoped state's own keys rather than a hand-kept list, so a
+  // getter the scoped state forgets to override fails here too: it would fall
+  // back to the store and read the top-level `password`, which doesn't exist.
+  it('resolves every name-taking getter against the row, not the top level', () => {
+    let scopedState: Record<string, unknown> | undefined;
+    const store = createFormStore<TestFields>() as FormStore<TestFields>;
+    render(() => (
+      <FormContextProvider store={store}>
+        <RowsExposingScopedState onScopedState={(state) => (scopedState = state)} />
+      </FormContextProvider>
+    ));
+
+    fireEvent.input(screen.getByTestId('exposed-password-1'), { target: { value: 'row1-pass' } });
+    fireEvent.blur(screen.getByTestId('exposed-password-1'));
+
+    const [state] = store;
+    const getterNames = Object.keys(scopedState!).filter(
+      (key) => key !== 'getField' && typeof scopedState![key] === 'function'
+    );
+    expect(getterNames).toHaveLength(7);
+    for (const key of getterNames) {
+      const scopedGetter = scopedState![key] as (name: string) => unknown;
+      const storeGetter = state[key as keyof typeof state] as (name: string) => unknown;
+      const rowResult = storeGetter('rows.1.password');
+      expect(rowResult, key).not.toEqual(storeGetter('password'));
+      expect(scopedGetter('password'), key).toEqual(rowResult);
+    }
   });
 });

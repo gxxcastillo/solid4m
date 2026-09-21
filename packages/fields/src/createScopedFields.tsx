@@ -1,6 +1,12 @@
 import { type Accessor, type JSX, mergeProps } from 'solid-js';
 
-import { type ErrorMessages, type FieldPath, type FormField, type FormState } from '@gxxc/solid4m-state';
+import {
+  type ErrorMessages,
+  type FieldPath,
+  type FormField,
+  type FormState,
+  type FormStateGetters
+} from '@gxxc/solid4m-state';
 
 import { InputField, type InputFieldProps } from './InputField/InputField';
 import { PasswordField, type PasswordFieldProps } from './PasswordField/PasswordField';
@@ -50,10 +56,31 @@ function scopedField<Item extends object>(basePath: string, field: RuntimeField)
   }) as FormField<Item, FieldPath<Item>>;
 }
 
+const rowScopedGetters = [
+  'isFieldValid',
+  'getFieldValue',
+  'getFieldErrors',
+  'hasFieldBeenInitialized',
+  'hasFieldBeenValid',
+  'hasFieldChanged',
+  'hasFieldBlurred'
+] as const;
+
+type RowScopedGetter = (typeof rowScopedGetters)[number];
+
 function scopedFormState<Item extends object>(base: Accessor<string>, formState: RuntimeFormState) {
   const runtimeName = (name: string) => joinPath(base(), name);
+  const getters = formState as unknown as Record<RowScopedGetter, (name: string) => unknown>;
+  const delegated = Object.fromEntries(
+    rowScopedGetters.map((key) => [key, (name: string) => getters[key](runtimeName(name))])
+  ) as Pick<FormStateGetters<Item>, RowScopedGetter>;
 
-  return mergeProps(formState, {
+  // `satisfies` makes a getter added to FormStateGetters fail to compile until
+  // it is scoped here. Without an override, mergeProps falls back to the
+  // unscoped store, which looks the row-relative name up at the form's top
+  // level and reads undefined, with no error.
+  const overrides = {
+    ...delegated,
     get fields() {
       const basePath = base();
       return formState.fields
@@ -68,33 +95,24 @@ function scopedFormState<Item extends object>(base: Accessor<string>, formState:
       const basePath = base();
       return !formState.fields.some((field) => isInScope(basePath, field.name) && !!field.errors?.length);
     },
-    isFieldValid<N extends FieldPath<Item>>(name: N) {
-      return formState.isFieldValid(runtimeName(name) as FieldPath<Record<string, unknown>>);
-    },
     getField<N extends FieldPath<Item>>(name: N) {
       const basePath = base();
       const field = formState.getField(runtimeName(name) as FieldPath<Record<string, unknown>>);
       return field ? (scopedField<Item>(basePath, field) as FormField<Item, N>) : undefined;
-    },
-    getFieldValue<N extends FieldPath<Item>>(name: N) {
-      return formState.getFieldValue(runtimeName(name) as FieldPath<Record<string, unknown>>);
-    },
-    getFieldErrors<N extends FieldPath<Item>>(name: N) {
-      return formState.getFieldErrors(runtimeName(name) as FieldPath<Record<string, unknown>>);
-    },
-    hasFieldBeenInitialized<N extends FieldPath<Item>>(name: N) {
-      return formState.hasFieldBeenInitialized(runtimeName(name) as FieldPath<Record<string, unknown>>);
-    },
-    hasFieldBeenValid<N extends FieldPath<Item>>(name: N) {
-      return formState.hasFieldBeenValid(runtimeName(name) as FieldPath<Record<string, unknown>>);
-    },
-    hasFieldChanged<N extends FieldPath<Item>>(name: N) {
-      return formState.hasFieldChanged(runtimeName(name) as FieldPath<Record<string, unknown>>);
-    },
-    hasFieldBlurred<N extends FieldPath<Item>>(name: N) {
-      return formState.hasFieldBlurred(runtimeName(name) as FieldPath<Record<string, unknown>>);
     }
-  }) as FormState<Item>;
+  } satisfies Record<keyof FormStateGetters | 'fields', unknown>;
+
+  return mergeProps(formState, overrides) as FormState<Item>;
+}
+
+function scopeCallback<Item extends object>(
+  base: Accessor<string>,
+  callback: ScopedFormStateCallback<Item> | undefined
+) {
+  if (!callback) return undefined;
+
+  return (value: unknown, formState?: RuntimeFormState) =>
+    callback(value, formState ? scopedFormState<Item>(base, formState) : undefined);
 }
 
 function scoped<Item extends object, P extends ScopableProps<Item>>(base: Accessor<string>, props: P): P {
@@ -124,18 +142,10 @@ function scoped<Item extends object, P extends ScopableProps<Item>>(base: Access
       };
     },
     get showLabel() {
-      const showLabel = props.showLabel;
-      if (!showLabel) return undefined;
-
-      return (value: unknown, formState?: RuntimeFormState) =>
-        showLabel(value, formState ? scopedFormState<Item>(base, formState) : undefined);
+      return scopeCallback(base, props.showLabel);
     },
     get showIcon() {
-      const showIcon = props.showIcon;
-      if (!showIcon) return undefined;
-
-      return (value: unknown, formState?: RuntimeFormState) =>
-        showIcon(value, formState ? scopedFormState<Item>(base, formState) : undefined);
+      return scopeCallback(base, props.showIcon);
     }
   }) as P;
 }
