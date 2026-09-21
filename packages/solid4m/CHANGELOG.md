@@ -2,6 +2,8 @@
 
 ## 0.2.0
 
+Published as `@gxxc/solid-forms`, as were all earlier versions below.
+
 ### Minor Changes
 
 - 460044a: Add bulk field-state mutations:
