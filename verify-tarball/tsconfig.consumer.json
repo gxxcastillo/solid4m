@@ -4,7 +4,13 @@
     "module": "esnext",
     "target": "es2022",
     "moduleResolution": "bundler",
-    "skipLibCheck": true,
+    // false, unlike most library-consumer checks: it makes tsc check the
+    // published index.d.ts itself, not only this project's use of it. Fresh
+    // SolidStart templates leave skipLibCheck off, and a bundled declaration
+    // can resolve every name a consumer imports while still containing types
+    // that fail to check (dangling renamed `infer` parameters, invalid
+    // indexed access), which only this setting surfaces.
+    "skipLibCheck": false,
     "noEmit": true
   },
   "files": ["consumer.gen.ts", "consumer-types.ts"]

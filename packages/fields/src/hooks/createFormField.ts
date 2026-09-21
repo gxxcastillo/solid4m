@@ -1,7 +1,17 @@
-import { type JSX, createEffect, createMemo, mergeProps, onCleanup, splitProps, untrack } from 'solid-js';
+import {
+  type Accessor,
+  type JSX,
+  createEffect,
+  createMemo,
+  mergeProps,
+  onCleanup,
+  splitProps,
+  untrack
+} from 'solid-js';
 
 import {
   type DisplayValue,
+  type ErrorMessages,
   type FieldName,
   type FieldPath,
   type FieldValue,
@@ -22,6 +32,8 @@ import type {
   FormFieldElement,
   FormFieldInputEvent,
   FormFieldProps,
+  FormatFunction,
+  ParseFunction,
   SelectableFormFieldEvent,
   SetValue
 } from '../types';
@@ -197,6 +209,52 @@ export function createOnBlur<G extends FormElementTag, M extends object, N exten
   };
 }
 
+export type FieldValueSetter = ((val?: FieldValue, isInitialization?: boolean) => void) & {
+  revalidate(): void;
+};
+
+// The props a field component gets back from createFormField: its own props
+// with the defaults filled in, plus the live bindings to the form store.
+//
+// Spelled out rather than inferred, and load-bearing for the published types:
+// left to inference, this is solid-js's `mergeProps` result type applied
+// twice, which tsc expands structurally into thousands of lines of nested
+// `infer` conditionals in the emitted declaration. That expansion does not
+// re-typecheck (TS2536), and bundling it into the single public `index.d.ts`
+// leaves dangling renamed `infer` parameters (TS2304), so any consumer
+// checking library types (`skipLibCheck: false`, which fresh SolidStart
+// templates use) failed on this package's declarations.
+export type BoundFormFieldProps<G extends FormElementTag, M extends object, N extends FieldPath<M>> = Omit<
+  FormFieldProps<G, M, N>,
+  | 'id'
+  | 'value'
+  | 'disabled'
+  | 'errors'
+  | 'checked'
+  | 'isInitialized'
+  | 'isControlled'
+  | 'parse'
+  | 'format'
+  | 'ref'
+  | 'setValue'
+  | 'onInput'
+  | 'onBlur'
+> & {
+  readonly id: N;
+  readonly value: string;
+  readonly disabled: boolean;
+  readonly errors: ErrorMessages | undefined;
+  readonly checked: boolean | undefined;
+  readonly isInitialized: boolean;
+  isControlled: boolean;
+  parse: ParseFunction<FieldValueFor<M, N>>;
+  format: FormatFunction<FieldValueFor<M, N>>;
+  ref(element: HTMLElement): void;
+  setValue: FieldValueSetter;
+  onInput: (event: FormFieldInputEvent<HTMLElementTagNameMap[G]>) => void;
+  onBlur: (event: FormFieldBlurEvent<HTMLElementTagNameMap[G]>) => void;
+};
+
 export function createField(componentName: ComponentName, el: JSX.Element) {
   if (el && typeof el === 'object') {
     setComponentName(el, componentName);
@@ -209,7 +267,9 @@ export function createFormField<
   G extends FormElementTag,
   M extends object = FieldValueMapping,
   N extends FieldPath<M> = FieldPath<M>
->(initialProps: FormFieldProps<G, M, N>) {
+>(
+  initialProps: FormFieldProps<G, M, N>
+): Accessor<readonly [BoundFormFieldProps<G, M, N>, typeof createField]> {
   const [formState, formStateMutations] = useFormContext<M>();
 
   const props = mergeProps(formFieldDefaultProps, initialProps);
@@ -364,5 +424,9 @@ export function createFormField<
     onBlur
   });
 
-  return createMemo(() => [newProps, createField] as const);
+  // `mergeProps`'s result type is a chain of conditionals over G/M/N that tsc
+  // cannot resolve while those are still generic, so it can't prove what this
+  // cast asserts: the merged object is the caller's props, the defaults, and
+  // the bindings above, which is exactly BoundFormFieldProps (see its note).
+  return createMemo(() => [newProps as unknown as BoundFormFieldProps<G, M, N>, createField] as const);
 }
