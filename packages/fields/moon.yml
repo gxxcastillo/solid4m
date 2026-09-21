@@ -1,0 +1,8 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+# No build of its own: consumers run it from src/ (package.json `import`) and
+# type-check it against tsc's dist/ (`types`). The facade bundles it. See
+# AGENTS.md on why dist/ must have a single writer.
+workspace:
+  inheritedTasks:
+    exclude: ['build']

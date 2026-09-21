@@ -61,10 +61,18 @@ tasks:
     deps:
       - '^:build'
 
+  # A workspace import resolves through package.json's `types` to upstream
+  # declarations: an internal package's are the dist/ its own `types` task
+  # writes, the facade's are the bundle its `build` writes. So both must finish
+  # first. `^:types` also keeps two `tsc --build` runs from rebuilding the
+  # same referenced project at once.
   types:
     command:
       - 'tsc'
       - '--build'
+    deps:
+      - '^:types'
+      - '^:build'
     inputs:
       # Source and test files
       - '@globs(sources)'
@@ -93,6 +101,11 @@ tasks:
       - '@in(4)'
       # Run in current dir
       - '.'
+    # The type-aware rules read the same upstream declarations as `types` (see
+    # there).
+    deps:
+      - '^:types'
+      - '^:build'
     inputs:
       # Source and test files
       - 'src/**/*'

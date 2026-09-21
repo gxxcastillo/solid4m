@@ -63,12 +63,20 @@ runner. When a change touches build outputs or task dependencies, also remove
 `packages/*/dist`, `packages/solid4m/.tsbuild`, and `packages/*/tsconfig.tsbuildinfo`
 before trusting a local pass.
 
-The facade's `:types` task writes its per-file declarations to a private
-`.tsbuild/` directory. Its `:build` task produces the bundled
-`dist/index.d.ts` that `package.json` exposes, so it remains intact regardless
-of task order. `examples:types` depends on that build and resolves the public
-declaration entry; `verify-tarball`'s consumer type-check is still the only
-check that exercises the packed artifact exactly as a user receives it.
+**Every `dist/` has exactly one writer.** The internal packages (`state`,
+`validation`, `form`, `fields`) and `examples` have no `:build`: consumers run
+them from `src/`, and their `dist/` holds only what `:types` (`tsc --build`)
+emits. For the four internal packages that is what `package.json`'s `types`
+points at, which keeps project references standard: an editor shows a change
+in one package live in the next, without a rebuild. The facade is the one exception: its
+`:build` writes the bundled `dist/index.d.ts` that ships, so its `:types`
+writes per-file declarations to a private `.tsbuild/` instead. `:types`,
+type-aware `:lint`, and the facade's `:build` all read upstream declarations,
+so they depend on upstream `:types` (and on `:build`, for anything reading the
+facade's bundle). When a second tool also wrote a package's `dist/`, the
+combined baseline above failed at random with `has no exported member`.
+`verify-tarball`'s consumer type-check is still the only check that exercises
+the packed artifact exactly as a user receives it.
 
 ## Testing notes
 

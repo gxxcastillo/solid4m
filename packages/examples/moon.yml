@@ -1,6 +1,7 @@
 $schema: 'https://moonrepo.dev/schemas/project.json'
 
-tasks:
-  types:
-    deps:
-      - '^:build'
+# No build of its own: the docs and a11y apps consume it from src/ (its only
+# export). See AGENTS.md on why dist/ must have a single writer.
+workspace:
+  inheritedTasks:
+    exclude: ['build']

@@ -11,5 +11,9 @@ tasks:
     command: 'node'
     args:
       - 'scripts/build.mjs'
+    # The declaration bundle follows each internal package's `types` into the
+    # dist/ its `types` task (tsc) writes; they have no build of their own.
+    deps:
+      - '^:types'
     options:
       mergeArgs: 'replace'

@@ -7,13 +7,12 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "solid4m": "workspace:*",
-    "solid-js": "^1.9.15"
+    "solid-js": "^1.9.15",
+    "solid4m": "workspace:*"
   },
   "devDependencies": {
     "typescript": "6.0.3",
     "vite": "^8.3.0",
-    "vite-plugin-dts": "^5.1.0",
     "vite-plugin-solid": "^2.11.14"
   }
 }
