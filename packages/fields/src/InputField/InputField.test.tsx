@@ -55,9 +55,13 @@ describe('InputField', () => {
 
   it('instantiates each JSX-valued prop once, even as the field value changes', () => {
     const calls = { leadingIcon: 0, icon: 0, context: 0 };
-    const LeadingIcon = () => (calls.leadingIcon++, <span />);
-    const Icon = () => (calls.icon++, <span />);
-    const Context = () => (calls.context++, <span />);
+    const counted = (key: keyof typeof calls) => () => {
+      calls[key]++;
+      return <span />;
+    };
+    const LeadingIcon = counted('leadingIcon');
+    const Icon = counted('icon');
+    const Context = counted('context');
     const { store } = makeStore();
     render(() => (
       <FormContextProvider store={store}>

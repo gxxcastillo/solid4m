@@ -6,7 +6,6 @@ import { FormContextProvider, createFormStore } from '@gxxc/solid4m-state';
 
 import { CheckboxField } from './CheckboxField/CheckboxField';
 import { DateField } from './DateField/DateField';
-import { fieldOnlyPropNames } from './elements/utils';
 import { FileField } from './FileField/FileField';
 import { InputField } from './InputField/InputField';
 import { NumberField } from './NumberField/NumberField';
@@ -15,6 +14,7 @@ import { RadioGroup } from './RadioGroup/RadioGroup';
 import { SelectField } from './SelectField/SelectField';
 import { SubmitButton } from './SubmitButton/SubmitButton';
 import { TextAreaField } from './TextareaField/TextareaField';
+import { fieldOnlyPropNames } from './elements/utils';
 
 afterEach(cleanup);
 

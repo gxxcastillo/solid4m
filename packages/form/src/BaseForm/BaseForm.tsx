@@ -7,7 +7,12 @@ import {
 } from '@gxxc/solid4m-state';
 import { type StandardSchemaV1 } from '@gxxc/solid4m-validation';
 
-import { type BaseFormOnSubmit, type RequestProps, type SubmitResponse, type SubmitResponseMapping } from '../types';
+import {
+  type BaseFormOnSubmit,
+  type RequestProps,
+  type SubmitResponse,
+  type SubmitResponseMapping
+} from '../types';
 import styles from './BaseForm.module.css';
 import { createBaseFormOnSubmitHandler } from './helpers';
 
