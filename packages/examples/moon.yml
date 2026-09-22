@@ -5,3 +5,15 @@ $schema: 'https://moonrepo.dev/schemas/project.json'
 workspace:
   inheritedTasks:
     exclude: ['build']
+
+tasks:
+  # Excluding `build` also removes its inherited facade-build dependency.
+  types:
+    deps:
+      - '^:types'
+      - 'solid4m:build'
+
+  lint:
+    deps:
+      - '^:types'
+      - 'solid4m:build'
