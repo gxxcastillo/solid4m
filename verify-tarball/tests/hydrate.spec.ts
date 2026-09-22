@@ -1,10 +1,9 @@
 import { expect, test } from '@playwright/test';
 
 // Imports the built SSR bundle directly (plain Node ESM, no Vite at test
-// time) — this is the artifact-level check B5 needed: solid4m
-// resolved through its real, packed-and-installed exports map, not a
-// workspace source alias. See run.mjs for the pack/install/build steps this
-// depends on.
+// time): solid4m resolves through its real, packed-and-installed exports
+// map here, not a workspace source alias. See run.mjs for the
+// pack/install/build steps this depends on.
 import { renderPage } from '../dist-ssr/ssr-entry.js';
 
 test('SSR output hydrates in a real browser with no mismatch, and the form submits', async ({ page }) => {
@@ -29,8 +28,8 @@ test('SSR output hydrates in a real browser with no mismatch, and the form submi
   await expect(page.getByTestId('status')).toHaveText('Not submitted');
 
   // A hydration mismatch shows up as solid-js rebuilding the DOM (or
-  // console-warning while doing it) instead of adopting the SSR'd nodes —
-  // check before interacting, since interaction alone wouldn't reveal it.
+  // console-warning while doing it) instead of adopting the SSR'd nodes; check
+  // before interacting, since interaction alone wouldn't reveal it.
   expect(consoleErrors, `console errors during hydration:\n${consoleErrors.join('\n')}`).toEqual([]);
 
   await email.fill('person@example.com');

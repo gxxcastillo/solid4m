@@ -7,12 +7,12 @@ export const fixtureThemes = [
 export const fixtureForms = [
   { id: 'login', label: 'Login', title: 'Log in' },
   { id: 'signup', label: 'Signup', title: 'Create your account' },
-  // Repeating rows are the most a11y-hazardous UI the library renders — fields
-  // are inserted and removed dynamically and are addressed by generated
-  // `items.<index>.*` names — so the FieldArray example carries its own routes.
+  // Repeating rows are the most a11y-hazardous UI the library renders: fields
+  // are inserted and removed dynamically and addressed by generated
+  // `items.<index>.*` names. The FieldArray example carries its own routes.
   { id: 'lineItems', label: 'Line items', title: 'Line items' },
   { id: 'settings', label: 'Settings', title: 'User settings' },
-  // Every field in the palette, including a multiple select — whose selection
+  // Every field in the palette, including a multiple select: its selection
   // behavior differs between happy-dom and a real browser, so only this
   // harness can check it.
   { id: 'palette', label: 'Field palette', title: 'Workshop registration' }

@@ -1,12 +1,12 @@
 // Bundle-size budget for what a consumer actually ships: each scenario is a
 // tiny app bundled and minified by esbuild against the built browser entry,
-// with solid-js external (a peer every consumer already pays for once, so
-// counting it would track solid-js's size rather than this package's).
+// with solid-js external (a peer every consumer pays for once, so counting it
+// would track solid-js's size rather than this package's).
 //
 // Measuring raw dist/index.js would be the wrong number: it is unminified and
 // holds every component, while a real app tree-shakes to what it imports.
-// Each scenario must use its imports observably (mount them); esbuild drops an
-// import that is only referenced, which would measure 0 bytes.
+// Each scenario must use its imports observably (mount them); esbuild drops
+// an import that is only referenced, which would measure 0 bytes.
 //
 // Usage: node scripts/check-bundle-size.mjs [path/to/dist/index.js]
 // The optional path lets it check an extracted, packed tarball instead.

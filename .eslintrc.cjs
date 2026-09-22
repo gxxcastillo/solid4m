@@ -52,8 +52,8 @@ module.exports = {
     '**/*.config.js',
     '**/*.config.cjs',
     '**/*.config.mjs',
-    // Vitest's own workspace-file auto-discovery requires this exact name,
-    // so it can't take the *.config.ts naming the pattern above relies on.
+    // Vitest's workspace-file auto-discovery requires this exact name, so the
+    // `*.config.ts` pattern above can't cover it.
     '**/vitest.workspace.ts'
   ],
   parserOptions: {

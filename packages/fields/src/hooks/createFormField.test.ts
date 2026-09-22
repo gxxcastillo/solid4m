@@ -196,8 +196,7 @@ describe('createValueSetter', () => {
 
     setValue('alice');
 
-    // Simulate resetField/reset/setValues bumping the field's generation while
-    // this validator call is still in flight.
+    // Simulates resetField/reset/setValues bumping generation mid-flight.
     generation++;
     pendingSetErrors(['stale']);
 
@@ -261,10 +260,9 @@ describe('createValueSetter', () => {
   });
 
   it('writes to the current name after props.name changes post-mount, not a mount-time snapshot', () => {
-    // Simulates what a useFieldArray row experiences when an earlier item is
-    // removed and remapFieldNames re-addresses this row's underlying field —
-    // the row's own component instance survives (reindex-free identity), so
-    // its props.name prop changes without a remount.
+    // Simulates a useFieldArray row when an earlier item is removed and
+    // remapFieldNames re-addresses this row's field — the component instance
+    // survives, so its props.name changes without a remount.
     const state = makeState('a');
     const mutations = makeMutations();
     const props: { name: string; parse: (v: unknown) => unknown } = {
@@ -283,9 +281,9 @@ describe('createValueSetter', () => {
 
   it('reattaches an in-flight async validator result under the field\'s current name after a shift', () => {
     // remapFieldNames preserves a field's generation across a rename, so the
-    // existing staleness guard (formState.getField(name)?.generation) should
-    // still find the same record and apply the result once resolved — proven
-    // here against a fixed generation with props.name changed mid-flight.
+    // staleness guard still finds the same record and applies the result once
+    // resolved — proven here with a fixed generation and props.name changed
+    // mid-flight.
     const state = makeState();
     state.getField = () => ({ generation: 0 }) as never;
     const mutations = makeMutations();

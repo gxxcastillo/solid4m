@@ -61,7 +61,7 @@ describe('validate — falsey constraints', () => {
 
   it('treats a 0-valued length constraint as active (not falsey)', () => {
     // minLength=0 can never fail, so it can't prove the falsey filter left the
-    // constraint in place — maxLength=0 against a non-empty value can.
+    // constraint in place; maxLength=0 against a non-empty value can.
     expect(validate('username', 'a', { minLength: 0 }, makeFormState())).toEqual([]);
     expect(validate('username', 'a', { maxLength: 0 }, makeFormState())).toHaveLength(1);
   });
@@ -146,8 +146,8 @@ describe('pattern', () => {
   });
 
   it('skips a value with no meaningful textual form instead of stringifying it', () => {
-    // A pattern that matches literally nothing, including "[object Object]" —
-    // if this value were ever stringified and tested, it would fail.
+    // A pattern that matches literally nothing, including "[object Object]": if
+    // this value were ever stringified and tested, it would fail.
     const neverMatches = '^$a';
     expect(validate('tags', ['a', 'b'] as never, { pattern: neverMatches }, state)).toEqual([]);
     expect(validate('bio', {} as never, { pattern: neverMatches }, state)).toEqual([]);
@@ -173,9 +173,8 @@ describe('minLength / maxLength', () => {
     expect(validate('username', 'abcdef', { maxLength: 5 }, state)).toHaveLength(1);
   });
 
-  // Regression: an undefined value is what an optional field holds before the
-  // user touches it. Reporting "too long" there made a pristine form invalid on
-  // load, which disabled submission with no visible error to explain it.
+  // An untouched optional field holds `undefined`, not a string; it must stay
+  // valid or a pristine form can never be submitted.
   it('skips an undefined value instead of reporting it as too long', () => {
     expect(validate('bio', undefined, { maxLength: 500 }, state)).toEqual([]);
   });
@@ -185,8 +184,6 @@ describe('minLength / maxLength', () => {
     expect(validate('bio', undefined, { minLength: 3 }, state)).toEqual([]);
   });
 
-  // Regression: the old `typeof val === 'string'` guard failed every value a
-  // custom `parse` produced, so a numeric field could never satisfy either bound.
   it('measures a parsed number by its digits', () => {
     expect(validate('zip', 94107 as never, { maxLength: 5 }, state)).toEqual([]);
     expect(validate('zip', 941070 as never, { maxLength: 5 }, state)).toHaveLength(1);
@@ -196,7 +193,7 @@ describe('minLength / maxLength', () => {
   it('measures an array by its item count', () => {
     expect(validate('tags', ['a', 'b'] as never, { maxLength: 3 }, state)).toEqual([]);
     expect(validate('tags', ['a', 'b', 'c', 'd'] as never, { maxLength: 3 }, state)).toHaveLength(1);
-    // An empty array is absent, not a length-0 violation — `required`'s concern.
+    // An empty array is absent, not a length-0 violation (see `required`).
     expect(validate('tags', [] as never, { minLength: 2 }, state)).toEqual([]);
   });
 
@@ -267,8 +264,8 @@ describe('multiple constraints', () => {
   });
 
   it('reports only the required error for an empty value, not a length error too', () => {
-    // Length constraints defer emptiness to `required`, so an empty value that
-    // is also required produces one actionable error rather than two.
+    // Length constraints defer emptiness to `required` (see constraintConfigs.ts),
+    // so an empty required value reports one error, not two.
     const state = makeFormState();
     const errors = validate('username', '', { required: true, minLength: 3 }, state);
     expect(errors).toEqual(['"username" is required']);
@@ -287,11 +284,11 @@ describe('multiple constraints', () => {
   });
 });
 
-// These exist because `noValidate` on the form turned off the browser's own
-// type-derived format checking (see BaseForm.tsx). Every expectation below was
-// verified to match Chromium's `validity.typeMismatch` for the same value, which
-// is the bar: this reproduces browser behavior rather than inventing a stricter
-// or looser notion of a valid email/URL.
+// `noValidate` on the form turns off the browser's own type-derived format
+// checking (see BaseForm.tsx). Every expectation below was verified against
+// Chromium's `validity.typeMismatch` for the same value, so this reproduces
+// browser behavior rather than a stricter or looser notion of a valid
+// email/URL.
 describe('type', () => {
   it('passes for a valid email address', () => {
     expect(validate('username', 'a@b.com', { type: 'email' }, makeFormState())).toEqual([]);
@@ -303,9 +300,9 @@ describe('type', () => {
     ]);
   });
 
-  // The spec's email production has no TLD requirement and permits dots at the
-  // edges of the local part. Chromium accepts all three; a hand-rolled regex
-  // would reject them and diverge from the behavior this is restoring.
+  // The spec's email production accepts these (see constraintConfigs.ts's
+  // VALID_EMAIL); a hand-rolled regex would reject them and diverge from the
+  // browser behavior this restores.
   it.each(['a@b', '.leading@b.com', 'trailing.@b.com', "o'brien+tag@sub.example.co.uk", 'UPPER@Example.COM'])(
     'accepts %s, as the browser does',
     (value) => {
@@ -317,8 +314,8 @@ describe('type', () => {
     expect(validate('username', value, { type: 'email' }, makeFormState())).toHaveLength(1);
   });
 
-  // A `multiple` email input would accept this; the constraint cannot see that
-  // attribute, so it matches a plain type='email' input and rejects the list.
+  // `multiple` isn't visible here (see constraintConfigs.ts), so this matches
+  // a plain type='email' input and rejects the list.
   it('rejects a comma-separated address list', () => {
     expect(validate('username', 'a@b.com,c@d.com', { type: 'email' }, makeFormState())).toHaveLength(1);
   });
@@ -355,25 +352,24 @@ describe('type', () => {
     expect(validate('tags', ['a', 'b'] as never, { type: 'url' }, makeFormState())).toEqual([]);
   });
 
-  // The overwhelmingly common case: `type` is present on every input field, and
-  // must stay inert for the types the browser never format-checked either.
+  // `type` is present on every input field and must stay inert for the types
+  // the browser never format-checks (see constraintConfigs.ts's TYPE_FORMATS).
   it.each(['text', 'password', 'checkbox', 'tel', 'date', 'search'])('ignores type=%s', (type) => {
     expect(validate('username', 'anything at all', { type }, makeFormState())).toEqual([]);
   });
 
-  // Verified in Chromium: a number input's value sanitization algorithm reads
-  // non-numeric text back as '', so nothing was lost to noValidate here and
-  // there is deliberately no number format check to exercise.
+  // Verified in Chromium (see constraintConfigs.ts's TYPE_FORMATS note on
+  // `number`): there is deliberately no format check to exercise here.
   it('ignores type=number', () => {
     expect(validate('username', 'abc', { type: 'number' }, makeFormState())).toEqual([]);
   });
 });
 
 // stepConstraint.test.ts checks `step` itself against a recording of Chromium.
-// These check the wiring instead: `step` is the first constraint that cannot be
-// decided from its own value, so it only works if validate() hands each
-// validator the field's *other* constraints. Calling the validator directly, as
-// that suite does, would pass even if the plumbing were missing entirely.
+// These check the wiring instead: `step` can't be decided from its own value
+// alone, so it only works if validate() hands each validator the field's
+// other constraints. Calling the validator directly, as that suite does,
+// would pass even if the plumbing were missing entirely.
 describe('validate — step reads its sibling constraints', () => {
   it('reads type, without which step has no units to count in', () => {
     expect(validate('age', 7 as never, { type: 'number', step: 5 }, makeFormState())).toEqual([

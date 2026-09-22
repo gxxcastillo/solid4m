@@ -24,11 +24,10 @@ tasks:
     command: 'astro'
     args:
       - 'check'
-    # The docs' `paths` alias does not reach imports inside the referenced
-    # `examples` project, which resolve `solid4m` through its package exports
-    # to the facade's built `dist/index.d.ts`. Without this dep the check races
-    # the build and fails on a clean checkout, while passing locally on a
-    # leftover `dist/`.
+    # The docs' `paths` alias doesn't reach imports inside `examples`, which
+    # resolves `solid4m` through package exports to the facade's built
+    # `dist/index.d.ts`. Without this dep the check races the build: it passes
+    # locally on a leftover `dist/` but fails on a clean checkout.
     deps:
       - '^:build'
     options:

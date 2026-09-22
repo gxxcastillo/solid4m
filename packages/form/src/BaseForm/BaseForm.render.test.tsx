@@ -8,10 +8,10 @@ import { BaseForm } from './BaseForm';
 import styles from './BaseForm.module.css';
 import { STALE_SUBMIT_MESSAGE } from './helpers';
 
-// A Standard Schema whose validation is held open by the test, so a field can be
-// edited while the submit is genuinely mid-flight. Nothing else reproduces the
-// stale-snapshot race: it only exists in the window between an async schema
-// resolving and the handler reading values back.
+// A schema whose validation stays open, so a field can be edited mid-submit.
+// This is the only way to reproduce the stale-snapshot race: it exists only
+// in the window between an async schema resolving and the handler reading
+// values back.
 function makeHeldSchema() {
   let release!: () => void;
   const gate = new Promise<void>((resolve) => {
@@ -190,15 +190,10 @@ describe('BaseForm (rendered)', () => {
       </FormContextProvider>
     ));
 
-    // Present before any error lands in it — a live region added at the same
-    // time as its content is not reliably announced.
     const region = container.querySelector('.sf-form-errors');
     expect(region).not.toBeNull();
     expect(region).toHaveAttribute('aria-live', 'assertive');
     expect(region).toBeEmptyDOMElement();
-    // Being permanent makes it a flex item, so the form's `gap` reserves a row
-    // for it; the empty-state class cancels exactly that gap. Without it every
-    // errorless form grows a stray field-gap of trailing space.
     expect(region).toHaveClass(styles.formErrorsEmpty);
   });
 
@@ -234,8 +229,6 @@ describe('BaseForm (rendered)', () => {
     expect(container.querySelector('.sf-form-errors')).toHaveTextContent('Server error');
   });
 
-  // The in-flight submit was communicated only visually: the submit button dims.
-  // A screen-reader user pressed submit and heard nothing until it settled.
   it('renders the status region before there is anything to announce', () => {
     const { store } = makeStore();
 
@@ -249,8 +242,6 @@ describe('BaseForm (rendered)', () => {
 
     const region = container.querySelector('.sf-form-status');
     expect(region).not.toBeNull();
-    // Polite, unlike the assertive error region: a progress note waits its turn
-    // rather than interrupting whatever the user is reading.
     expect(region).toHaveAttribute('aria-live', 'polite');
     expect(region).toHaveAttribute('aria-atomic', 'true');
     expect(region).toHaveTextContent('');
@@ -305,18 +296,11 @@ describe('BaseForm (rendered)', () => {
       </FormContextProvider>
     ));
 
-    // The region itself stays in the DOM — removing it would break the *next*
-    // announcement, since a live region must pre-exist its content.
     const region = container.querySelector('.sf-form-status');
     expect(region).not.toBeNull();
     expect(region).toHaveTextContent('');
   });
 
-  // `<Form isProcessing>` was declared, documented as a "controlled override",
-  // and read by nothing: a consumer driving their own async submit got no
-  // announcement, no spinner, and no click guard. The four behaviors hung off
-  // `formState.isProcessing` by the accessibility work all consulted the store
-  // and none consulted the prop.
   describe('the isProcessing prop', () => {
     it('announces in-flight work the form is not itself running', () => {
       const { store } = makeStore();
@@ -352,8 +336,6 @@ describe('BaseForm (rendered)', () => {
       expect(region).toHaveTextContent('');
     });
 
-    // The prop is an additional source, not an override: a consumer who says
-    // they are busy must not be able to start a submit on top of it.
     it('blocks a submit while the prop says the consumer is busy', () => {
       const { store } = makeStore();
       const [, mutations] = store;
@@ -373,11 +355,8 @@ describe('BaseForm (rendered)', () => {
       expect(onSubmit).not.toHaveBeenCalled();
     });
 
-    // The failure mode that ruled out wiring the prop through a single
-    // `setIsProcessing` effect. The handler's `finally` clears the flag, and an
-    // effect watching a prop whose value never changed does not re-run to put it
-    // back — so the form would quietly un-busy itself underneath a consumer who
-    // is still working.
+    // Regression guard: an effect over an unchanged prop won't re-fire to
+    // restore the flag (see FormStateMutations.setIsLoadingFromProps).
     it('stays asserted after the form finishes a submit of its own', async () => {
       const [isProcessing, setIsProcessing] = createSignal(false);
       const { store } = makeStore();
@@ -413,9 +392,8 @@ describe('BaseForm (rendered)', () => {
       // has resumed and run its `finally` to completion.
       await submitted;
 
-      // That `finally` has now cleared the form's own source. Sharing one slot
-      // would have cleared the published flag with it and never restored it —
-      // an effect watching a prop that never changed does not re-run.
+      // That `finally` has now cleared the form's own source; the prop source
+      // alone is keeping isProcessing true.
       expect(state.isProcessing).toBe(true);
       expect(container.querySelector('.sf-form-status')).toHaveTextContent('Submitting…');
 
@@ -423,8 +401,6 @@ describe('BaseForm (rendered)', () => {
       expect(state.isProcessing).toBe(false);
     });
 
-    // The store outlives the form whenever useForm reuses an enclosing one, so a
-    // form unmounting mid-flight must not latch its last value onto it forever.
     it('releases its claim on the store when the form unmounts', () => {
       const { store } = makeStore();
       const [state] = store;
@@ -465,8 +441,6 @@ describe('BaseForm (rendered)', () => {
     });
   });
 
-  // aria-busy on an ancestor tells assistive tech to withhold live-region
-  // updates until it clears, which would suppress both regions below it.
   it('never marks the form aria-busy while processing', () => {
     const { store } = makeStore();
     const [, mutations] = store;
@@ -483,11 +457,8 @@ describe('BaseForm (rendered)', () => {
     expect(container.querySelector('form')).not.toHaveAttribute('aria-busy');
   });
 
-  // Regression: the stale-snapshot guard is right to discard a result validated
-  // against values the form has moved past, but it used to `return` bare — the
-  // finally cleared isProcessing, the button un-dimmed, and the submit
-  // evaporated with no error, no handler call, and nothing telling the user to
-  // press it again.
+  // Regression: a discarded stale submit must still report something to the
+  // user (see helpers.ts's stale-snapshot guard).
   it('reports when a submit is discarded because values changed mid-flight', async () => {
     const { store } = makeStore();
     const [state, mutations] = store;

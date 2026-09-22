@@ -13,8 +13,8 @@ export type SelectFieldProps<
   N extends FieldPath<M> = FieldPath<M>
 > = FormFieldProps<'select', M, N> & { title?: string };
 
-// Keep this separate from InputField even though both are string-valued: a
-// select's visible label must always remain visible because it has no useful
+// Separate from InputField even though both are string-valued: a select's
+// visible label must always stay visible, since it has no useful
 // placeholder/floating-label state, and its children are the caller's options.
 export function SelectField<M extends object = FieldValueMapping, N extends FieldPath<M> = FieldPath<M>>(
   initialProps: SelectFieldProps<M, N>
@@ -27,13 +27,12 @@ export function SelectField<M extends object = FieldValueMapping, N extends Fiel
   const label = () => localProps.title ?? props.label;
   let select: HTMLSelectElement | undefined;
 
-  // A multiple select can't be driven through `value`. HTMLSelectElement.value
+  // A multiple select can't be driven through `value`: HTMLSelectElement.value
   // names one option, and the stored array formats to "a,b", which matches
-  // none — so binding it deselected every option, including the ones the user
-  // had just picked (Chromium clears the selection; happy-dom does not, which
-  // is why only a real browser shows it). Instead, leave `value` unbound and
-  // mirror the stored array onto each option's `selected`. Options added after
-  // this runs are only synced on the next value change.
+  // none, so binding it deselected every option including the ones just
+  // picked (Chromium clears the selection; happy-dom does not). Instead,
+  // leave `value` unbound and mirror the stored array onto each option's
+  // `selected`. Options added after this runs sync on the next value change.
   createEffect(() => {
     if (!props.multiple || !select) return;
     const stored = formState.getFieldValue(props.name);

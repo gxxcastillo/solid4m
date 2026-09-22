@@ -1,6 +1,5 @@
-/* BaseForm — owns the vertical rhythm of a form. Fields themselves carry no
-   outer margin; spacing between rows is the container's job (via `gap`), which
-   keeps single fields reusable in any layout. */
+/* Owns a form's vertical rhythm: fields carry no outer margin, so `gap`
+   between rows keeps a single field reusable in any layout. */
 
 .form {
   display: flex;
@@ -19,18 +18,17 @@
   align-items: stretch;
 }
 
-/* The form-level error region is in the DOM even when empty so that assistive
-   tech has a live region to announce into (see BaseForm.tsx). That makes it a
-   flex item, and `gap` reserves a row for it regardless of its height, so pull
-   the empty state back by exactly the gap it introduced. Only the empty state is
-   offset — a region with errors in it keeps normal spacing. */
+/* The error region is in the DOM even when empty (see BaseForm.tsx), which
+   makes it a flex item; `gap` reserves a row for it regardless of height. Pull
+   the empty state back by exactly that gap — a region with errors keeps
+   normal spacing. */
 .formErrorsEmpty {
   margin-block-start: calc(-1 * var(--sf-field-gap));
 }
 
-/* The in-flight status region is announced, never seen — the submit button
-   already carries the visual signal. `position: absolute` also keeps it out of
-   the flex flow, so unlike the error region it needs no gap correction. */
+/* Screen-reader only — see BaseForm.tsx for why the status region is
+   announced. `position: absolute` keeps it out of the flex flow, so unlike
+   the error region it needs no gap correction. */
 .screenReaderOnly {
   position: absolute;
   width: 1px;
@@ -43,7 +41,6 @@
   border: 0;
 }
 
-/* Stretch every button to the form width when `fullWidthButtons` is set. */
 .fullWidthButtons button {
   width: 100%;
 }

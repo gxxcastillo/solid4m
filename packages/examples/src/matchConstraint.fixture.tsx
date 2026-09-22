@@ -1,11 +1,8 @@
 import { PasswordField } from 'solid4m';
 
-// Compile-only regression fixture: proves `match` is checked against the
-// form's real field names once a field is given explicit <M, N> generics —
-// a real field name other than the field's own compiles, the field's own
-// name (self-match) and a nonexistent field name are both rejected. Before
-// the fix, `match` was typed `Omit<StringKeyOf<M>, N>`, which doesn't
-// actually exclude N from the union and accepted any string.
+// Compile-only regression fixture: with explicit <M, N> generics, `match`
+// (typed `Exclude<FieldPath<M>, N>`) must accept a real field other than the
+// field's own, and reject a self-match or an unknown field name.
 
 interface SignupValues {
   password: string;

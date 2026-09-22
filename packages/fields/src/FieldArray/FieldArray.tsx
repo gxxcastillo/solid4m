@@ -7,15 +7,13 @@ import styles from './FieldArray.module.css';
 export interface FieldArrayProps<Item extends object> {
   name: string;
   defaultValue?: readonly Item[];
-  // Composed onto each row's own grouping element (alongside the stable
-  // `sf-field-array-row` hook and the module class giving the row its own
-  // flex/gap layout), the same way `className` composes onto `<form>` itself.
+  /** Extra class on each row's wrapper element, alongside the stable `sf-field-array-row` hook. */
   rowClass?: string;
-  // Called once, synchronously, with this array's helpers — the same
-  // pattern as a DOM `ref` callback. Lets a caller wire an "add" affordance
-  // of its own choosing (label, placement, seed value) outside this
-  // component's own children, since `append`'s seed value is a caller
-  // decision `<FieldArray>` has no way to guess.
+  /**
+   * Called once, synchronously, with this array's helpers (`append`,
+   * `remove`, `move`, …) — the same pattern as a DOM `ref` callback. Use it
+   * to wire an "add" control of your own outside the rendered rows.
+   */
   helpersRef?: (helpers: FieldArrayHelpers<Item>) => void;
   children: (fields: ScopedFieldComponents<Item>, item: Item, remove: () => void) => JSX.Element;
 }
@@ -27,13 +25,8 @@ export interface FieldArrayProps<Item extends object> {
  * caller to hand-template field names or thread `useFieldArray` and
  * `createScopedFields` together itself.
  *
- * Each row is wrapped in its own grouping element with its own flex/gap
- * layout — `.form`'s own flex/gap only reaches its direct children, so
- * without a row-local layout a row's fields would fall back to plain block
- * stacking instead. The row's internal gap (`--sf-field-array-row-gap`) is
- * intentionally tighter than `.form`'s own (`--sf-field-gap`), so a row's
- * fields read as one group via proximity, distinct from the wider gap
- * between one row and the next.
+ * Each row renders inside its own grouping element with its own flex/gap
+ * layout (see `FieldArray.module.css`'s `.row`).
  *
  * Like `useFieldArray`, must be rendered from a component inside
  * `<Form>`/`<FormContextProvider>` — a child, not the component that itself

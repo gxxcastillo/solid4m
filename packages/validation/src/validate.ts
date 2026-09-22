@@ -4,16 +4,15 @@ import { constraintConfigs } from './constraintConfigs';
 import { type ConstraintName, type ValidationConstraints } from './types';
 
 export interface ValidateFieldArgs<M extends object, N extends FieldPath<M>, C extends ConstraintName> {
-  // Display text only (e.g. a field's configured `label`) — never used as a form key.
+  // Display text only (e.g. a field's configured `label`); never used as a form key.
   fieldName: string;
   fieldValue: FieldValueFor<M, N> | undefined;
   formState: FormState<M>;
   constraintName: C;
   constraint: ValidationConstraints[C];
-  // The field's full constraint set, so a validator that cannot be decided from
-  // its own value alone can reach the others — `step` needs `type` for its units
-  // and `min` for its base. Optional so that calling this with a single
-  // constraint stays possible; validators must treat every sibling as absent.
+  // The field's other constraints (see `ConstraintConfig.validate`). Optional
+  // so that calling this with a single constraint stays possible; validators
+  // must treat a missing sibling as absent.
   siblings?: ValidationConstraints;
 }
 

@@ -122,10 +122,10 @@
   }
 }
 
-/* "Simulate" controls. A real <fieldset>/<legend> rather than a div + role,
-   because the two checkboxes are a genuine group and the legend is their label —
-   this demo is also the most-visited page in the docs, so it should not model
-   worse markup than the library it is showing off. */
+/* "Simulate" controls use a real <fieldset>/<legend>, not a div + role: the
+   checkboxes are a genuine group and the legend is their label. This is also
+   the most-visited page in the docs, so it should not model worse markup
+   than the library it demonstrates. */
 .simulate {
   display: flex;
   flex-wrap: wrap;

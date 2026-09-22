@@ -73,25 +73,23 @@ export type SchemaValidationResult<M extends object> = SchemaValidationSuccess<M
 
 export type ValidationConstraints = {
   match?: string;
-  // Bounds use the DOM string format for date/time controls (e.g.
-  // '2026-01-01') and numbers for ordinary numeric inputs. `min` also anchors
-  // `step`, and range validation converts both bounds through the same
-  // per-type algorithm as the field value, so `max` must stay symmetric.
+  // `min` also anchors `step`; both bounds convert through the same per-type
+  // algorithm as the value.
+  /** Upper bound: a DOM date/time string (e.g. `'2026-01-01'`) for date/time fields, a number otherwise. */
   max?: number | string;
   maxLength?: number;
-  // Symmetric with `max` above.
+  /** Lower bound; same format as {@link max}. */
   min?: number | string;
   minLength?: number;
   pattern?: string | RegExp;
   required?: boolean;
-  // `'any'` is the spec's own opt-out, and it is spelled exactly that way in
-  // HTML — keeping it here means `step='any'` type-checks as the escape hatch
-  // rather than as a mistake.
+  // Kept as a literal type, not a typo: `step='any'` is HTML's own opt-out,
+  // spelled exactly that way.
+  /** The allowed increment. `'any'` disables the step check. */
   step?: number | 'any';
-  // Not a constraint the caller writes — it is the field's own `type` attribute,
-  // read as one so that `type='email'`/`type='url'` are format-checked and
-  // `step` knows what units it is counting in. See the `type` and `step` entries
-  // in constraintConfigs.ts for why this has to exist at all.
+  // Not a constraint the caller sets: it is read from the field's own `type`
+  // attribute, so `type='email'`/`type='url'` are format-checked and `step`
+  // knows its units (see constraintConfigs.ts).
   type?: string;
 };
 
@@ -99,13 +97,10 @@ export type ConstraintName = keyof ValidationConstraints;
 export type Constraint = ValidationConstraints[ConstraintName];
 
 export type ConstraintConfig = {
-  // `siblings` is the field's other constraints. Most validators ignore it —
-  // a constraint that can be decided from its own value alone should — but
-  // `step` is meaningless without `type` (one `step` unit is one integer on a
-  // number input, one *day* on a date, one *second* on a time) and anchors its
-  // ladder on `min`. `step` is the second constraint to need it, which was the
-  // threshold for widening the signature rather than special-casing one
-  // constraint inside validate().
+  // The field's other constraints. Most validators ignore it, but `min`,
+  // `max` and `step` read `siblings.type` to convert through the same
+  // per-type scale (see constraintConfigs.ts), and `step` also reads
+  // `siblings.min` for its ladder base.
   validate: <M extends object>(
     v: FieldValue,
     c: Constraint | undefined,

@@ -1,9 +1,8 @@
-// A process-global registry that tags rendered field/form elements with their
-// component name (e.g. "InputField", "SubmitButton"). It lives here in the state
-// package because it is the only dependency shared by both the `form` package
-// (which reads names to classify children) and the `fields` package (which
-// writes them). Keyed off a `Symbol.for(...)` so every copy of the library on
-// the page resolves to the same WeakMap.
+// A process-global registry tagging rendered field/form elements with their
+// component name (e.g. "InputField", "SubmitButton"). Lives in `state`
+// because it's the one dependency shared by `form` (reads names to classify
+// children) and `fields` (writes them). `Symbol.for(...)` keys it so every
+// copy of the library on the page resolves to the same WeakMap.
 const componentNameRegistryKey = Symbol.for('solid4m/component-name-registry');
 
 type ComponentNameRegistry = WeakMap<object, string>;

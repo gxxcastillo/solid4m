@@ -70,9 +70,7 @@ describe('SubmitButton', () => {
     expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
   });
 
-  // Stays enabled so submitting an invalid form can reveal the errors and move
-  // focus to the first invalid field. A disabled button leaves the tab order
-  // and cannot explain why it is blocked.
+  // See SubmitButton.tsx's isBusy note for why this stays enabled.
   it('stays enabled when the form is invalid', () => {
     const { store } = makeStore();
     const [, mutations] = store;
@@ -86,12 +84,11 @@ describe('SubmitButton', () => {
     expect(screen.getByRole('button')).not.toBeDisabled();
   });
 
-  // aria-disabled rather than disabled, so the button the user just pressed does
-  // not fall out of the tab order mid-submit. The `not.toBeDisabled()` half is
-  // the load-bearing assertion: happy-dom leaves activeElement alone when an
-  // element becomes disabled, so a focus assertion here would pass against the
-  // old behavior too. The focus claim is verified in a real browser instead —
-  // see 'the submit button keeps focus while a submit is in flight' in
+  // See SubmitButton.tsx's isBusy note for aria-disabled vs disabled. The
+  // `not.toBeDisabled()` half is load-bearing: happy-dom leaves activeElement
+  // alone when disabled, so this would also pass against the old, wrong
+  // behavior. The real focus claim is verified in a real browser — see 'the
+  // submit button keeps focus while a submit is in flight' in
   // apps/a11y/tests/accessibility.a11y.ts.
   it('marks the button aria-disabled while a submit is in flight', () => {
     const { store } = makeStore();
@@ -141,9 +138,9 @@ describe('SubmitButton', () => {
     expect(container.querySelector(`.${styles.spinner}`)).toBeNull();
   });
 
-  // The spinner is decorative — the form's polite live region does the
-  // announcing. If it reached the accessible name, it would both duplicate that
-  // and break every getByRole('button', { name }) query during a submit.
+  // See SubmitButton.tsx: the spinner is aria-hidden so it can't reach the
+  // accessible name, which would otherwise break getByRole('button', { name })
+  // during a submit.
   it('keeps the button label out of the spinner and the spinner out of the name', () => {
     const { store } = makeStore();
     const [, mutations] = store;
@@ -160,9 +157,8 @@ describe('SubmitButton', () => {
     expect(screen.getByRole('button', { name: 'Log in' })).toBeInTheDocument();
   });
 
-  // aria-disabled does not stop activation the way `disabled` does, so the
-  // component has to block it. Matters most for variant='approve', whose
-  // type='button' never reaches the form's own re-entry guard.
+  // See SubmitButton.tsx's handleClick note: aria-disabled doesn't stop
+  // activation, so the component blocks it manually.
   it('blocks activation while a submit is in flight', () => {
     const { store } = makeStore();
     const [, mutations] = store;
@@ -216,9 +212,8 @@ describe('SubmitButton', () => {
     expect(screen.getByRole('button')).toBeDisabled();
   });
 
-  // A hard-disabled button is already unavailable and already unclickable, so
-  // the in-flight treatment would only add a spinner to a button that cannot be
-  // the thing in flight.
+  // See SubmitButton.tsx's isBusy note: a hard-disabled button gets no
+  // in-flight treatment.
   it('leaves the in-flight treatment off a hard-disabled button', () => {
     const { store } = makeStore();
     const [, mutations] = store;
@@ -255,11 +250,8 @@ describe('SubmitButton', () => {
     expect(container.querySelector(`.${styles.spinner}`)).not.toBeNull();
   });
 
-  // The regression this pins: `isBusy` used to require `isDisabled === undefined`,
-  // so binding the prop to a signal — the idiomatic way to gate a submit button —
-  // silently removed the spinner, the aria-disabled, and the activation block the
-  // moment the gate opened. Only the value can decide this, never the presence of
-  // the prop.
+  // See SubmitButton.tsx's isBusy note: only isDisabled's value decides this,
+  // never whether the prop is present.
   it('keeps the in-flight treatment when isDisabled is bound to a signal that reads false', () => {
     const { store } = makeStore();
     const [, mutations] = store;

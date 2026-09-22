@@ -49,24 +49,17 @@ export function ThemeShowcase() {
   const [isLoading, setIsLoading] = createSignal(false);
   const [failNextSubmit, setFailNextSubmit] = createSignal(false);
 
-  // Every handler here used to be a synchronous no-op, which made most of the
-  // form's own states unreachable from the demo: `isProcessing` went true and
-  // false inside a single tick, so the inspector's Processing badge could never
-  // light up and none of the in-flight treatment — the button spinner, the
-  // aria-disabled state, focus staying put, the polite "Submitting..."
-  // announcement — was ever visible on the page that exists to show it.
-  //
-  // The delay is the demo. It is short enough not to be tedious and long enough
-  // to read.
+  // The delay is what makes the demo real: long enough for `isProcessing`, the
+  // button spinner, aria-disabled, and the "Submitting…" announcement to
+  // actually be observable, short enough not to be tedious.
   async function onSimulatedSubmit() {
     await new Promise((resolve) => {
       window.setTimeout(resolve, SUBMIT_DELAY_MS);
     });
 
     if (failNextSubmit()) {
-      // Reset first so this is genuinely "the *next* submit", and a retry
-      // succeeds — that also demonstrates BaseForm clearing form-level errors at
-      // the start of each attempt.
+      // Reset first so this is genuinely "the *next* submit" and a retry
+      // succeeds, demonstrating BaseForm's own per-attempt error clearing.
       setFailNextSubmit(false);
       // BaseForm catches this and routes the message into form.state.errors,
       // which is the only way to see the assertive form-level live region.
@@ -123,16 +116,16 @@ export function ThemeShowcase() {
       </div>
 
       {/*
-        The states you cannot reach by typing into the form. Everything else the
-        inspector reports — valid/invalid, changed, and now processing — happens
-        by interacting normally; these two do not, so they would otherwise be
+        The states you cannot reach by typing into the form. Everything else
+        the inspector reports (valid/invalid, changed, processing) happens
+        through normal interaction; these two would otherwise be
         undemonstrable on the page whose job is demonstrating them.
 
-        Both drive the documented consumer channel rather than the store behind
-        it: `isLoading` is forwarded to <Form isLoading> by each example form,
-        and the failure is thrown from onSubmit exactly as a real handler would
-        throw. `isProcessing` needs no control at all now that submitting is
-        genuinely async.
+        Both drive the documented consumer channel, not the store behind it:
+        `isLoading` is forwarded to <Form isLoading> by each example form, and
+        the failure is thrown from onSubmit like a real handler would.
+        `isProcessing` needs no control now that submitting is genuinely
+        async.
       */}
       <fieldset class={styles.simulate}>
         <legend class={styles.simulateLegend}>Simulate</legend>

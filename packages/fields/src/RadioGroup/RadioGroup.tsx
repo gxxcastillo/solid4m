@@ -17,10 +17,10 @@ export type RadioGroupProps<
   options: readonly RadioOption[];
 };
 
-// A radio group is one field with several native radio controls, not several
-// boolean checkbox-like fields. Keep `isSelectable` false so createFormField
-// stores the selected input's value; its checkbox path would store `checked`
-// and lose which option the user chose.
+// One field with several native radio controls, not several boolean
+// checkboxes. Keep `isSelectable` false so createFormField stores the
+// selected value; its checkbox path would store `checked` instead and lose
+// which option was chosen.
 export function RadioGroup<M extends object = FieldValueMapping, N extends FieldPath<M> = FieldPath<M>>(
   initialProps: RadioGroupProps<M, N>
 ) {
@@ -50,10 +50,9 @@ export function RadioGroup<M extends object = FieldValueMapping, N extends Field
                 for={optionId}
               >
                 {/*
-                  The Input wrapper, not a raw <input>: it strips the
-                  field plumbing (parse/format/setValue, errors, isControlled…)
-                  that rides along in `props`, which would otherwise render as
-                  attributes on every radio, and under SSR as function source.
+                  Input, not a raw <input>: it strips the field plumbing that
+                  would otherwise render as attributes on every radio (see
+                  stripInvalidProps in elements/utils.ts).
                 */}
                 <Input
                   {...props}

@@ -7,16 +7,16 @@ export interface DateParseValues {
 
 const { Form, DateField } = createForm<DateParseValues>();
 
-// Same delay pattern as ContactForm/FieldPaletteForm: a synchronous handler
-// never leaves isProcessing observably true.
+// See ContactForm: a synchronous handler never leaves `isProcessing`
+// observable.
 async function onSubmit() {
   await new Promise<void>((resolve) => window.setTimeout(resolve, 900));
 }
 
-// Two DateFields sharing the same min/max/step, so typing an out-of-range or
-// off-step date into each shows the difference directly: the plain string
-// field reports an error, the Date-backed one does not (its parsed value is
-// no longer the DOM string min/max/step compare against). See fields.mdx.
+// Two DateFields share min/max/step to contrast handling: the plain string
+// field reports an out-of-range error, the Date-backed one does not (its
+// parsed value is no longer the DOM string min/max/step compare against).
+// See fields.mdx.
 export function DateParseForm() {
   return (
     <Form onSubmit={onSubmit}>

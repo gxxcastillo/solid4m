@@ -1,10 +1,9 @@
 import type { CustomValidator, FormFieldProps, FormatFunction, ParseFunction } from 'solid4m';
 
 // Compile-only regression fixture: proves FormFieldProps/CustomValidator/
-// ParseFunction/FormatFunction resolve through the public `solid4m`
-// facade, matching what custom-fields.md and validation.md tell users to
-// import — these were once defined but never re-exported, so nothing caught
-// consumers being unable to import them until this fixture was added.
+// ParseFunction/FormatFunction resolve through the public `solid4m` facade,
+// matching what custom-fields.md and validation.mdx tell users to import.
+// Nothing else checks that these types are re-exported.
 
 export interface RatingFormValues {
   rating: number;

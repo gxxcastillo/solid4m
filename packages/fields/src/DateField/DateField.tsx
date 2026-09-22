@@ -9,9 +9,9 @@ export type DateFieldProps<
   N extends FieldPath<M> = FieldPath<M>
 > = Omit<InputFieldProps<M, N>, 'type'>;
 
-// Date strings deliberately retain the browser's yyyy-mm-dd DOM format. That
-// is the same format min/max and step use, so callers can opt into Date objects
-// with parse/format without making the native constraint attributes ambiguous.
+// Keeps the browser's yyyy-mm-dd DOM format, the same one min/max and step
+// use, so a caller opting into Date objects via parse/format doesn't make
+// those native constraint attributes ambiguous.
 export function DateField<M extends object = FieldValueMapping, N extends FieldPath<M> = FieldPath<M>>(
   props: DateFieldProps<M, N>
 ) {

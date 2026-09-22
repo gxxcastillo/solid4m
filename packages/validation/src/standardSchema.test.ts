@@ -19,10 +19,9 @@ describe('schemaIssuePathToFieldName', () => {
 
 describe('groupSchemaIssuesByField', () => {
   it('groups registered field issues and preserves pathless or unregistered issues as form errors', () => {
-    // Explicit <M>: FormFields<M>'s `name` is now FieldPath<M>, a conditional
+    // Explicit <M>: FormFields<M>'s `name` is `FieldPath<M>`, a conditional
     // type TS cannot reverse-infer from an object literal's `name: 'email'`
-    // alone (it inferred fine from the old, non-conditional StringKeyOf<M>).
-    // A real caller always has M already (their schema's field-values type),
+    // alone. A real caller already has M (their schema's field-values type),
     // so this only affects a bare literal fixture like this one.
     const result = groupSchemaIssuesByField<{ email: string }>(
       [

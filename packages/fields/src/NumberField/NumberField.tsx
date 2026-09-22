@@ -9,9 +9,9 @@ export type NumberFieldProps<
   N extends FieldPath<M> = FieldPath<M>
 > = Omit<InputFieldProps<M, N>, 'type'>;
 
-// Keep parsing explicit: HTML number inputs still expose DOM strings, and
-// coercing an empty value to zero would turn clearing an optional field into a
-// surprising value. Consumers who store numbers can pass their parse function.
+// Keep parsing explicit: number inputs still expose DOM strings, and coercing
+// an empty one to zero would surprise a cleared optional field. Consumers who
+// store numbers supply their own parse.
 export function NumberField<M extends object = FieldValueMapping, N extends FieldPath<M> = FieldPath<M>>(
   props: NumberFieldProps<M, N>
 ) {

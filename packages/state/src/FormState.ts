@@ -24,11 +24,11 @@ export const initialFormState = {
   isReady: false
 };
 
-// Build a fresh backing object for the store on every call so two stores never
-// share state. This matters under SolidJS's SSR build, where createStore returns
-// the object it's given and mutates it in place — without a copy, two calls with
-// the same `state` reference would share reactive state. The nested `fields`
-// objects and the `errors` array are cloned too; a plain spread would share them.
+// Builds a fresh backing object per call so two stores never share state:
+// under SolidJS's SSR build, createStore mutates the object it's given in
+// place, so reusing one `state` reference across calls would share reactive
+// state. `fields` and `errors` are cloned too — a plain spread would still
+// share them.
 function cloneBackingState<M extends object>(state?: BaseFormState<M>): BaseFormState<M> {
   const source = state ?? initialFormState;
   return {
@@ -86,12 +86,11 @@ export function createFormStore<M extends object = FieldValueMapping>(
   type FName = FieldPath<M>;
   type FErrors = (typeof formState)['fields'][number]['errors'];
 
-  // Store-scoped, not per-field: a field that unmounts (removeField deletes
-  // its record) and later re-registers under the same name must get a
-  // generation no earlier write could have captured. Restarting each field at
-  // 0 would let a stale async validator from the removed instance collide
-  // with the freshly re-initialized one, since both would read generation 0
-  // (see the guard in createFormField.ts's commit()).
+  // Store-scoped, not per-field: removeField deletes a field's record, and a
+  // later re-registration under the same name must get a generation no
+  // earlier write could have captured. Restarting at 0 per field would let a
+  // stale async validator from the removed instance collide with the fresh
+  // one — both would read generation 0 (see createFormField.ts's commit()).
   let nextGeneration = 0;
 
   const buildFreshField = <N extends FName>(
@@ -113,11 +112,10 @@ export function createFormStore<M extends object = FieldValueMapping>(
     wasReset: false
   });
 
-  // Pure: computes the next value for a single field without touching the
-  // store, so bulk operations (setValues) can run one `fields.map()` pass
-  // instead of one O(n) store scan per field. Returns `field` itself
-  // (same reference) when nothing changes, so an unaffected field's slot in
-  // the mapped array is untouched and Solid doesn't notify its readers.
+  // Pure: computes a field's next value without touching the store, so a bulk
+  // op (setValues) runs one `fields.map()` pass instead of one O(n) store scan
+  // per field. Returns `field` itself when nothing changes, so Solid doesn't
+  // notify readers of an untouched slot.
   const computeFieldValueUpdate = (
     field: FormField<M, FName>,
     value: FieldValueFor<M, FName> | undefined,
@@ -126,17 +124,16 @@ export function createFormStore<M extends object = FieldValueMapping>(
   ): FormField<M, FName> => {
     const currentValue = field.value;
     const currentErrors = field.errors ?? [];
-    // When errors is not explicitly provided, preserve current errors rather than clearing them.
     const effectiveErrors = errors !== undefined ? errors : currentErrors;
 
     const prevHasBeenValid = field.hasBeenValid ?? false;
     const nextHasBeenValid = prevHasBeenValid || !effectiveErrors.length;
 
-    // A revalidation pass after resetField/reset can recompute the exact same
-    // value and (empty) errors the reset already force-set — a true no-op by
-    // value/errors alone. But resetField/reset also force hasBeenValid to
-    // false without knowing whether the reverted value is actually valid, so
-    // that recomputed hasBeenValid must still land even when nothing else changed.
+    // A revalidation pass after resetField/reset can recompute the same value
+    // and (empty) errors the reset already set — a no-op by value/errors alone.
+    // But the reset also forced hasBeenValid to false without knowing whether
+    // the reverted value is valid, so that recomputed hasBeenValid must still
+    // land even when nothing else changed.
     if (currentValue === value && arraysEqual(effectiveErrors, currentErrors) && nextHasBeenValid === prevHasBeenValid) {
       return field;
     }
@@ -178,14 +175,13 @@ export function createFormStore<M extends object = FieldValueMapping>(
     errors: [],
     hasChanged: false,
     hasBeenBlurred: false,
-    // Real validity is unknown here (errors are force-cleared above without
-    // checking constraints), so this can't reuse the `value !== undefined &&
-    // !errors.length` pattern the way initializeField/setFieldValue's fresh
-    // branches do — that would wrongly claim a defined-but-invalid reverted
-    // value as "has been valid". Leave it false and let the follow-up
-    // revalidation pass (createFormField's wasReset-triggered effect, which
-    // re-applies real errors via applyFieldValue's OR-forward) promote it to
-    // true only once a real validation pass confirms it.
+    // Real validity is unknown here — errors are force-cleared without
+    // checking constraints — so this can't reuse the `value !== undefined &&
+    // !errors.length` pattern initializeField/setFieldValue use: that would
+    // wrongly call a defined-but-invalid reverted value "has been valid".
+    // Leave it false; the follow-up revalidation pass (createFormField's
+    // wasReset-triggered effect) promotes it once real validation confirms
+    // the value.
     hasBeenValid: false,
     generation: nextGeneration++,
     wasReset: true
@@ -199,25 +195,18 @@ export function createFormStore<M extends object = FieldValueMapping>(
     setFormState('fields', (f) => f.name === name, (field) => computeFieldReset(field, value, initialValue));
   };
 
-  // `isLoading` and `isProcessing` each have two independent sources, tracked
-  // here and published as their OR. `isProcessing` is the one that forced this:
-  // createBaseFormOnSubmitHandler drives it around every submit, and
-  // `<Form isProcessing>` describes work the consumer is doing outside that
-  // handler entirely. Routing both through one setter meant two writers on one
-  // slot, and the failure was silent rather than loud — a prop of `true` held
-  // across an in-flight submit ends up `false` the moment the handler's
-  // `finally` runs, because nothing re-asserts a prop whose own value never
-  // changed. Splitting the sources makes each one's writer unambiguous.
+  // Two independent sources for isLoading/isProcessing, each published as
+  // their OR; see FormStateMutations.setIsLoadingFromProps for why they're
+  // split.
   //
-  // Plain closure variables, not signals: they are only ever read by
-  // `publish*` on the way to a store write, so the store field is the single
-  // reactive surface and there is nothing for a reader to subscribe to twice.
+  // Plain closure variables, not signals: they're only read by `publish*` on
+  // the way to a store write, so the store field is the single reactive
+  // surface — there's nothing for a reader to subscribe to twice.
   //
-  // Seeded from the caller's backing state so `createFormStore({ isProcessing:
-  // true })` survives the first publish instead of being recomputed away to
-  // `false`. Read off the argument rather than off `formState`, so seeding can
-  // never register a store dependency should this ever be called from inside a
-  // tracking scope.
+  // Seeded from the caller's backing state, so `createFormStore({ isProcessing:
+  // true })` survives the first publish instead of being recomputed to
+  // `false`. Read off the argument, not `formState`, so seeding never
+  // registers a store dependency if this ever runs inside a tracking scope.
   let ownIsLoading = state?.isLoading ?? initialFormState.isLoading;
   let ownIsProcessing = state?.isProcessing ?? initialFormState.isProcessing;
   let propsIsLoading = false;
@@ -245,10 +234,9 @@ export function createFormStore<M extends object = FieldValueMapping>(
         return field.generation;
       },
 
-      // A re-mounting field re-initializes fresh (see initializeField's
-      // hasFieldBeenInitialized guard) rather than preserving the removed
-      // field's prior value — this matches how a never-before-seen field
-      // behaves today.
+      // A re-mounting field re-initializes fresh, matching a never-before-seen
+      // field (see initializeField's hasFieldBeenInitialized guard) — the
+      // removed field's prior value is not preserved.
       removeField: <N extends FName>(name: N, expectedGeneration?: number) =>
         setFormState('fields', (fields) =>
           fields.filter(
@@ -257,10 +245,9 @@ export function createFormStore<M extends object = FieldValueMapping>(
         ),
 
       setFieldValue: <N extends FName>(name: N, value?: FieldValueFor<M, N>, errors?: FErrors) => {
-        // Resolve the field once: this runs on every keystroke, so a single O(n)
-        // lookup beats the five separate `.find()` scans the getters would do.
-        // Returning the resulting generation lets callers (createFormField's
-        // commit()) skip a second lookup to capture their staleness baseline.
+        // Resolve the field once: runs every keystroke, so one O(n) lookup beats
+        // five separate `.find()` scans. The returned generation lets callers
+        // (createFormField's commit()) skip a second lookup for their baseline.
         const field = getters.getField(name);
 
         if (!field) {
@@ -358,10 +345,9 @@ export function createFormStore<M extends object = FieldValueMapping>(
       },
       setIsProcessing: (isProcessing: boolean, submitter?: string) => {
         ownIsProcessing = isProcessing;
-        // Batched: `processingSubmitter` and `isProcessing` are two store writes
-        // for one state transition, and consumers (SubmitButton's `isSubmitter`)
-        // read both. Writing them unbatched would recompute such consumers twice
-        // per submit start/stop instead of once.
+        // Batched: `processingSubmitter` and `isProcessing` are two writes for
+        // one transition, and consumers (SubmitButton's `isSubmitter`) read
+        // both — unbatched, they'd recompute twice per submit start/stop.
         batch(() => {
           // Cleared on the way out rather than left stale: a later submit that no
           // button initiated would otherwise inherit the previous submitter and

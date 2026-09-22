@@ -19,9 +19,9 @@ import { fieldOnlyPropNames } from './elements/utils';
 afterEach(cleanup);
 
 // Every field spreads its props onto a real element, and the DOM renders any
-// unknown prop as an attribute. This renders each field component with every
-// piece of plumbing a caller can pass (createFormField adds the rest), so a
-// new field or wrapper that skips stripInvalidProps fails here.
+// unknown prop as an attribute. Renders each field with every piece of
+// plumbing a caller can pass, so a new field or wrapper that skips
+// stripInvalidProps fails here.
 it('keeps field plumbing off every rendered element', () => {
   const plumbing: object = {
     label: 'Label',

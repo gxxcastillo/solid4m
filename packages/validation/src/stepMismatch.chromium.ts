@@ -1,20 +1,15 @@
 // RECORDED FROM CHROMIUM — do not hand-edit.
 //
 // Every row is a real `<input>` in a real browser: type, step and min set as
-// content attributes, the value set through the IDL property, and
+// content attributes, the value set through the IDL property (see
+// record-step-mismatch-table.mjs for why not `setAttribute`), and
 // `validity.stepMismatch`, range underflow/overflow, and the post-sanitization
 // `input.value` read back out.
 //
-// The value goes through the property and never `setAttribute('value', …)`,
-// because the spec's step base falls back to the *value content attribute* when
-// `min` is absent — setting it would re-anchor the ladder onto the very value
-// under test and make every row trivially align. Property assignment sets the
-// dirty value flag and leaves the attribute absent, which is also the DOM Solid
-// produces when it binds a value.
-//
 // `sanitized` is kept because it explains the `mismatch: false` rows that look
 // wrong at a glance: a value the type cannot parse is discarded by value
-// sanitization before validity is ever consulted, so it is never a step mismatch.
+// sanitization before validity is ever consulted, so it is never a step
+// mismatch.
 //
 // Regenerate with apps/a11y/scripts/record-step-mismatch-table.mjs.
 

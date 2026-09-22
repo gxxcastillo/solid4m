@@ -10,8 +10,8 @@ import {
 } from './helpers';
 
 // resolveSubmitHandler warns on an unresolvable submit, so several tests mute
-// console.warn. Nothing here configures restoreMocks, so restore explicitly —
-// a spy left installed would silently swallow the warning a later test asserts.
+// console.warn. Nothing here configures restoreMocks, so restore explicitly:
+// a spy left installed would silently swallow a warning a later test asserts.
 afterEach(() => {
   vi.restoreAllMocks();
 });
@@ -215,10 +215,6 @@ describe('createBaseFormOnSubmitHandler', () => {
     expect(mutations.setIsProcessing.mock.calls.map((call: unknown[]) => call[0])).toEqual([true, false]);
   });
 
-  // The token SubmitButton stamps on itself, forwarded so it can scope its
-  // spinner to the one action actually running. Not `name`, which cannot
-  // identify a button and is already public API (it reaches the consumer as
-  // `buttonName`).
   it('forwards the submitter token to setIsProcessing', async () => {
     const onSubmit = vi.fn().mockResolvedValue(undefined);
     const state = makeState();
@@ -253,7 +249,7 @@ describe('createBaseFormOnSubmitHandler', () => {
     const handler = createBaseFormOnSubmitHandler({ onSubmit } as any, state, mutations);
 
     // The failure is captured into form state (via setErrors) rather than
-    // rejecting the handler's promise, but isProcessing is always cleared via finally.
+    // rejecting the handler's promise; isProcessing is still cleared via finally.
     await expect(handler(makeEvent())).resolves.toBeUndefined();
 
     expect(mutations.setIsProcessing.mock.calls.map((call: unknown[]) => call[0])).toEqual([true, false]);
@@ -535,11 +531,10 @@ describe('createBaseFormOnSubmitHandler', () => {
   });
 
   it('does not submit stale async schema output when a field is reset to its own value while validation is pending', async () => {
-    // resetField/reset can revert a field to a value it already holds — its
-    // value is unchanged, but its generation still bumps and its
-    // errors/hasBeenValid are force-cleared out from under this validation.
-    // A value-only staleness check would miss this; generation must be
-    // compared too.
+    // resetField/reset can revert a field to a value it already holds: the
+    // value is unchanged, but generation still bumps and errors/hasBeenValid
+    // are force-cleared out from under this validation. A value-only
+    // staleness check would miss this; generation must be compared too.
     const onSubmit = vi.fn();
     const pending = deferred<{ value: { email: string } }>();
     const schema = {
@@ -602,9 +597,9 @@ describe('createBaseFormOnSubmitHandler', () => {
     const handler = createBaseFormOnSubmitHandler({ onSubmit, schema } as any, state, mutations);
 
     const submitted = handler(makeEvent());
-    // An unrelated conditionally-rendered field mounts while the async schema
-    // validation is in flight — the submitted email value never changed, so
-    // this must not be treated as stale.
+    // An unrelated conditionally-rendered field mounts while validation is in
+    // flight — the submitted email value never changed, so this must not be
+    // treated as stale.
     fields.push({
       name: 'newsletter',
       value: 'yes',
@@ -758,12 +753,9 @@ describe('focusFirstInvalidField', () => {
     form.remove();
   });
 
-  // `disabled` is the only reason focus can't land that is readable up front. A
-  // field that is present but not rendered — a collapsed accordion step, a
-  // `display: none` branch, `type='hidden'` — accepts focus() and silently
-  // ignores it. happy-dom focuses anything, so the no-op is stubbed here; the
-  // point is that the walk continues instead of stopping on a field that never
-  // took focus and leaving the user stranded on the submit button.
+  // happy-dom focuses anything, so this stubs the no-op focus() that a
+  // present-but-unrendered field produces for real (see focusFirstInvalidField
+  // in helpers.ts).
   it('continues past a field whose focus() does not take', () => {
     const form = makeForm(['email', 'username']);
     const hidden = document.getElementById('email') as HTMLInputElement;
@@ -806,10 +798,10 @@ describe('resolveSubmitHandler', () => {
   });
 });
 
-// The one remaining silent no-op in the submit path: a handler map plus a button
-// that cannot select from it means nothing runs at all — no handler, no error,
-// no visible change. Measured before adding this: clicking either of two unnamed
-// buttons against `{ saveDraft, publish }` called neither of them.
+// The one remaining silent no-op in the submit path: a handler map plus a
+// button that cannot select from it means nothing runs at all — no handler,
+// no error, no visible change. Confirmed: clicking either of two unnamed
+// buttons against `{ saveDraft, publish }` calls neither of them.
 describe('resolveSubmitHandler — unresolvable submits are reported', () => {
   const handlers = { saveDraft: vi.fn(), publish: vi.fn() };
 

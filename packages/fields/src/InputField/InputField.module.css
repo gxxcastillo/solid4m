@@ -113,19 +113,19 @@
     color var(--sf-transition-duration) var(--sf-transition-easing);
 }
 
-/* Only reserve room / float once the label has actually risen above the text —
-   while empty, the input shows the plain placeholder (no floated label), so it
-   should stay vertically centered rather than pushed down for unused space. */
+/* Reserve room / float only once the label has risen above the text: while
+   empty, the plain placeholder shows instead, so the input stays vertically
+   centered rather than pushed down for unused space. */
 .withLabel.hasValue {
   & .input {
     padding-top: 0.9rem;
   }
 
   & .label {
-    /* The lift is a fixed rem amount but the input's border eats into the same
-       fixed space, so heavier border themes (e.g. neobrutalist's 3px) push the
-       label to overlap the border. Compensate by the theme's own border width
-       so the label clears it by a consistent margin regardless of theme. */
+    /* The lift is a fixed rem amount, and the input's border eats into that
+       same space, so a heavier theme (e.g. neobrutalist's 3px) pushes the
+       label into the border. Compensate by the theme's own border width so
+       it clears by a consistent margin regardless of theme. */
     transform: translateY(calc(-50% - 0.82rem + var(--sf-border-width))) scale(0.72);
     color: var(--sf-color-label);
   }

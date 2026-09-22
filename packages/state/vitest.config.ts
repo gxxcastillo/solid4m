@@ -4,16 +4,14 @@ import { configDefaults, defineConfig } from 'vitest/config';
 export default defineConfig({
   // hot: false skips solid-refresh's `if (import.meta.hot)` HMR guard, which
   // @vitest/coverage-v8 otherwise reports as an always-true, permanently
-  // half-covered branch on every component (Vitest's Vite instance runs in
-  // 'serve' mode, so the guard compiles in and is always true, with no way
-  // to exercise its false path in a test run).
+  // half-covered branch: Vitest's Vite instance runs in 'serve' mode, so the
+  // guard compiles in true with no way to exercise its false path.
   plugins: [solid({ hot: false })],
   test: {
     environment: 'node',
-    // Vitest 5's own configDefaults.exclude dropped dist/cypress/etc, unlike
-    // earlier versions — tsc --build's outDir is this package's own dist/, so
-    // without this, Vitest also picks up and runs every compiled test file
-    // it emits there.
+    // Vitest 5's configDefaults.exclude dropped dist/cypress/etc. tsc
+    // --build's outDir is this package's own dist/, so without this exclude
+    // Vitest also runs every compiled test file it emits there.
     exclude: [...configDefaults.exclude, '**/dist/**'],
     coverage: {
       provider: 'v8',

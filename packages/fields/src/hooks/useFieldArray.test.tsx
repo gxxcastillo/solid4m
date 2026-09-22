@@ -88,9 +88,8 @@ describe('useFieldArray', () => {
     expect(state.getFieldErrors('items.0.title')).toEqual(['taken']);
     expect(state.getFieldValue('items.1.title')).toBe('c');
 
-    // The surviving rows' own identity tokens carry over unchanged, not
-    // reassigned/regenerated — proving useFieldArray's own bookkeeping
-    // tracks the same rows, not just the same count.
+    // Surviving rows' identity tokens carry over unchanged, not regenerated —
+    // proving useFieldArray tracks the same rows, not just the same count.
     expect(items().map((i) => i.key)).toEqual([keysBefore[1], keysBefore[2]]);
     dispose();
   });
@@ -126,9 +125,8 @@ describe('useFieldArray', () => {
     dispose();
   });
 
-  // moveIndex's forward and backward shifts are different branches
-  // (moveIndex, useFieldArray.ts) — the forward case above alone never
-  // exercises this one.
+  // moveIndex's forward and backward shifts are different branches; the
+  // forward case above alone never exercises this one.
   it('move permutes the fields when moving backward (to a lower index)', () => {
     const { state, mutations, helpers, dispose } = setup([
       { title: 'a' },

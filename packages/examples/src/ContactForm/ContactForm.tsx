@@ -7,11 +7,9 @@ export interface ContactValues {
 
 const { Form, InputField } = createForm<ContactValues>();
 
-// A synchronous handler would flip `isProcessing` true and back to false
-// within the same tick, leaving no window in which the in-flight state — the
-// button's spinner, its `aria-disabled`, the polite "Submitting…"
-// announcement — could ever be observed. The delay stands in for a real
-// network request.
+// A synchronous handler flips `isProcessing` true and back within one tick,
+// so the in-flight state would never be observable. The delay stands in for
+// a real request.
 async function onSubmit() {
   await new Promise<void>((resolve) => window.setTimeout(resolve, 1200));
 }

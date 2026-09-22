@@ -3,11 +3,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { Form, InputField, SubmitButton, TextAreaField } from './index';
 
-// End-to-end coverage of the failed-submit path through the real published
-// surface. These have to live here rather than in packages/fields or
-// packages/form: the behavior only emerges when Form, the field components, and
-// the DOM attributes they render are combined, and neither package can import
-// the other.
+// End-to-end coverage of the submit flow through the real published surface.
+// It has to live here, not in packages/fields or packages/form: the behavior
+// only emerges when Form, the field components, and the DOM attributes they
+// render are combined, and neither package can import the other.
 type LoginValues = { email: string; password: string };
 type SettingsValues = { bio: string };
 
@@ -26,9 +25,9 @@ describe('submitting an invalid form', () => {
   });
 
   // Regression: constraint props render as real HTML attributes, so without
-  // `noValidate` on the form the browser's own interactive validation blocks the
-  // click, shows a native bubble, and the submit event never fires — meaning
-  // none of this library's validation, error gating, or focus management runs.
+  // `noValidate` the browser's own interactive validation blocks the click and
+  // shows a native bubble instead of firing the submit event — none of this
+  // library's validation, error gating, or focus management runs.
   it('reveals field errors when the submit button is clicked', () => {
     render(() => (
       <Form<LoginValues> onSubmit={vi.fn()}>
@@ -85,10 +84,8 @@ describe('submitting an invalid form', () => {
 describe('submitting a form whose only constraint is a length bound', () => {
   afterEach(cleanup);
 
-  // Regression: an empty optional field reported "too long", which made the form
-  // invalid on load and silently blocked submission with nothing rendered to
-  // explain it. This is the exact snippet the API docs recommend.
-  it('submits an untouched optional maxLength field', () => {
+  // This is the exact snippet the API docs recommend.
+  it('does not report an empty optional maxLength field as too long', () => {
     const onSubmit = vi.fn();
     render(() => (
       <Form<SettingsValues> onSubmit={onSubmit}>
@@ -109,11 +106,10 @@ describe('submitting a form whose only constraint is a length bound', () => {
 describe('type-derived format validation', () => {
   afterEach(cleanup);
 
-  // `noValidate` was required to stop the browser swallowing the submit event,
-  // but it also turned off the format checks the browser derived from `type`
-  // alone — for which this library had no equivalent, so a bad email submitted
-  // clean with no error anywhere. These assert the replacement is actually wired
-  // through the `type` prop, not merely present in the validation package.
+  // `noValidate` disables the browser's own `type`-derived format checks,
+  // which this library replaces via the `type` constraint. These assert that
+  // replacement is wired through the `type` prop end to end, not just present
+  // in the validation package.
   it('blocks submission of a malformed email and explains why', () => {
     const onSubmit = vi.fn();
     render(() => (
@@ -145,12 +141,12 @@ describe('type-derived format validation', () => {
     expect(onSubmit).toHaveBeenCalledTimes(1);
   });
 
-  // `type` is read as a constraint (createFormField splits constraint props out
-  // by name), but it must still render as a real attribute — it drives the
+  // `type` is read as a constraint (createFormField splits constraint props
+  // out by name), but must still render as a real attribute — it drives the
   // mobile keyboard and the native picker UI. This passes only because
   // createFormField merges from the full props rather than splitProps' rest;
-  // "tidying" that into a rest-spread would silently turn every typed input back
-  // into type='text'.
+  // "tidying" that into a rest-spread would silently turn every typed input
+  // back into type='text'.
   it('still renders type as a real attribute', () => {
     render(() => (
       <Form<LoginValues> onSubmit={vi.fn()}>
@@ -162,9 +158,9 @@ describe('type-derived format validation', () => {
     expect(document.getElementById('email')).toHaveAttribute('type', 'email');
   });
 
-  // The inert case, and the one that would break every existing form if the
-  // `type` constraint were not type-aware: a plain text input must not acquire
-  // validation just because it has a `type` attribute.
+  // The case that would break every existing form if the `type` constraint
+  // were not type-aware: a plain text input must not acquire validation just
+  // because it has a `type` attribute.
   it('leaves a plain text field unconstrained', () => {
     const onSubmit = vi.fn();
     render(() => (
@@ -181,10 +177,9 @@ describe('type-derived format validation', () => {
   });
 });
 
-// `<Form isProcessing>` and `<Form isLoading>` were declared and documented but
-// read by nothing. The behaviors they are supposed to drive live in
-// SubmitButton and createFormField, which is why proving them takes the whole
-// facade: packages/fields cannot import packages/form.
+// isProcessing/isLoading drive behavior split across SubmitButton and
+// createFormField, so proving them together needs the whole facade (see file
+// top).
 describe('declaring in-flight work through Form props', () => {
   afterEach(cleanup);
 
@@ -197,16 +192,15 @@ describe('declaring in-flight work through Form props', () => {
     ));
 
     const button = screen.getByRole('button');
-    // aria-disabled rather than disabled: the user who started the work is by
-    // definition focused here, and a focused element that becomes `disabled`
-    // drops focus to <body> with nothing to put it back.
+    // aria-disabled, not disabled, so focus stays on the pressed button; see
+    // SubmitButton.
     expect(button).toHaveAttribute('aria-disabled', 'true');
     expect(button).not.toBeDisabled();
     expect(button.querySelector('[aria-hidden="true"]')).not.toBeNull();
   });
 
-  // aria-disabled is advisory — the browser still activates the button — so the
-  // block has to be enforced in the click handler too.
+  // aria-disabled doesn't stop activation (see SubmitButton); this checks the
+  // click handler blocks it too.
   it('blocks the button from acting on a click while processing', () => {
     const onSubmit = vi.fn();
     render(() => (
@@ -232,8 +226,7 @@ describe('declaring in-flight work through Form props', () => {
     expect(container.querySelector('.sf-form-status')).toHaveTextContent('Signing in…');
   });
 
-  // Loading makes the whole form unavailable: fields cannot be edited and a
-  // submit cannot forward the partial values that have arrived so far.
+  // isLoading disables the whole form: fields and every submit action.
   it('disables fields and prevents submitting while loading', () => {
     const onSubmit = vi.fn();
     render(() => (
@@ -295,11 +288,10 @@ describe('declaring in-flight work through Form props', () => {
 describe('a form with more than one submit button', () => {
   afterEach(cleanup);
 
-  // Reported from the docs demo: pressing "Sign up" spun the "Save draft"
-  // spinner too. `isProcessing` is form-level, so every SubmitButton showed one
-  // — asserting two actions were running when one was. Note neither button here
-  // carries a `name`, which is why matching on the submitter's name could not
-  // have fixed it; each instance is stamped with its own token instead.
+  // isProcessing is form-level (see SubmitButton/InternalFormState): only the
+  // pressed button should spin. Neither button here has a `name`, so this
+  // also proves each instance's own token, not name-matching, disambiguates
+  // them.
   it('spins only the button that was pressed', async () => {
     let release!: () => void;
     const gate = new Promise<void>((resolve) => {
@@ -320,8 +312,7 @@ describe('a form with more than one submit button', () => {
 
     expect(saveDraft.querySelector('[aria-hidden="true"]')).toBeNull();
 
-    // Unavailability is still form-wide: a second submit must not start while
-    // the first is in flight, so both buttons report it.
+    // Unavailability is form-wide, not per-button: both report aria-disabled.
     expect(signUp).toHaveAttribute('aria-disabled', 'true');
     expect(saveDraft).toHaveAttribute('aria-disabled', 'true');
 
@@ -351,9 +342,8 @@ describe('a form with more than one submit button', () => {
     release();
   });
 
-  // `<Form isProcessing>` names no button, and submission.md promises it the
-  // same treatment a real submit gets — so the fallback is every busy button,
-  // not none.
+  // No submitter is recorded for `<Form isProcessing>`; see SubmitButton for
+  // why every busy button spins instead of none.
   it('spins every button when processing was declared rather than pressed', () => {
     render(() => (
       <Form<LoginValues> onSubmit={vi.fn()} isProcessing>

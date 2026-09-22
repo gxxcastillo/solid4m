@@ -2,8 +2,8 @@ import { createForm, type StandardSchemaV1 } from 'solid4m';
 
 // Compile-only regression fixture: proves createForm binds M once for both
 // Form and the field components, so neither needs <M, ...> generics at the
-// call site — `onSubmit`'s value type and field `name`/`match` are still
-// checked against the real form value type.
+// call site, while `onSubmit`'s value type and field `name`/`match` are
+// still checked against the real form value type.
 
 interface SignupValues {
   email: string;
@@ -17,8 +17,8 @@ export function ValidUsage() {
   return (
     <Form
       onSubmit={(values) => {
-        // Proves `values` inferred as SignupValues, not FieldValueMapping —
-        // an unknown key would be a compile error.
+        // Proves `values` infers as SignupValues, not FieldValueMapping: an
+        // unknown key would be a compile error.
         void values.email.toUpperCase();
         void values.password.toUpperCase();
         void values.confirm.toUpperCase();
@@ -54,9 +54,9 @@ export function BogusFieldName() {
 }
 
 // createForm({ schema }) infers M (for fields) from the schema's *input*
-// type and the bound Form's default submit type from its *output* type —
-// they differ here (age arrives as a string, submits as a number) — and the
-// schema becomes Form's default, so it need not be repeated as a prop.
+// type and the bound Form's default submit type from its *output* type; they
+// differ here (age arrives as a string, submits as a number). The schema
+// becomes Form's default, so AgeForm below need not repeat `schema={...}`.
 
 interface AgeInput {
   age: string;

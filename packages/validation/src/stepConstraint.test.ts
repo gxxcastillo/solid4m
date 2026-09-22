@@ -6,15 +6,9 @@ import { constraintConfigs } from './constraintConfigs';
 import { recordedStepCases } from './stepMismatch.chromium';
 import { type ValidationConstraints } from './types';
 
-// `step` reimplements a browser behavior that `noValidate` turned off, so the
-// only test that means anything is agreement with a browser. stepMismatch.chromium.ts
-// is a recording of real `<input>` elements in real Chromium — regenerate it with:
-//
-//   pnpm --filter a11y exec node scripts/record-step-mismatch-table.mjs
-//
-// That script lives in apps/a11y rather than here (it needs a browser install and
-// runs once, by hand); what is committed is its output, so this suite keeps
-// checking the same agreement without needing Chromium at test time.
+// See record-step-mismatch-table.mjs for why `step` must agree with a real
+// browser. It records that agreement into stepMismatch.chromium.ts, which
+// this suite checks against, so it runs without needing Chromium itself.
 
 const formState = {} as FormState<Record<string, unknown>>;
 
@@ -95,18 +89,16 @@ describe('step constraint', () => {
   });
 
   // Array-to-string coercion joins a single-element array to its bare element
-  // (`['7'].toString() === '7'`), which used to let a stray array value parse
-  // as a real number and report a step mismatch for a value that was never a
-  // number at all. Skipped now, the same as any other value with no step to
-  // be off of.
+  // (`['7'].toString() === '7'`); skipped like any other value with no step
+  // to be off of.
   it('skips a value with no meaningful numeric form instead of coercing it', () => {
     expect(constraintConfigs.step.validate(['7'] as never, 5, formState, numberField)).toBe(true);
     expect(constraintConfigs.step.validate({} as never, 5, formState, numberField)).toBe(true);
   });
 
-  // `type` is a free-form public string, so a bare index would reach an
-  // inherited Object.prototype member and throw on `scale.toNumber`. Same guard,
-  // and same reason, as the `type` constraint's own lookup.
+  // Same guard as the `type` constraint's own lookup (see `safeLookup` in
+  // constraintConfigs.ts): a bare index on this free-form string would reach
+  // an inherited Object.prototype member and throw.
   it('does not resolve inherited Object.prototype members as input types', () => {
     for (const type of ['constructor', 'toString', 'valueOf', 'hasOwnProperty', '__proto__']) {
       expect(() => isStepValid({ type, step: 5 }, '7')).not.toThrow();
@@ -114,10 +106,9 @@ describe('step constraint', () => {
     }
   });
 
-  // A range input's value sanitization *snaps* to the nearest allowed step, so a
-  // real one can never be in step mismatch — verified in the recording, where
-  // value 7 against step 5 reads back as 5. Reporting an error the slider will
-  // not let the user reach, and cannot show, would be a false positive.
+  // A range input's sanitization snaps to the nearest step, so it can never be
+  // in mismatch (see constraintConfigs.ts's STEP_SCALES note on `range`).
+  // Reporting one here would flag a value the slider cannot reach.
   it('leaves range alone, which a browser can never report a mismatch for', () => {
     expect(isStepValid({ type: 'range', step: 5 }, '7')).toBe(true);
   });

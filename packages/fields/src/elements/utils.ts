@@ -11,11 +11,11 @@ type FieldOnlyPropName =
   | 'defaultValue'
   | 'defaultChecked';
 
-// The props a field carries that must not reach the DOM, which renders any
-// unknown prop as an attribute (and a function as its source under SSR).
-// `satisfies` fails to compile when FieldInternalProps gains a key that is
-// not listed here. Extra keys are allowed: showIcon and showLabel are split
-// off by the component that uses them, and are listed in case another forgets.
+// Props a field carries that must not reach the DOM, which renders any unknown
+// prop as an attribute (and a function as its source under SSR). `satisfies`
+// fails to compile when FieldInternalProps gains a key not listed here. Extra
+// keys are allowed: showIcon/showLabel are split off by their own component,
+// and listed here in case another forgets to.
 const fieldOnlyProps = {
   isInitialized: true,
   isValid: true,

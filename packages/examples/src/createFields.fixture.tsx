@@ -1,9 +1,9 @@
 import { createFields } from 'solid4m';
 
 // Compile-only regression fixture: proves createFields binds M once so
-// individual field calls need no <M, N> generics, while still checking `name`
-// and `match` against the real form value type — a bogus field name or a
-// self-match are both rejected, same as the raw <PasswordField<M, N>> form.
+// individual field calls need no <M, N> generics, while `name` and `match`
+// are still checked against the real form value type — a bogus field name or
+// a self-match are both rejected, same as the raw <PasswordField<M, N>> form.
 
 interface SignupValues {
   password: string;

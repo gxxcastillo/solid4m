@@ -5,8 +5,8 @@ import { setComponentName } from '@gxxc/solid4m-state';
 import { classifyBaseFormChildren } from './BaseForm';
 
 function component(name: string) {
-  // Tag the element via the shared registry, exactly as createField does in
-  // production — names are no longer carried on a `.componentName` property.
+  // Tags the element via the shared registry, matching how createField tags
+  // it in production.
   const el = {};
   setComponentName(el, name);
   return el;

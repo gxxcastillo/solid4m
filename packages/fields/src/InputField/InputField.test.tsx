@@ -30,8 +30,6 @@ describe('InputField', () => {
   });
 
   it('omits the context container when no context is supplied', () => {
-    // Regression: the guard tested the accessor function (always truthy) rather
-    // than calling it, so every input rendered an empty context <div>.
     const { store } = makeStore();
     const { container } = render(() => (
       <FormContextProvider store={store}>
@@ -109,8 +107,8 @@ describe('InputField', () => {
   it('sets aria-invalid=true and shows error when errors are displayable', () => {
     const { store } = makeStore();
     const [, mutations] = store;
-    // Initialize with a valid value so hasBeenValid=true, then set errors.
-    // getDisplayableErrors returns errors only when hasBeenValid OR (hasBeenValid===undefined AND hasBeenBlurred).
+    // Initialize with a valid value so hasBeenValid=true before setting errors
+    // (see getDisplayableErrors).
     mutations.initializeField('username', 'alice', []);
     mutations.setFieldValue('username', '', ['Required']);
 
@@ -124,7 +122,6 @@ describe('InputField', () => {
     const alert = screen.getByRole('alert');
     expect(input).toHaveAttribute('aria-invalid', 'true');
     expect(alert).toHaveTextContent('Required');
-    // aria-describedby must reference the error element by its (unique) id.
     expect(alert.id).toBeTruthy();
     expect(input).toHaveAttribute('aria-describedby', alert.id);
   });
@@ -153,7 +150,7 @@ describe('InputField', () => {
     expect(root.classList.contains(styles.withLabel)).toBe(true);
     expect(root.classList.contains(styles.hasValue)).toBe(false);
 
-    // Updating the value must toggle the class — a static classList would not.
+    // A static classList wouldn't toggle this on a value change.
     mutations.setFieldValue('email', 'ada@example.com', []);
     expect(root.classList.contains(styles.hasValue)).toBe(true);
   });
@@ -191,16 +188,13 @@ describe('InputField', () => {
 
     mutations.resetField('username');
 
-    // The field's initial value was empty (no defaultValue), so reverting to it
-    // should re-surface the "required" error instead of leaving isFormValid
-    // incorrectly true just because resetField force-cleared errors.
+    // No defaultValue, so resetField reverts to '' — the required error must
+    // resurface, not stay hidden behind a stale isFormValid=true.
     expect(input.value).toBe('');
     expect(state.isFormValid).toBe(false);
 
-    // resetField is a visible, active change to the field (unlike a fresh
-    // mount), so the re-surfaced error must render immediately rather than
-    // waiting for a blur the user has no reason to trigger — otherwise the
-    // form silently blocks submission with no visible explanation.
+    // See createFormField's wasReset handling: resetField marks the field
+    // blurred too, so this shows immediately rather than waiting for a blur.
     expect(screen.getByRole('alert')).toHaveTextContent(/required/i);
     expect(input).toHaveAttribute('aria-invalid', 'true');
   });
@@ -217,10 +211,9 @@ describe('InputField', () => {
     const input = screen.getByRole('textbox') as HTMLInputElement;
     fireEvent.input(input, { target: { value: 'bob' } });
 
-    // Reverts to 'alice', which is itself valid — the post-reset revalidate
-    // pass must still promote hasBeenValid back to true (not leave it stuck at
-    // the reset's pessimistic `false`), or the very next error below would be
-    // suppressed until blur instead of showing immediately.
+    // Reverts to a valid 'alice', so hasBeenValid must go back to true (not
+    // stay at the reset's pessimistic false), or the next error below stays
+    // hidden until blur instead of showing immediately.
     mutations.resetField('username');
     fireEvent.input(input, { target: { value: '' } });
 
@@ -231,9 +224,7 @@ describe('InputField', () => {
     const { store } = makeStore();
     const [, mutations] = store;
 
-    // Headless: a field is registered and reset (e.g. a multi-step wizard
-    // pre-populating/resetting a later step) entirely before its component
-    // ever mounts, so `wasReset` is already true on the field's first render.
+    // Headless reset before mount (see createFormField's wasReset baseline).
     mutations.initializeField('username', '', []);
     mutations.resetField('username');
 
@@ -262,8 +253,8 @@ describe('InputField', () => {
 
     mutations.setValues({ username: 'bob' });
 
-    // setValues intentionally preserves whatever errors were already there;
-    // unlike resetField, it must not trigger the auto-revalidate effect.
+    // See createFormField's wasReset handling: setValues preserves existing
+    // errors and, unlike resetField, must not trigger revalidation.
     expect(state.getFieldErrors('username')).toEqual(['Required']);
   });
 
@@ -297,9 +288,8 @@ describe('InputField', () => {
       </FormContextProvider>
     ));
 
-    // `username` is the first field ever registered in this store, so its
-    // generation happens to be 0; `email` registers second, so its real
-    // generation is 1. The custom validator's result must still land.
+    // `username` registers first (generation 0), `email` second (generation
+    // 1) — the custom validator's result must still land for either.
     expect(state.getFieldErrors('email')).toEqual(['Email is taken']);
   });
 

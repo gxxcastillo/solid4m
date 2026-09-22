@@ -56,10 +56,8 @@ describe('SelectField', () => {
     expect(store[0].getFieldValue('roles')).toEqual(['author', 'editor']);
   });
 
-  // A multiple select's selection can't round-trip through `value`: the
-  // stored array formats to "author,editor", which matches no single option,
-  // so binding it back as `select.value` deselected everything — including
-  // what the user had just picked.
+  // See SelectField.tsx: a multiple select's stored array can't round-trip
+  // through `value`, so these tests exercise the per-option `selected` mirror.
   describe('multiple', () => {
     function renderRoles(defaultValue?: string[]) {
       const { store } = createRoot((dispose) => ({ store: createFormStore<MultiSelectForm>(), dispose }));
@@ -79,10 +77,9 @@ describe('SelectField', () => {
       ));
       const select = screen.getByLabelText('Roles') as HTMLSelectElement;
       // Per-option `selected`, not `select.selectedOptions`: happy-dom leaves
-      // selectedOptions stale after options are toggled programmatically. It
-      // also never cleared a multiple select through `value` the way Chromium
-      // does, so the user-selection case only fails in a real browser — see
-      // the palette test in apps/a11y.
+      // the latter stale after options are toggled programmatically. See
+      // SelectField.tsx for why happy-dom also can't reproduce the real
+      // user-selection bug — the palette test in apps/a11y covers that case.
       const selected = () =>
         Array.from(select.options)
           .filter((option) => option.selected)
@@ -117,9 +114,8 @@ describe('SelectField', () => {
     });
   });
 
-  // The field's own plumbing (parse/format/setValue functions, errors,
-  // isControlled…) rides along in the props it spreads onto <Select>. Under SSR
-  // those serialize as attributes, including each function's source text.
+  // See stripInvalidProps (elements/utils.ts): the field's own plumbing rides
+  // along in the props spread onto <Select> and must not leak onto the DOM.
   it('does not leak field plumbing onto the native select as attributes', () => {
     const { store } = makeStore();
     render(() => (

@@ -12,9 +12,9 @@ import {
   TeamRosterForm
 } from '@gxxc/solid4m-examples';
 
-// The frame pins `data-sf-theme='minimal'`, so it brings that theme with it
-// rather than relying on the page to import it. The structural CSS and default
-// tokens need no import here: the docs alias `solid4m` to its source, whose
+// Pins `data-sf-theme='minimal'`, so the frame brings its own theme rather
+// than relying on the page to import it. No import needed for the structural
+// CSS or default tokens: the docs alias `solid4m` to its source, whose
 // components import their own styles.
 import 'solid4m/themes/minimal.css';
 
@@ -38,10 +38,10 @@ const DEMOS: Record<string, Component> = {
 interface DemoProps {
   demo: keyof typeof DEMOS;
   title?: string;
-  // Renders a live view of the form's state beside it. The example renders
-  // its own <Form>, which reuses the store provided here instead of creating
-  // one (the same pattern the theme showcase uses), so the inspector reads
-  // the state the form is actually using.
+  // Renders a live view of the form's state beside it. The example reuses the
+  // store provided here (the same pattern ThemeShowcase uses) instead of
+  // creating its own, so the inspector reads the state the form is actually
+  // using.
   inspect?: boolean;
 }
 

@@ -14,11 +14,10 @@ const LOAD_DELAY_MS = 900;
 
 const { InputField } = createFields<ProfileValues>();
 
-// Simulates loading a saved profile from a server: the form mounts with its
-// fields empty and disabled (isLoading), and once the fetch "resolves",
-// reset(toValues) both fills them in and rebaselines them as the new
-// pristine state, so the loaded values read as a fresh form rather than an
-// in-progress edit. See loading-and-resetting.mdx.
+// Simulates loading a saved profile: the form mounts empty and disabled
+// (isLoading), and once the fetch "resolves", reset(toValues) fills the
+// fields in and rebaselines them, so the loaded values read as a fresh form
+// rather than an in-progress edit. See loading-and-resetting.mdx.
 export function LoadedProfileForm() {
   const form = useForm<ProfileValues>();
   const [isLoading, setIsLoading] = createSignal(true);
@@ -34,9 +33,9 @@ export function LoadedProfileForm() {
     <form.Form onSubmit={() => undefined} isLoading={isLoading()} loadingLabel='Loading profile…'>
       <InputField name='displayName' label='Display name' required />
       <InputField name='email' type='email' label='Email' required />
-      {/* setValues overwrites the current value without rebaselining it, so
-          — unlike the loading reset() above — this reads as an edit: the
-          field is marked changed even though nothing was typed. */}
+      {/* setValues overwrites the value without rebaselining it, so — unlike
+          the loading reset() above — this reads as an edit: the field is
+          marked changed even though nothing was typed. */}
       <SubmitButton
         variant='approve'
         onClick={() => form.store[1].setValues({ email: 'synced@example.com' })}

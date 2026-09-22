@@ -87,10 +87,9 @@ test('/midnight/login invalid blurred state has no detectable accessibility viol
 test('an untouched form can be submitted, revealing its errors and focusing the first', async ({ page }) => {
   await page.goto('/minimal/login');
 
-  // The submit button must stay reachable on a pristine, invalid form —
-  // disabling it removes the only affordance for discovering what is missing.
-  // LoginForm renders <SubmitButton /> with no children, so the label is the
-  // component's own 'submit' fallback.
+  // Must stay reachable even on an invalid form (see SubmitButton.tsx).
+  // LoginForm renders <SubmitButton /> with no children, so its label is the
+  // 'submit' fallback.
   const submit = page.getByRole('button', { name: 'submit' });
   await expect(submit).toBeEnabled();
 
@@ -105,18 +104,16 @@ test('an untouched form can be submitted, revealing its errors and focusing the 
 test('an optional length-constrained field does not block submission while empty', async ({ page }) => {
   await page.goto('/minimal/settings');
 
-  // Neither field is required, so an untouched settings form is valid and must
-  // submit — a length constraint on an empty optional field is not a violation.
+  // Neither field is required, so an untouched, empty form is valid (see
+  // constraintConfigs.ts's `required` note).
   await page.getByLabel('Bio').fill('');
   await page.getByRole('button', { name: 'Submit' }).click();
 
-  // The form-level live region is always in the DOM (that is what makes it
-  // announce), so assert it carries no text rather than that it is absent.
+  // The live region stays in the DOM even when empty (see BaseForm.tsx), so
+  // assert it carries no text rather than that it is absent.
   await expect(page.locator('.sf-form-errors')).toBeEmpty();
   await expect(page.getByText('is too long')).toHaveCount(0);
   await expect(page.getByText('is too short')).toHaveCount(0);
-  // Website is optional *and* format-constrained; empty must stay valid for the
-  // same reason the length bound does.
   await expect(page.getByText('must be a valid URL')).toHaveCount(0);
 
   await expectNoAxeViolations(page);
@@ -128,9 +125,9 @@ test('an optional url field rejects a malformed value but not an empty one', asy
   await page.getByLabel('Website').fill('example.com');
   await page.getByRole('button', { name: 'Submit' }).click();
 
-  // Matches the browser: type='url' requires an absolute URL, so a bare host is
-  // rejected. This is the only end-to-end exercise of type='url' in a real
-  // browser, where the gap noValidate opened actually existed.
+  // Matches the browser's absolute-URL requirement (see constraintConfigs.ts's
+  // `url` format). This is the only end-to-end exercise of it in a real
+  // browser, where the gap `noValidate` opened actually existed.
   await expect(page.getByText('"Website" must be a valid URL')).toBeVisible();
   await expect(page.getByLabel('Website')).toBeFocused();
 
@@ -143,11 +140,10 @@ test('an optional url field rejects a malformed value but not an empty one', asy
 test('a step-constrained field rejects an off-step value but not an empty one', async ({ page }) => {
   await page.goto('/minimal/settings');
 
-  // The end-to-end half of the step work. The unit suite diffs the constraint
-  // against a recording of Chromium's `validity.stepMismatch`; this proves the
-  // constraint is actually reached in a real browser — through a real time
-  // input, whose value sanitization and picker are exactly what made recording
-  // the table necessary in the first place.
+  // The end-to-end half of the step work: the unit suite diffs the constraint
+  // against a recording of Chromium's `validity.stepMismatch`, but only a real
+  // time input's own sanitization and picker prove the constraint is actually
+  // reached.
   await page.getByLabel('Daily reminder').fill('09:15');
   await page.getByRole('button', { name: 'Submit' }).click();
 
@@ -178,10 +174,10 @@ test('a time field enforces its date-aware min and max bounds', async ({ page })
 test('a malformed email is caught in the browser now that native validation is off', async ({ page }) => {
   await page.goto('/minimal/login');
 
-  // The whole reason this needs a real browser: `noValidate` was added to stop
-  // Chromium's own validation from swallowing the submit event, which also took
-  // its `type='email'` format check with it. happy-dom has neither behavior, so
-  // only this proves the replacement check actually fires where the gap was.
+  // Needs a real browser: `noValidate` (see BaseForm.tsx) stops Chromium's own
+  // validation, which also took its `type='email'` format check with it.
+  // happy-dom has neither behavior, so only this proves the replacement check
+  // fires where the gap was.
   await page.getByLabel('Email').fill('not-an-email');
   await page.getByLabel('Password', { exact: true }).fill('correct horse');
   await page.getByRole('button', { name: 'submit' }).click();
@@ -196,8 +192,7 @@ test('a malformed email is caught in the browser now that native validation is o
 });
 
 test('the submit button keeps focus while a submit is in flight', async ({ page }) => {
-  // `?hold=1` makes LoginForm's onSubmit return a promise that only settles when
-  // the test releases it, so the in-flight state can be observed at all.
+  // `?hold=1` holds the submit open so this state is observable (see App.tsx).
   await page.goto('/minimal/login?hold=1');
 
   await page.getByLabel('Email').fill('a@b.com');
@@ -207,11 +202,10 @@ test('the submit button keeps focus while a submit is in flight', async ({ page 
   await submit.focus();
   await page.keyboard.press('Enter');
 
-  // The regression: marking an in-flight submit with `disabled` removes the
-  // focused button from the tab order, so the browser resets focus to <body> and
-  // nothing puts it back once the submit settles — the user who pressed the
-  // button is silently returned to the top of the document. happy-dom does not
-  // model that, so this assertion is only meaningful in a real browser.
+  // `disabled` would drop the focused button from the tab order, resetting
+  // focus to <body> with nothing to restore it (see SubmitButton.tsx).
+  // happy-dom does not model that, so this is only meaningful in a real
+  // browser.
   await expect(submit).toHaveAttribute('aria-disabled', 'true');
   // Not toBeEnabled(): Playwright folds aria-disabled into its own enabled-ness
   // check, so it cannot distinguish the two states. The attribute is the claim.
@@ -245,11 +239,10 @@ test('an in-flight submit is announced without being shown', async ({ page, cont
   expect(box?.width).toBeLessThanOrEqual(1);
   expect(box?.height).toBeLessThanOrEqual(1);
 
-  // Announced: being invisible and being absent look identical from the DOM, so
-  // read the real accessibility tree. This is the assertion that fails if the
-  // screen-reader-only CSS is ever "tidied" into display:none or
-  // visibility:hidden — both of which would silently prune the region and take
-  // the announcement with them, with every other test here still passing.
+  // Announced: invisible and absent look identical in the DOM, so read the
+  // real accessibility tree. This is what fails if the screen-reader-only CSS
+  // is ever "tidied" into display:none or visibility:hidden, which would
+  // silently prune the region while every other test here keeps passing.
   const cdp = await context.newCDPSession(page);
   await cdp.send('Accessibility.enable');
   const { nodes } = (await cdp.send('Accessibility.getFullAXTree')) as { nodes: { ignored?: boolean }[] };
@@ -274,23 +267,22 @@ test('the in-flight spinner does not resize the submit button', async ({ page })
 
   await submit.click();
   await expect(submit).toHaveAttribute('aria-disabled', 'true');
-  // Assert the spinner is actually on screen first — every size assertion below
-  // would pass trivially if it had simply failed to render. The class is a
-  // hashed CSS-module name, so match the decorative span instead.
+  // Assert the spinner is on screen first: every size assertion below would
+  // pass trivially if it had simply failed to render. The class is a hashed
+  // CSS-module name, so match the decorative span instead.
   const spinner = submit.locator('span[aria-hidden="true"]');
   await expect(spinner).toBeVisible();
 
-  // The spinner is parked in the button's inline padding rather than added as a
-  // flex child, precisely so the button does not change size under the user's
-  // cursor at the moment they are waiting on it. Only a real browser lays this
-  // out, so only this can catch a regression to an in-flow spinner.
+  // The spinner sits in the button's padding, not as a flex child (see
+  // SubmitButton.tsx), so it cannot resize the button under the user's cursor.
+  // Only a real browser lays this out, so only this can catch a regression.
   const during = await submit.boundingBox();
   expect(during?.width).toBe(before?.width);
   expect(during?.height).toBe(before?.height);
   expect(during?.x).toBe(before?.x);
 
-  // Decorative: the polite live region does the announcing, so the button's
-  // accessible name must survive the submit intact.
+  // Decorative (see SubmitButton.tsx): the accessible name must survive the
+  // submit intact.
   await expect(submit).toHaveAccessibleName('submit');
 
   await expectNoAxeViolations(page);
@@ -305,7 +297,7 @@ test('/minimal/lineItems stays accessible after adding and removing a row', asyn
   await page.getByRole('button', { name: 'Add line item' }).click();
   await expect(page.getByLabel('Description')).toHaveCount(2);
 
-  // Type into the second row, then remove the first — the survivor keeps its
+  // Type into the second row, then remove the first: the survivor keeps its
   // value because rows are re-addressed rather than remounted.
   await page.getByLabel('Description').nth(1).fill('Second row');
   await page.getByRole('button', { name: 'Remove' }).first().click();
@@ -317,10 +309,9 @@ test('/minimal/lineItems stays accessible after adding and removing a row', asyn
 });
 
 // Chromium clears every option when a multiple select's `value` is set to a
-// string matching none of them, which is what binding the stored array
-// ("testing,performance") back to the element did — so the user's own picks
-// vanished as they made them. happy-dom does not clear it, so unit tests
-// could not see this.
+// string matching none of them, which is what a raw array binds back as
+// unconverted (e.g. "testing,performance"). happy-dom does not model this,
+// so only this test can catch it.
 test('a multiple select keeps its default, the user’s picks, and a reset', async ({ page }) => {
   await page.goto('/minimal/palette');
   const topics = page.getByLabel('Topics you would attend');

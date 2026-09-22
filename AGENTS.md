@@ -16,10 +16,20 @@ published to npm. Never quote private working notes verbatim into commit
 messages, changesets, or the docs site. A constraint future contributors must
 honor should be distilled into code comments, tests, or `apps/docs` instead.
 
-**Comments explain why, especially why-not.** This codebase's comments are load
-bearing — see `FormState.ts`'s note on why `generation` must be store-scoped, or
-`constraintConfigs.ts`'s note on stripping `g`/`y` regex flags. Match that
-density and register. Do not add comments that restate the code.
+**Comments explain why, especially why-not.** A comment earns its place by
+saying what the code cannot: a rejected obvious alternative, a verified browser
+or Solid quirk, a reactivity or ordering constraint, a spec rule, or the test
+that guards the behavior. See `FormState.ts`'s note on why `generation` must be
+store-scoped, or `constraintConfigs.ts`'s note on stripping `g`/`y` regex flags.
+- Present tense, in the fewest words that keep the constraint. Do not restate
+  the code or teach ordinary Solid, TypeScript or DOM behavior.
+- No history: how the code used to work, or how a bug was found, belongs in the
+  commit message. Keep only the constraint it leaves behind.
+- One home per rationale, at the declaration it belongs to. Elsewhere, point to
+  it (`see InternalFormState`) rather than restating it.
+- A consumer-facing note on a published prop or type is TSDoc (`/** */`): `//`
+  never reaches the published declarations. Maintainer rationale stays in a
+  `//` beside it.
 
 **Verify empirically before diagnosing.** Several past bugs were misdiagnosed
 from reading alone and only became clear from a minimal repro against a real

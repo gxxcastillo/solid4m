@@ -19,9 +19,9 @@ function LineItems(props: { onRowKeys: (keys: string[]) => void }) {
       {(item, index) => (
         <div>
           {/* Explicit <TestFields>: TS can't infer M from a template-literal
-              `name` alone (no naked M appears in the props passed here), and
-              without it falls back to the `object` constraint instead of the
-              `FieldValueMapping` default — matches the store's own <TestFields>. */}
+              `name` alone, so without it falls back to the `object`
+              constraint instead of the `FieldValueMapping` default — matches
+              the store's own <TestFields>. */}
           <InputField<TestFields>
             name={`items.${index()}.title`}
             label='Title'
@@ -59,9 +59,8 @@ describe('useFieldArray + InputField integration', () => {
 
     fireEvent.click(screen.getByTestId(`remove-${rowAKey}`));
 
-    // Same test id (keyed by the row's stable identity, not its shifted
-    // index) still resolves — and to literally the same DOM node, proving
-    // <For>'s reconciliation never tore this row down and rebuilt it.
+    // Same test id (keyed by stable identity, not shifted index) resolves to
+    // literally the same DOM node, proving <For> never tore this row down.
     const rowBInputAfter = screen.getByTestId(`row-${rowBKey}`);
     expect(rowBInputAfter).toBe(rowBInputBefore);
     expect(rowBInputAfter).toHaveValue('b-edited');

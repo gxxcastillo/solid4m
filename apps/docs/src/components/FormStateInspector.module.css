@@ -60,9 +60,8 @@
   background: var(--sf-color-canvas);
 }
 
-/* A minimal divider between multiple fields sharing one FieldArray row
-   (e.g. items.0.description / items.0.quantity) — absent for a group with
-   only one field, so an ordinary (non-array) field is unaffected. */
+/* Divider between fields sharing a FieldArray row (see fieldGroupKey in
+   FormStateInspector.tsx); absent for a single-field group. */
 .fieldEntry + .fieldEntry {
   margin-top: 0.5rem;
   padding-top: 0.5rem;

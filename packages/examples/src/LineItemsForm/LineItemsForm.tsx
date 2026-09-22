@@ -11,16 +11,16 @@ export interface LineItemsValues {
 
 export interface LineItemsFormProps {
   onSubmit?: (values: LineItemsValues) => void | Promise<void>;
-  // Forwarded straight to <Form>, so the docs demo can exercise the documented
-  // isLoading channel rather than reaching into the store behind it.
+  // Forwarded straight to `<Form>`, so this demo exercises the documented
+  // `isLoading` channel instead of reaching into the store behind it.
   isLoading?: boolean;
 }
 
 const emptyItem: LineItem = { description: '', quantity: '1' };
 
 // FieldArray reads the form's context (useFormContext) internally, so it
-// must be rendered from a component *inside* <Form> — not from
-// LineItemsForm itself, which renders <Form> as its own child and would
+// must be rendered from a component *inside* `<Form>` — not from
+// LineItemsForm itself, which renders `<Form>` as its own child and would
 // mount FieldArray before that context exists.
 function LineItemFields() {
   let itemsArray!: FieldArrayHelpers<LineItem>;

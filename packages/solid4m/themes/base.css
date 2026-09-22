@@ -1,23 +1,23 @@
 /*
  * solid4m — base design tokens
  * ---------------------------------------------------------------------------
- * Every skinnable value in the library is a CSS custom property namespaced with
- * `--sf-`. This file declares the default value for each token. A "theme" is
- * nothing more than a stylesheet that re-declares a subset of these variables
- * under a scope (see themes/minimal.css, themes/midnight.css, ...).
+ * Every skinnable value is a CSS custom property namespaced `--sf-`. This
+ * file declares each token's default; a "theme" is just a stylesheet that
+ * re-declares a subset of them under a scope (see themes/minimal.css,
+ * themes/midnight.css, ...).
  *
- * Defaults are declared on `:where(:root)` so their specificity is (0,0,0).
- * That means a theme scoped to `[data-sf-theme="x"]` (0,1,0) or a consumer's
- * own `:root { --sf-... }` rule always wins, regardless of import order.
+ * Defaults are declared on `:where(:root)` so their specificity is (0,0,0):
+ * a theme scoped to `[data-sf-theme="x"]` (0,1,0), or a consumer's own
+ * `:root { --sf-... }` rule, always wins regardless of import order.
  *
- * To skin the library you only ever need to touch these variables — you never
- * have to fight the (hashed) CSS-module class names.
+ * To skin the library you only ever need to touch these variables — never
+ * the (hashed) CSS-module class names.
  */
 :where(:root) {
   /* ---- Surfaces & text ------------------------------------------------- */
-  /* Recommended page background to pair with a theme. Not applied automatically
-     (a form should not hijack your page background) — read it if you want a
-     matching canvas, e.g. `background: var(--sf-color-canvas)`. */
+  /* Recommended page background to pair with a theme. Not applied
+     automatically (a form should not hijack your page background) — read it
+     if you want a matching canvas: `background: var(--sf-color-canvas)`. */
   --sf-color-canvas: #ffffff;
   --sf-color-surface: #ffffff;
   --sf-color-surface-disabled: #f3f4f6;
@@ -72,8 +72,8 @@
   --sf-textarea-min-height: 6rem;
   --sf-field-gap: 1.15rem;
   /* Tighter than --sf-field-gap on purpose: a FieldArray row's own fields
-     should read as one group via proximity, distinct from the (wider)
-     --sf-field-gap separating one row from the next. */
+     read as one group via proximity, distinct from the wider gap separating
+     one row from the next. */
   --sf-field-array-row-gap: calc(var(--sf-field-gap) * 0.5);
   --sf-label-inset-x: 0.9rem;
   --sf-checkbox-size: 1.15rem;

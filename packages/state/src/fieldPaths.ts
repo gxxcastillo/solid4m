@@ -23,10 +23,10 @@ export function setOwnEnumerableProperty(target: Record<string, unknown>, name: 
   });
 }
 
-// Reads a dotted path out of a nested object/array. Returns `found: false`
-// (not just `value: undefined`) so callers can distinguish "path doesn't
-// exist" from "path exists and is explicitly undefined", the same
-// distinction `Object.hasOwn` gives a flat lookup.
+// Reads a dotted path out of a nested object/array. Returns `found: false`,
+// not just `value: undefined`, so callers can tell "path doesn't exist" from
+// "path exists and is explicitly undefined" — the same distinction
+// `Object.hasOwn` gives a flat lookup.
 export function getValueAtFieldPath(source: unknown, name: string): FieldPathLookup {
   if (!isObjectLike(source)) {
     return { found: false, value: undefined };
@@ -54,9 +54,9 @@ export function getValueAtFieldPath(source: unknown, name: string): FieldPathLoo
 }
 
 // Inverse of getValueAtFieldPath: scatters flat (name, value) entries into a
-// nested object, building an array instead of an object at any level whose
-// *next* path segment is a bare integer (e.g. "items.0.title" creates
-// `items: []`). A single-segment name is a no-op passthrough —
+// nested object, building an array instead of an object wherever the *next*
+// path segment is a bare integer (e.g. "items.0.title" creates `items: []`).
+// A single-segment name is a no-op passthrough —
 // buildObjectFromFieldEntries([["email", "x"]]) === { email: "x" }.
 export function buildObjectFromFieldEntries(
   entries: ReadonlyArray<readonly [name: string, value: unknown]>
@@ -99,14 +99,12 @@ function escapeRegExp(value: string): string {
 }
 
 // Re-addresses one field array's items after an add/remove/move/insert/swap:
-// given a field's current name and the array's own field name, checks
-// whether the name is `${arrayName}.<index>` (optionally followed by more
-// path, e.g. `items.2.tags.0`), and if so re-splices in `shift(index)` in
-// place of the index. `shift` returning `null` signals the field should be
-// removed (its item was deleted); a name that isn't part of this array at
-// all (no match) passes through unchanged. `arrayName` is regex-escaped
-// before matching so a nested array's own name (e.g. `"a.b"`) can't
-// accidentally match an unrelated field like `"axb.0"`.
+// if the field's name is `${arrayName}.<index>` (optionally followed by more
+// path, e.g. `items.2.tags.0`), re-splices in `shift(index)` in place of the
+// index. `shift` returning `null` signals the field should be removed (its
+// item was deleted); a name that isn't part of this array passes through
+// unchanged. `arrayName` is regex-escaped so a nested array's own name (e.g.
+// `"a.b"`) can't accidentally match an unrelated field like `"axb.0"`.
 export function shiftFieldArrayIndex(
   name: string,
   arrayName: string,

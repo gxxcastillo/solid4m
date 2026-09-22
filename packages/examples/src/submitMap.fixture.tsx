@@ -4,8 +4,8 @@ import { SubmitButton, type SubmitResponseMapping, createForm, useForm } from 's
 // (`onSubmit={{ saveDraft, publish }}`). TypeScript cannot infer the map's
 // type from the object literal, so the documented form spells out
 // `SubmitResponseMapping<M>` as the response type; this keeps that form
-// compiling through every way of getting a Form, with each handler still
-// checked against the form's values.
+// compiling through every way of getting a Form, each handler still checked
+// against the form's values.
 
 interface PostValues {
   title: string;

@@ -61,11 +61,11 @@ tasks:
     deps:
       - '^:build'
 
-  # A workspace import resolves through package.json's `types` to upstream
-  # declarations: an internal package's are the dist/ its own `types` task
-  # writes, the facade's are the bundle its `build` writes. So both must finish
-  # first. `^:types` also keeps two `tsc --build` runs from rebuilding the
-  # same referenced project at once.
+  # A workspace import resolves through package.json's `types`: an internal
+  # package's point at the dist/ its own `types` task writes, the facade's at
+  # the bundle its `build` writes. Both must finish first. `^:types` also
+  # keeps two `tsc --build` runs from rebuilding the same referenced project
+  # at once.
   types:
     command:
       - 'tsc'
@@ -74,47 +74,35 @@ tasks:
       - '^:types'
       - '^:build'
     inputs:
-      # Source and test files
       - '@globs(sources)'
       - '@globs(tests)'
-      # Project configs
       - 'tsconfig.json'
       - 'tsconfig.*.json'
-      # Root configs (extended from only)
+      # Extended by tsconfig.json; not otherwise referenced here.
       - '/tsconfig.options.json'
 
   lint:
     command:
       - 'eslint'
-      # Support other extensions
-      # - '--ext'
-      # - '.js,.jsx,.ts,.tsx'
-      # No `--fix` here: CI runs this task, and a fix applied on the runner is
-      # thrown away while the run reports green. Use `lint-fix` locally.
+      # No `--fix`: CI runs this task, and a fix applied on the runner is
+      # thrown away while the run still reports green. Use `lint-fix` locally.
       - '--report-unused-disable-directives'
-      # Dont fail if a project has nothing to lint
       - '--no-error-on-unmatched-pattern'
-      # Do fail if we encounter a fatal error
       - '--exit-on-fatal-error'
-      # Only 1 ignore file is supported, so use the root
+      # eslint accepts only one ignore file per run, so every project points
+      # at the root's.
       - '--ignore-path'
       - '@in(4)'
-      # Run in current dir
       - '.'
-    # The type-aware rules read the same upstream declarations as `types` (see
-    # there).
+    # Same upstream-declaration dependency as `types` (see there).
     deps:
       - '^:types'
       - '^:build'
     inputs:
-      # Source and test files
       - 'src/**/*'
       - 'tests/**/*'
-      # Other config files
       - '*.config.*'
-      # Project configs, any format, any depth
       - '**/.eslintrc.*'
-      # Root configs, any format
       - '/.eslintignore'
       - '/.eslintrc.*'
       - 'types/**/*'

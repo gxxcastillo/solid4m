@@ -14,8 +14,7 @@ export interface SignupValues {
 export interface SignupFormProps {
   actionsClass?: string;
   onSubmit?: (values: SignupValues) => void | Promise<void>;
-  // Forwarded straight to <Form>, so the docs demo can exercise the documented
-  // isLoading channel rather than reaching into the store behind it.
+  // Forwarded to `<Form>`; see LineItemsForm.
   isLoading?: boolean;
 }
 
@@ -48,14 +47,6 @@ export function SignupForm(props: SignupFormProps) {
       <CheckboxField name='terms' label='I accept the terms of service' required />
       <div class={props.actionsClass}>
         <SubmitButton>Sign up</SubmitButton>
-        {/*
-          `isDisabled={false}` used to be load bearing here: SubmitButton
-          defaulted to `isDisabled ?? !isFormValid`, and saving a draft of a
-          half-filled signup form has to stay available while that form is
-          invalid. The button no longer disables itself for invalidity, so the
-          prop is dropped rather than kept as a no-op that reads like it is
-          doing something.
-        */}
         <SubmitButton variant='approve'>Save draft</SubmitButton>
       </div>
     </Form>

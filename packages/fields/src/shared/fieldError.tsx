@@ -5,8 +5,8 @@ import { type ErrorMessages } from '@gxxc/solid4m-state';
 import styles from './error.module.css';
 
 // Ties a field's control to its first error message. Spread `aria` onto the
-// control (RadioGroup puts it on its fieldset); its getters keep the spread
-// reactive. Render `Message` where the error should appear.
+// control (RadioGroup spreads it on its fieldset instead); its getters keep
+// the spread reactive. Render `Message` where the error should appear.
 export function createFieldError(errors: () => ErrorMessages | undefined) {
   const id = createUniqueId();
 

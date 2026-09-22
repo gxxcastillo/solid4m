@@ -38,6 +38,9 @@ function format<V extends FieldValue>(val: V | undefined) {
   return val?.toString() ?? '';
 }
 
+// Errors show only once a field has been valid or blurred, so a pristine
+// field doesn't render as invalid before the user has had a chance to fill
+// it in.
 export function getDisplayableErrors<M extends object, K extends FieldName>(
   fieldName: K,
   { hasFieldBeenValid, hasFieldBlurred, getFieldErrors }: FormState<M>
@@ -64,15 +67,14 @@ export function createValueSetter<
   validationConstraints: C,
   props: FormFieldProps<G, M, N>
 ) {
-  // Read live at each use site below (never captured to a local `name`
-  // const) so a field whose `name` prop changes after mount — e.g. a
-  // useFieldArray row re-addressed by remapFieldNames after an earlier item
-  // shifts its index — keeps writing to wherever it currently lives, instead
-  // of a stale mount-time snapshot.
+  // Read live at each use site (never captured to a local `name` const), so a
+  // field whose `name` prop changes after mount — e.g. a useFieldArray row
+  // re-addressed after an earlier item shifts — keeps writing to wherever it
+  // currently lives, not a stale mount-time snapshot.
 
-  // Sequencing token: every commit bumps it, and an async custom validator only
-  // applies its result while its captured token is still current. This stops a
-  // slow validation of an older value from clobbering a newer value's errors.
+  // Sequencing token: every commit bumps it, and an async validator only
+  // applies its result while its captured token is still current — stopping a
+  // slow validation of an older value from clobbering a newer one's errors.
   let validationToken = 0;
 
   function commit(value: FieldValueFor<M, N>, isInitialization: boolean) {
@@ -80,30 +82,27 @@ export function createValueSetter<
     const newErrors = validate(props.name, value, validationConstraints, formState, props.label);
     const errorsForDisplay = newErrors.length > 0 ? newErrors : [];
 
-    // Captured from the mutation's own return value (which, for an
-    // uninitialized field, is what actually assigns its generation from the
-    // store-wide counter) rather than a follow-up formState.getField(name)
-    // lookup — the mutation already resolved the field internally, so a
-    // second scan would just repeat that work. The field's generation only
-    // changes via resetField/reset/setValues from here on (never via this
-    // field's own commit), so comparing it alongside the token tells apart "a
-    // newer commit of mine superseded this" from "an external reset overwrote
-    // the field out from under this pending validation."
+    // Captured from the mutation's return value (which, for an uninitialized
+    // field, is what assigns its generation) rather than a follow-up
+    // formState.getField(name) lookup, which would just repeat work the
+    // mutation already did. The field's generation only changes via
+    // resetField/reset/setValues from here on, so comparing it with the token
+    // tells apart "a newer commit of mine superseded this" from "an external
+    // reset overwrote this field mid-validation."
     const generation = isInitialization
       ? (formStateMutations.initializeField(props.name, value, errorsForDisplay, props.label) ?? 0)
       : (formStateMutations.setFieldValue(props.name, value, errorsForDisplay) ?? 0);
 
-    // Custom validators run after built-in constraints and only when no built-in errors exist.
-    // Sync validators call setFieldErrors immediately; async validators call it when they resolve.
+    // Custom validators run only after built-in constraints pass. Sync ones
+    // call setFieldErrors immediately; async ones call it once they resolve.
     if (newErrors.length === 0 && props.validator) {
       props.validator(props.name, value, formState, (errors) => {
         if (token !== validationToken) return;
-        // Reads props.name live too: for a field re-addressed by a
-        // useFieldArray shift while this validation was in flight, this
-        // still finds the same record (remapFieldNames preserves identity
-        // and doesn't bump generation) and correctly reattaches the result;
-        // for a field that was actually removed, props.name is frozen at
-        // whatever it was at disposal and getField correctly finds nothing.
+        // Reads props.name live too: a field re-addressed by a useFieldArray
+        // shift while validation is in flight still resolves to the same
+        // record (remapFieldNames preserves identity and doesn't bump
+        // generation); a removed field's props.name is frozen at disposal,
+        // so getField finds nothing.
         if ((formState.getField(props.name)?.generation ?? 0) !== generation) return;
         formStateMutations.setFieldErrors(props.name, errors);
       });
@@ -132,16 +131,16 @@ export function createValueSetter<
           return;
         }
       } else {
-        // There should always be a parser
+        // Unreachable: formFieldDefaultProps always supplies a function parse.
         return;
       }
 
       commit(value, isInitialization);
     },
     {
-      // Re-run validation against the field's current value without changing it.
-      // Used to refresh a cross-field constraint (e.g. `match`) when the field it
-      // depends on changes, since that change does not flow through this setValue.
+      // Re-runs validation against the current value without changing it, to
+      // refresh a cross-field constraint (e.g. `match`) when its dependency
+      // changes without flowing through this setValue.
       revalidate() {
         if (!formState.hasFieldBeenInitialized(props.name)) return;
         commit(formState.getFieldValue(props.name) as FieldValueFor<M, N>, false);
@@ -155,9 +154,8 @@ export function createValueSetter<
 function resolveFieldEventValue<E extends FormFieldElement>(target: E): DisplayValue {
   if (target instanceof HTMLInputElement && target.type === 'file') {
     const files = target.files;
-    // An empty FileList is truthy, but has the same required-field meaning as
-    // no selection. Normalizing it here keeps native file clearing aligned
-    // with the shared required constraint.
+    // An empty FileList is truthy but means the same as no selection.
+    // Normalizing it here keeps file clearing aligned with `required`.
     return files?.length ? files : undefined;
   }
   if (target instanceof HTMLSelectElement && target.multiple) {

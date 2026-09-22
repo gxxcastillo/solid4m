@@ -15,10 +15,9 @@ const { Form } = createForm<TeamRosterValues>();
 
 const emptyMember: TeamMember = { name: '', role: '' };
 
-// useFieldArray reads the form's context (useFormContext) internally, so —
-// like FieldArray — it must be rendered from a component *inside* <Form>,
-// not from TeamRosterForm itself, which renders <Form> as its own child and
-// would mount this before that context exists.
+// Same constraint as FieldArray (see LineItemsForm): useFieldArray reads the
+// form's context internally, so it must be rendered from a component
+// *inside* `<Form>`, not from TeamRosterForm itself.
 function RosterFields() {
   const [members, roster] = useFieldArray<TeamMember>('members', [
     { name: 'Ada Lovelace', role: 'Lead' },
@@ -30,9 +29,9 @@ function RosterFields() {
     <>
       <For each={members()}>
         {(member, index) => {
-          // pathAt derives this row's own base path ('members.0', 'members.1', ...)
-          // from the array's own name and the row's reactive index, so
-          // createScopedFields never needs `members` repeated at each row.
+          // pathAt derives this row's own base path ('members.0', 'members.1',
+          // ...) from the array's name and the row's reactive index, so
+          // createScopedFields never needs `members` repeated per row.
           const fields = createScopedFields<TeamMember>(roster.pathAt(index));
 
           return (

@@ -51,11 +51,9 @@ jobs:
       - name: Bundle size
         run: node packages/solid4m/scripts/check-bundle-size.mjs
 
-      # The docs bundle the library from source, whose default tokens arrive
-      # through a bare `import '../themes/base.css'` that a production bundler
-      # drops if the module is ever treated as side-effect-free. Nothing else
-      # fails when that happens (dev servers don't tree-shake), so assert a
-      # token only base.css defines made it into the built docs CSS.
+      # See packages/solid4m/src/index.ts: a bundler treating solid4m as
+      # source (as the docs do) would drop this import if sideEffects were
+      # ever set. Assert one of its tokens reached the built docs CSS.
       - name: Docs ship the default design tokens
         run: grep -q -- '--sf-field-gap:' apps/docs/dist/_astro/*.css
 

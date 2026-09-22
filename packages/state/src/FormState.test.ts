@@ -463,10 +463,10 @@ describe('removeField', () => {
   });
 
   it('no-ops when expectedGeneration does not match — the name now belongs to a different field', () => {
-    // Simulates useFieldArray's remove(): a disposing component's own
-    // unmount cleanup targets a name that remapFieldNames has since renamed
-    // a *different*, surviving field into. Deleting by name alone would
-    // wipe that survivor's data instead of correctly no-op'ing.
+    // Simulates useFieldArray's remove(): a disposing component's unmount
+    // cleanup targets a name that remapFieldNames has since renamed a
+    // *different*, surviving field into. Deleting by name alone would wipe
+    // that survivor's data instead of correctly no-op'ing.
     const { store, dispose } = makeStore();
     const [state, mutations] = store;
     const staleGeneration = mutations.initializeField('username', 'alice', []);
@@ -546,10 +546,10 @@ describe('resetField', () => {
     mutations.resetField('username');
     expect(state.hasFieldBeenValid('username')).toBe(false);
 
-    // Mirrors createFormField's post-reset revalidate(): same value, same
-    // (empty) errors as the reset already set — a true no-op by value/errors
-    // alone, so this must not be skipped in a way that leaves hasBeenValid
-    // stuck at the reset's pessimistic `false`.
+    // Mirrors createFormField's post-reset revalidate(): same value and
+    // (empty) errors as the reset already set — a no-op by value/errors
+    // alone, so this must not skip in a way that leaves hasBeenValid stuck
+    // at the reset's pessimistic `false`.
     mutations.setFieldValue('username', 'alice', []);
     expect(state.hasFieldBeenValid('username')).toBe(true);
     dispose();
@@ -688,13 +688,12 @@ describe('setValues', () => {
   });
 
   it('sets a value at a dotted array-path field name from a nested source object', () => {
-    // FieldPath<M> does type dotted/array paths now, but only ones that are
-    // real on M — TestFields ({username, password}) has no `items` at all, so
-    // this is deliberately exercising getValueAtFieldPath's runtime lookup
-    // beyond what the store's own declared type admits, same as any other
-    // name the type system doesn't know about. See
-    // packages/examples/src/deepPathTyping.fixture.tsx for the positive case
-    // (a real nested M with no cast needed).
+    // FieldPath<M> types dotted/array paths, but only ones real on M —
+    // TestFields ({username, password}) has no `items` at all, so this
+    // deliberately exercises getValueAtFieldPath's runtime lookup beyond what
+    // the store's own declared type admits, same as any other name the type
+    // system doesn't know about. See deepPathTyping.fixture.tsx for the
+    // positive case (a real nested M with no cast needed).
     const { store, dispose } = makeStore();
     const [state, mutations] = store;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -851,8 +850,8 @@ describe('wasReset', () => {
     mutations.initializeField('username', 'alice', []);
     mutations.resetField('username');
     expect(state.getField('username')?.wasReset).toBe(true);
-    // setFieldValue never bumps generation, so it has no reason to update
-    // wasReset either — it stays whatever the last generation-bumping write left it as.
+    // setFieldValue never bumps generation, so it never touches wasReset
+    // either — it stays whatever the last generation-bumping write left it as.
     mutations.setFieldValue('username', 'bob');
     expect(state.getField('username')?.wasReset).toBe(true);
     dispose();
@@ -878,10 +877,8 @@ describe('setErrors', () => {
   });
 });
 
-// `isLoading`/`isProcessing` each publish the OR of two independently-owned
-// sources. The split exists because `<Form isProcessing>` and the submit
-// handler both describe in-flight work, and a single slot made whichever wrote
-// last silently win.
+// See FormStateMutations.setIsLoadingFromProps for why isLoading/isProcessing
+// each publish the OR of two independently-owned sources.
 describe('the two in-flight flag sources', () => {
   it('publishes the OR of the form-owned and prop-owned sources', () => {
     const { store, dispose } = makeStore();
@@ -898,9 +895,6 @@ describe('the two in-flight flag sources', () => {
     dispose();
   });
 
-  // The bug the split exists to prevent. A single shared slot meant the submit
-  // handler's `finally` cleared a flag the prop was still asserting, and nothing
-  // re-asserted it: an effect watching a prop that never changed does not re-run.
   it('keeps the prop source asserted when the form clears its own', () => {
     const { store, dispose } = makeStore();
     const [state, mutations] = store;
@@ -913,10 +907,8 @@ describe('the two in-flight flag sources', () => {
     dispose();
   });
 
-  // The mirror case, and the reason this is an OR rather than the "controlled
-  // override" the prop was originally documented as: `isProcessing` gates the
-  // submit handler's re-entrancy check, so a prop of `false` must not be able to
-  // clear a submit that is genuinely in flight and admit a concurrent second one.
+  // Mirror of the case above: a prop of `false` must not clear a submit
+  // that's genuinely in flight and admit a concurrent second one.
   it('will not let the prop source clear the form-owned one', () => {
     const { store, dispose } = makeStore();
     const [state, mutations] = store;
@@ -942,8 +934,8 @@ describe('the two in-flight flag sources', () => {
     dispose();
   });
 
-  // The sources are seeded from the backing state, so a store created already
-  // processing does not get recomputed back to false by the first prop write.
+  // Seeded from the backing state (see FormState.ts), so a store created
+  // already processing isn't recomputed back to false by the first prop write.
   it('preserves a seeded flag across a prop write', () => {
     const { store, dispose } = makeStore({ ...initialFormState, isProcessing: true });
     const [state, mutations] = store;

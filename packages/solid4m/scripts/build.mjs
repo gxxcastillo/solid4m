@@ -15,8 +15,8 @@ const bundledPackages = [
   'type-fest'
 ];
 
-// Two full `vite build` passes — see vite.server.config.ts for why a single
-// config/invocation can't produce both the browser and server entries.
+// See vite.server.config.ts for why one config/invocation can't produce both
+// the browser and server entries.
 await build({ configFile: resolve(root, 'vite.config.ts') });
 
 const declarationBundle = await rollup({
@@ -30,23 +30,18 @@ await declarationBundle.close();
 await build({ configFile: resolve(root, 'vite.server.config.ts') });
 
 // vite-plugin-dts writes source declarations before rollup-plugin-dts replaces
-// index.d.ts with the public bundle. The intermediates could resolve inside this
-// workspace through private package symlinks, but cannot resolve from the
-// published tarball, so keep only the declaration package.json exposes.
+// index.d.ts with the public bundle. The intermediates resolve inside this
+// workspace through private package symlinks, but not from the published
+// tarball, so keep only the declaration package.json exposes.
 for (const entry of await readdir(resolve(root, 'dist'))) {
   if (entry !== 'index.d.ts' && (entry.endsWith('.d.ts') || entry.endsWith('.d.ts.map'))) {
     await rm(resolve(root, 'dist', entry), { force: true });
   }
 }
 
-// Under Vite 5, the server build also emitted its own style.css, extracted
-// from the same CSS-module imports as the browser build, with identical
-// class names — Vite's default generateScopedName hashes each .module.css
-// file's own content, not the build, so both builds landed on the same hash
-// (verified byte-for-byte against dist/index.css) — but nothing imports this
-// copy: the package's `./styles.css` export always resolves to the browser
-// build's file. Vite 8's ssr build mode no longer emits CSS output at all
-// (verified: no dist/server/*.css after a build), making this a no-op today,
-// but it's kept — with `force: true` making an absent file harmless — in
-// case a future Vite version reintroduces it.
+// A no-op under Vite 8's ssr build mode, which emits no CSS (verified: no
+// dist/server/*.css after a build). Kept — `force: true` makes an absent file
+// harmless — in case a future Vite version emits one again; nothing would
+// import it anyway, since `./styles.css` always resolves to the browser
+// build's file.
 await rm(resolve(root, 'dist/server/index.css'), { force: true });

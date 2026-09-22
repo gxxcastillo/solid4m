@@ -18,17 +18,16 @@ export type SchemaFormProps<
   schema: S;
 };
 
-// The two call signatures below used to be written as repeated
-// `export function Form(...)` overload declarations (signature, signature,
-// implementation) — valid TypeScript, but some build pipelines mis-handle
-// multiple same-named function declarations in one module: vite-plugin-solid's
-// HMR transform, under Vite's newer oxc-based TS transform, wraps the
-// implementation into `const Form = ...` while leaving the bodyless overload
-// signatures as literal (now-colliding) `function Form` declarations,
-// producing a "Form has already been declared" parse error in dev. Attaching
-// the same two call signatures to a type and casting a single, differently-named
-// implementation onto it gives callers identical overload resolution with
-// only one real function declaration in the module.
+// Not repeated `export function Form(...)` overload declarations (signature,
+// signature, implementation) — valid TypeScript, but some build pipelines
+// mis-handle multiple same-named function declarations in one module:
+// vite-plugin-solid's HMR transform, under Vite's oxc-based TS transform,
+// wraps the implementation into `const Form = ...` while leaving the bodyless
+// overload signatures as literal (now-colliding) `function Form`
+// declarations, producing a "Form has already been declared" parse error in
+// dev. Attaching the same two call signatures to a type and casting one,
+// differently-named implementation onto it gives callers identical overload
+// resolution with only one real function declaration in the module.
 type FormComponent = {
   <S extends StandardSchemaV1, R extends SubmitResponse | SubmitResponseMapping<StandardSchemaSubmitValues<S>> = StandardSchemaSubmitValues<S>>(
     props: SchemaFormProps<S, R>

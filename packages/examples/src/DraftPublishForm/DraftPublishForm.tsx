@@ -8,9 +8,8 @@ export interface DraftPublishValues {
 
 const { Form, InputField } = createForm<DraftPublishValues>();
 
-// Simulates a real save/publish request, long enough to see the pressed
-// button's own spinner (and only that one) while every submit button in the
-// form goes aria-disabled underneath it.
+// Long enough to see the pressed button's own spinner, and only that one,
+// while every submit button in the form goes aria-disabled underneath it.
 const SUBMIT_DELAY_MS = 900;
 
 function delay() {
@@ -22,9 +21,9 @@ function delay() {
 export function DraftPublishForm() {
   const [result, setResult] = createSignal<string>();
 
-  // Each handler receives the same (values, buttonName) signature — buttonName
-  // is what identifies which one ran, not the map key alone, since the key and
-  // the button's `name` happen to match here but are only linked by that name prop.
+  // Each handler gets (values, buttonName); buttonName identifies which one
+  // ran, not the map key — they match here only because each button's own
+  // `name` prop repeats the key.
   async function saveDraft(values: DraftPublishValues, buttonName: string) {
     setResult(undefined);
     await delay();

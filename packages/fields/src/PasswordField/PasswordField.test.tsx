@@ -30,8 +30,8 @@ describe('PasswordField', () => {
     expect(input).toHaveAttribute('id', 'password');
   });
 
-  // A reactive prop compiles to a getter-only property, so the component
-  // assigning `props.type` used to throw here.
+  // A reactive prop compiles to a getter-only property, so PasswordField must
+  // override `type` via mergeProps rather than assigning `props.type` directly.
   it('keeps type="password" when a reactive type is passed anyway', () => {
     const { store } = makeStore();
     const [type] = createSignal('text');

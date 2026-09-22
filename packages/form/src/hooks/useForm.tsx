@@ -39,10 +39,10 @@ export type UseFormReturn<
 
 // `R` (what a submit handler's promise resolves to) defaults to any
 // `SubmitResponse`, not to the values type. Unlike `<Form>`, whose `R` is
-// inferred from the handler at each call, the hook fixes `R` when it is
-// called, before any handler exists — and a values-type default rejected the
-// ordinary `async (values) => { await save(values) }`, whose `Promise<void>`
-// is not a `Promise<M>`, unless the caller wrote `useForm<M, void>()`.
+// inferred from the handler at each call, the hook fixes `R` before any
+// handler exists — a values-type default would reject the ordinary
+// `async (values) => { await save(values) }`, whose `Promise<void>` is not a
+// `Promise<M>`, unless the caller wrote `useForm<M, void>()`.
 export function useForm<
   S extends StandardSchemaV1,
   R extends SubmitResponse | SubmitResponseMapping<StandardSchemaSubmitValues<S>> = SubmitResponse
@@ -54,10 +54,10 @@ export function useForm<
   SubmitValues extends RequestProps,
   R extends SubmitResponse | SubmitResponseMapping<SubmitValues> = SubmitResponse
 >(
-  // `schema` is a required key (unlike UseFormOptions) so FieldValues and
-  // SubmitValues can't be pinned to different types without at least
-  // acknowledging a schema is (or isn't) in play; omitting the whole call
-  // falls through to the single-generic, schema-less overload below instead.
+  // `schema` is required here (unlike UseFormOptions) so FieldValues and
+  // SubmitValues can't be pinned to different types without acknowledging a
+  // schema is in play; omitting the call falls through to the single-generic,
+  // schema-less overload below instead.
   options: { schema: StandardSchemaV1<FieldValues, SubmitValues> | undefined }
 ): UseFormReturn<FieldValues, SubmitValues, R>;
 export function useForm<

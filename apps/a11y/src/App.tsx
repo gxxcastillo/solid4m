@@ -5,12 +5,11 @@ import { FieldPaletteForm, LineItemsForm, LoginForm, SignupForm, UserSettingsFor
 import './App.css';
 import { resolveFixtureRoute } from './routes';
 
-// An `onSubmit` that never settles on its own, opted into with `?hold=1`. The
-// in-flight state is otherwise unobservable from a test: every fixture form
-// defaults to a synchronous no-op handler, so `isProcessing` goes true and back
-// to false inside one tick and there is no window in which to assert what the
-// submit button does while a submit is pending. `window.releaseHeldSubmit()`
-// ends it, so the settled state is assertable too.
+// An `onSubmit` that never settles on its own, opted into with `?hold=1`: every
+// fixture form's default handler is a synchronous no-op, so `isProcessing`
+// goes true and false within one tick, leaving no window to assert in-flight
+// behavior. `window.releaseHeldSubmit()` ends it, so the settled state is
+// assertable too.
 declare global {
   interface Window {
     releaseHeldSubmit?: () => void;

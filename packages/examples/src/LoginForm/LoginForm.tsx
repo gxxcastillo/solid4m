@@ -8,8 +8,7 @@ export interface LoginValues {
 
 export interface LoginFormProps {
   onSubmit?: (values: LoginValues) => void | Promise<void>;
-  // Forwarded straight to <Form>, so the docs demo can exercise the documented
-  // isLoading channel rather than reaching into the store behind it.
+  // Forwarded to `<Form>`; see LineItemsForm.
   isLoading?: boolean;
 }
 

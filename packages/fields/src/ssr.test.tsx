@@ -29,10 +29,9 @@ describe('SSR / renderToString', () => {
 
       expect(html).toContain('<input');
       expect(html).toContain('name="email"');
-      // `required` maps to `aria-required` for assistive tech only via the
-      // browser's implicit HTML-to-ARIA mapping at runtime — it is never a
-      // separate serialized attribute, so the accessibility signal to assert
-      // on here is the `required` attribute itself.
+      // `required` maps to `aria-required` only via the browser's implicit
+      // HTML-to-ARIA mapping at runtime; it is never a separate serialized
+      // attribute, so `required` itself is the signal to assert on here.
       expect(html).toContain('required');
       expect(html).toContain('Email');
     } finally {
@@ -49,9 +48,8 @@ describe('SSR / renderToString', () => {
     const [, mutations] = store;
 
     try {
-      // getDisplayableErrors only surfaces errors once hasBeenValid or
-      // hasBeenBlurred is set (see InputField.test.tsx) — a bare
-      // setFieldErrors on an unregistered field renders aria-invalid=false.
+      // initializeField first so hasBeenValid is true (see
+      // getDisplayableErrors); otherwise the error is set but never shown.
       mutations.initializeField('email', 'valid@example.com', []);
       mutations.setFieldValue('email', '', ['Email is required']);
 
@@ -88,9 +86,9 @@ describe('SSR / renderToString', () => {
     expect(html).toContain('Work');
   });
 
-  // Found against a real SolidStart app: SelectField and RadioGroup spread the
-  // field's plumbing onto their native controls, and the server render
-  // serialized it — including `parse="function parse(val) {…}"`.
+  // SelectField and RadioGroup spread the field's plumbing onto their native
+  // controls (see stripInvalidProps); under SSR it would otherwise serialize,
+  // even a function's source, e.g. `parse="function parse(val) {…}"`.
   it('does not serialize field plumbing into SelectField or RadioGroup markup', () => {
     const store = createRoot(() => createFormStore<TestForm>());
 

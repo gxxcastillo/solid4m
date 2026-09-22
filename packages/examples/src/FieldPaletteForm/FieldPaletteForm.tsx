@@ -12,16 +12,15 @@ export interface FieldPaletteValues {
 
 const { SelectField, RadioGroup, NumberField, DateField, FileField } = createFields<FieldPaletteValues>();
 
-// A synchronous handler would flip `isProcessing` true and back to false
-// within the same tick, leaving no window to see the in-flight state — the
-// delay stands in for a real request, same as ContactForm.
+// See ContactForm: a synchronous handler never leaves `isProcessing`
+// observable.
 async function onSubmit() {
   await new Promise<void>((resolve) => window.setTimeout(resolve, 900));
 }
 
-// createFields + useForm (rather than createForm) so this component can also
-// call resetField/reset from its own buttons below, the same pattern
-// LoadedProfileForm uses.
+// createFields + useForm, not createForm, so this component can also call
+// resetField/reset from its own buttons below (same pattern as
+// LoadedProfileForm).
 export function FieldPaletteForm() {
   const form = useForm<FieldPaletteValues>();
 

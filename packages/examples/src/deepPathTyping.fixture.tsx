@@ -2,9 +2,9 @@ import { InputField, type StandardSchemaV1, type StandardSchemaV1Types, createFi
 
 // Compile-only regression fixture for deep-path field-name typing (dotted
 // object paths, array-index paths): a nested name infers the value type at
-// that path with no cast, a typo'd nested name is a compile error, and both
-// hold through createFields<M>() and a schema-inferred createForm the same
-// way they hold on the raw <InputField<M, N>> form.
+// that path with no cast, and a typo'd nested name is a compile error, both
+// on the raw <InputField<M, N>> form and through createFields<M>() and a
+// schema-inferred createForm.
 
 interface LineItem {
   title: string;
@@ -16,8 +16,7 @@ interface OrderValues {
   items: LineItem[];
   // Optional on purpose: FieldPathImpl must unwrap `undefined` before testing
   // `extends object`, or an optional nested value falls back to a bare `K`
-  // (no dotted continuation) even though it nests just fine at runtime
-  // whenever it's actually set.
+  // (no dotted continuation) even though it nests fine at runtime once set.
   billing?: { email: string };
 }
 

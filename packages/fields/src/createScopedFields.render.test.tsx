@@ -250,9 +250,9 @@ describe('createScopedFields + useFieldArray integration', () => {
     fireEvent.input(screen.getByTestId('confirm-0'), { target: { value: 'row0-mismatch' } });
     expect(state.getFieldErrors('rows.0.confirm')).toContain('"Confirm" does not match "Password"');
 
-    // Row 1's password happens to equal row 0's confirm entry. If `match`
-    // were still bound to the unscoped `password` (or resolved against row
-    // 0 instead of row 1), row 1's confirm would spuriously validate here.
+    // Row 1's password equals row 0's confirm entry, so row 1's confirm would
+    // spuriously validate here if `match` were still bound to the unscoped
+    // `password`, or resolved against row 0 instead of row 1.
     fireEvent.input(screen.getByTestId('password-1'), { target: { value: 'row0-mismatch' } });
     fireEvent.input(screen.getByTestId('confirm-1'), { target: { value: 'row0-mismatch' } });
     expect(state.getFieldErrors('rows.1.confirm')).toEqual([]);
@@ -331,8 +331,8 @@ describe('createScopedFields + useFieldArray integration', () => {
   });
 
   // Loops over the scoped state's own keys rather than a hand-kept list, so a
-  // getter the scoped state forgets to override fails here too: it would fall
-  // back to the store and read the top-level `password`, which doesn't exist.
+  // getter it forgets to override fails here too: it would fall back to the
+  // store and read the top-level `password`, which doesn't exist.
   it('resolves every name-taking getter against the row, not the top level', () => {
     let scopedState: Record<string, unknown> | undefined;
     const store = createFormStore<TestFields>() as FormStore<TestFields>;

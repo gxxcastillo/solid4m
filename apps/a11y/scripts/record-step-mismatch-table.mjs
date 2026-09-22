@@ -1,7 +1,7 @@
 // Records Chromium's own `validity.stepMismatch` across a table of step cases.
 // The `step` constraint in packages/validation is a reimplementation of browser
 // behavior that `noValidate` turned off, so the only meaningful test of it is
-// agreement with a real browser — not with anyone's reading of the spec.
+// agreement with a real browser, not anyone's reading of the spec.
 //
 // Writes packages/validation/src/stepMismatch.chromium.ts, which is committed so
 // that the comparison (stepConstraint.test.ts) keeps running without a browser.
@@ -118,18 +118,14 @@ for (const testCase of cases) {
     if (step !== undefined) input.setAttribute('step', String(step));
     if (min !== undefined) input.setAttribute('min', String(min));
     if (max !== undefined) input.setAttribute('max', String(max));
-    // The IDL property, NOT setAttribute('value', …). The spec's step base
+    // The IDL property, NOT setAttribute('value', …): the spec's step base
     // falls back to the *value content attribute* when `min` is absent, so
-    // setting the attribute would silently re-anchor the ladder onto the very
-    // value under test and make every case align. Setting the property sets
-    // the dirty value flag and leaves the content attribute absent — which is
-    // also what Solid does when it binds a value, so this matches the DOM the
-    // library actually produces.
+    // setting the attribute would re-anchor the ladder onto the value under
+    // test. Property assignment sets the dirty value flag and leaves the
+    // attribute absent, matching what Solid does when it binds a value.
     document.body.append(input);
     input.value = String(value);
-    // Read back what the browser actually kept: value sanitization discards
-    // anything unparseable for the type, and that is exactly why an
-    // unparseable value must not be reported as a step mismatch.
+    // See stepMismatch.chromium.ts's header on why `sanitized` matters.
     const sanitized = input.value;
     const mismatch = input.validity.stepMismatch;
     const underflow = input.validity.rangeUnderflow;
@@ -155,20 +151,15 @@ const body = rows
 const header = `// RECORDED FROM CHROMIUM — do not hand-edit.
 //
 // Every row is a real \`<input>\` in a real browser: type, step and min set as
-// content attributes, the value set through the IDL property, and
+// content attributes, the value set through the IDL property (see
+// record-step-mismatch-table.mjs for why not \`setAttribute\`), and
 // \`validity.stepMismatch\`, range underflow/overflow, and the post-sanitization
 // \`input.value\` read back out.
 //
-// The value goes through the property and never \`setAttribute('value', …)\`,
-// because the spec's step base falls back to the *value content attribute* when
-// \`min\` is absent — setting it would re-anchor the ladder onto the very value
-// under test and make every row trivially align. Property assignment sets the
-// dirty value flag and leaves the attribute absent, which is also the DOM Solid
-// produces when it binds a value.
-//
 // \`sanitized\` is kept because it explains the \`mismatch: false\` rows that look
 // wrong at a glance: a value the type cannot parse is discarded by value
-// sanitization before validity is ever consulted, so it is never a step mismatch.
+// sanitization before validity is ever consulted, so it is never a step
+// mismatch.
 //
 // Regenerate with apps/a11y/scripts/record-step-mismatch-table.mjs.
 

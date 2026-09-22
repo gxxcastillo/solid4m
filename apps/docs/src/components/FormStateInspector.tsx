@@ -15,10 +15,9 @@ function formatValue(value: unknown): string {
   return JSON.stringify(value);
 }
 
-// Fields registered by a FieldArray row share a `<name>.<index>.` prefix
-// (e.g. items.0.description, items.0.quantity) — grouping on that prefix
-// lets the inspector box a row's fields together instead of listing every
-// field as its own unrelated entry, same as any other field.
+// Fields from one FieldArray row share a `<name>.<index>.` prefix (e.g.
+// items.0.description, items.0.quantity); grouping on it boxes a row's
+// fields together instead of listing each as an unrelated entry.
 function fieldGroupKey(name: string): string {
   return name.match(/^(.+\.\d+)\./)?.[1] ?? name;
 }

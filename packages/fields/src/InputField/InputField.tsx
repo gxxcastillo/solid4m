@@ -52,9 +52,10 @@ export function InputField<M extends object = FieldValueMapping, N extends Field
   const withIcon = createMemo(
     () => typeof localProps.showIcon === 'function' && localProps.showIcon(value(), formState)
   );
-  // A JSX-valued prop compiles to a getter that builds a new element on every
-  // read, and leadingIcon and context are each read twice below. The memos
-  // keep one instance of each.
+  // A JSX-valued prop's getter rebuilds the element on every read, and each of
+  // leadingIcon/icon/context is read from a reactive computation that reruns
+  // independently of it. These memos cache one instance each; removing them
+  // breaks "instantiates each JSX-valued prop once" (InputField.test.tsx).
   const leadingIcon = createMemo(() => localProps.leadingIcon);
   const icon = createMemo(() => localProps.icon);
   const context = createMemo(() => localProps.context);
@@ -62,8 +63,8 @@ export function InputField<M extends object = FieldValueMapping, N extends Field
   const error = createFieldError(() => props.errors);
   const placeholder = createMemo(() => (withLabel() ? undefined : props.label));
 
-  // Returned as a thunk and applied inline below so Solid tracks the memos and
-  // re-evaluates the classes (e.g. the floating-label `hasValue` state) reactively.
+  // A thunk, not a plain object: calling it inline below lets Solid track
+  // hasValue()/leadingIcon()/withLabel() and update the classes reactively.
   const classList = () => ({
     [styles.InputField]: true,
     [styles.hasValue]: hasValue(),

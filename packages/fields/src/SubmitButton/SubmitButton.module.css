@@ -27,9 +27,9 @@
     box-shadow var(--sf-transition-duration) var(--sf-transition-easing),
     transform var(--sf-transition-duration) var(--sf-transition-easing);
 
-  /* An in-flight submit is marked `aria-disabled`, not `disabled`, so that the
-     button keeps focus (see SubmitButton.tsx). Every rule that keys off the
-     unavailable state therefore has to match both. */
+  /* An in-flight submit is `aria-disabled`, not `disabled`, so it keeps focus
+     (see SubmitButton.tsx). Every rule keying off the unavailable state has
+     to match both. */
   &:hover:not(:disabled, [aria-disabled='true']) {
     background-color: var(--sf-color-primary-hover);
   }
@@ -53,15 +53,13 @@
   }
 }
 
-/* In-flight spinner. Deliberately out of flow and parked inside the button's own
-   1.25rem inline padding: the label lives in the content box and the spinner in
-   the padding box, so the two can never collide and the button neither grows nor
-   re-centers its label when a submit starts. A spinner added as a flex child
-   would resize the button mid-submit, which is a layout shift under the user's
-   cursor at the exact moment they are waiting on it.
+/* In-flight spinner, absolutely positioned inside the button's own 1.25rem
+   padding: the label stays in the content box, so the button never grows or
+   re-centers it when a submit starts (a flex-child spinner would resize the
+   button under the user's cursor mid-submit).
 
-   `currentColor` rather than a token, so the approve variant and any consumer
-   theme get a spinner that matches their own label color for free. */
+   `currentColor`, not a token, so the approve variant and any consumer theme
+   get a matching spinner for free. */
 .spinner {
   position: absolute;
   inset-inline-start: 0.4rem;
@@ -83,9 +81,9 @@
 }
 
 /* Spinning is the only thing that carries meaning here, so with motion reduced
-   there is nothing to degrade to — fall back to a static dot. It marks the
-   button as busy without animating; the dimmed state and the live-region
-   announcement carry the rest. */
+   there's nothing to degrade to — fall back to a static dot that marks the
+   button busy without animating; the dimmed state and live region carry the
+   rest. */
 @media (prefers-reduced-motion: reduce) {
   .spinner {
     animation: none;

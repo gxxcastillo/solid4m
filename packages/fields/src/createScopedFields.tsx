@@ -11,11 +11,10 @@ import {
 import { InputField, type InputFieldProps } from './InputField/InputField';
 import { PasswordField, type PasswordFieldProps } from './PasswordField/PasswordField';
 
-// Any field prop shape this wrapper knows how to re-scope: `name` always
-// (the field's own registered path), and `match` when present — a sibling
-// field's bare name, read by the `match` validation constraint, which needs
-// the same base-path prefix or it resolves against the top-level form
-// instead of the current row.
+// Any field prop shape this wrapper knows how to re-scope: `name` always (the
+// field's own registered path), and `match` when present — a sibling field's
+// bare name, which needs the same base-path prefix or it resolves against
+// the top-level form instead of the current row.
 type RuntimeFormState = FormState<Record<string, unknown>>;
 type RuntimeField = FormField<Record<string, unknown>, string>;
 type ScopedValidator<Item extends object> = (
@@ -76,9 +75,9 @@ function scopedFormState<Item extends object>(base: Accessor<string>, formState:
   ) as Pick<FormStateGetters<Item>, RowScopedGetter>;
 
   // `satisfies` makes a getter added to FormStateGetters fail to compile until
-  // it is scoped here. Without an override, mergeProps falls back to the
-  // unscoped store, which looks the row-relative name up at the form's top
-  // level and reads undefined, with no error.
+  // scoped here. Without an override, mergeProps falls back to the unscoped
+  // store, which looks the row-relative name up at the form's top level and
+  // silently reads undefined.
   const overrides = {
     ...delegated,
     get fields() {
@@ -150,11 +149,11 @@ function scoped<Item extends object, P extends ScopableProps<Item>>(base: Access
   }) as P;
 }
 
-// Wraps a field component so every instance it renders registers under
-// `${base()}.<name>` instead of `<name>` directly. `base` is read reactively
-// (not captured once) so a useFieldArray row that shifts index on
+// Wraps a field component so every instance registers under
+// `${base()}.<name>` instead of `<name>`. `base` is read reactively (not
+// captured once), so a useFieldArray row that shifts index on
 // remove/insert/move keeps addressing wherever it currently lives, the same
-// way createFormField already reads `props.name` live rather than at mount.
+// way createFormField reads `props.name` live rather than at mount.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function withBasePath<Item extends object>(Component: (props: any) => JSX.Element, base: Accessor<string>) {
   return (props: ScopableProps<Item> & Record<string, unknown>) => (
@@ -174,15 +173,14 @@ export type ScopedFieldComponents<Item extends object> = {
 /**
  * Like `createFields<M>()`, but every component it returns addresses its
  * fields under `${base()}.<name>` instead of `<name>` — used by
- * `<FieldArray>` so a row's fields type-check against the row's own item
- * type (not the whole form) while still landing at the right
- * `items.<index>.*` path at runtime. `match` is rewritten the same way as
- * `name`, so a `PasswordField`'s `match='password'` resolves against its
- * own row's password field, not a sibling row's or the top-level form's.
+ * `<FieldArray>` so a row's fields type-check against the row's own item type
+ * (not the whole form) while still landing at the right `items.<index>.*`
+ * path at runtime. `match` is rewritten the same way as `name`, so a
+ * `PasswordField`'s `match='password'` resolves against its own row's
+ * password field, not a sibling row's or the top-level form's.
  *
- * Only InputField and PasswordField are wrapped so far — TextAreaField and
- * CheckboxField would follow the same pattern once this shape is exercised
- * for real.
+ * Only InputField and PasswordField are wrapped so far; TextAreaField and
+ * CheckboxField can follow the same pattern once needed.
  */
 export function createScopedFields<Item extends object>(base: Accessor<string>): ScopedFieldComponents<Item> {
   return {
