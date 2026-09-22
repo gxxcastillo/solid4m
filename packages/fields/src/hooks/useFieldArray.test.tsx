@@ -108,11 +108,7 @@ describe('useFieldArray', () => {
   });
 
   it('move permutes the fields between the source and destination index', () => {
-    const { state, mutations, helpers, dispose } = setup([
-      { title: 'a' },
-      { title: 'b' },
-      { title: 'c' }
-    ]);
+    const { state, mutations, helpers, dispose } = setup([{ title: 'a' }, { title: 'b' }, { title: 'c' }]);
     mutations.initializeField('items.0.title', 'a', []);
     mutations.initializeField('items.1.title', 'b', []);
     mutations.initializeField('items.2.title', 'c', []);
@@ -128,11 +124,7 @@ describe('useFieldArray', () => {
   // moveIndex's forward and backward shifts are different branches; the
   // forward case above alone never exercises this one.
   it('move permutes the fields when moving backward (to a lower index)', () => {
-    const { state, mutations, helpers, dispose } = setup([
-      { title: 'a' },
-      { title: 'b' },
-      { title: 'c' }
-    ]);
+    const { state, mutations, helpers, dispose } = setup([{ title: 'a' }, { title: 'b' }, { title: 'c' }]);
     mutations.initializeField('items.0.title', 'a', []);
     mutations.initializeField('items.1.title', 'b', []);
     mutations.initializeField('items.2.title', 'c', []);
@@ -159,7 +151,7 @@ describe('useFieldArray', () => {
     dispose();
   });
 
-  it('pathAt derives a row\'s base path from the array\'s own name and a reactive index', () => {
+  it("pathAt derives a row's base path from the array's own name and a reactive index", () => {
     const { helpers, dispose } = setup([{ title: 'a' }, { title: 'b' }]);
     const [index, setIndex] = createSignal(0);
     const path = helpers.pathAt(index);

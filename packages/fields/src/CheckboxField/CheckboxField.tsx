@@ -13,10 +13,9 @@ export type CheckboxFieldProps<
   N extends FieldPath<M> = FieldPath<M>
 > = FormFieldProps<'input', M, N>;
 
-export function CheckboxField<
-  M extends object = FieldValueMapping,
-  N extends FieldPath<M> = FieldPath<M>
->(initialProps: CheckboxFieldProps<M, N>) {
+export function CheckboxField<M extends object = FieldValueMapping, N extends FieldPath<M> = FieldPath<M>>(
+  initialProps: CheckboxFieldProps<M, N>
+) {
   const [localProps, parsedProps] = splitProps(initialProps, ['label', 'value']);
   const [props, createField] = createFormField<'input', M, N>(
     mergeProps({ isSelectable: true }, parsedProps)
@@ -32,11 +31,7 @@ export function CheckboxField<
         [styles.disabled]: !!props.disabled
       }}
     >
-      <Checkbox
-        {...props}
-        value={localProps.value}
-        {...error.aria}
-      />
+      <Checkbox {...props} value={localProps.value} {...error.aria} />
       {localProps.label && (
         <label classList={{ [styles.label]: true, [styles.disabled]: !!props.disabled }} for={props.id}>
           {localProps.label}

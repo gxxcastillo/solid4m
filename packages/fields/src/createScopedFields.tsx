@@ -162,9 +162,7 @@ function withBasePath<Item extends object>(Component: (props: any) => JSX.Elemen
 }
 
 export type ScopedFieldComponents<Item extends object> = {
-  InputField: <N extends FieldPath<Item> = FieldPath<Item>>(
-    props: InputFieldProps<Item, N>
-  ) => JSX.Element;
+  InputField: <N extends FieldPath<Item> = FieldPath<Item>>(props: InputFieldProps<Item, N>) => JSX.Element;
   PasswordField: <N extends FieldPath<Item> = FieldPath<Item>>(
     props: PasswordFieldProps<Item, N>
   ) => JSX.Element;

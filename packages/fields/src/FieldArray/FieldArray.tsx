@@ -1,6 +1,6 @@
 import { For, type JSX } from 'solid-js';
 
-import { createScopedFields, type ScopedFieldComponents } from '../createScopedFields';
+import { type ScopedFieldComponents, createScopedFields } from '../createScopedFields';
 import { type FieldArrayHelpers, useFieldArray } from '../hooks/useFieldArray';
 import styles from './FieldArray.module.css';
 
@@ -36,14 +36,17 @@ export function FieldArray<Item extends object>(props: FieldArrayProps<Item>): J
   const [items, itemsArray] = useFieldArray<Item>(props.name, props.defaultValue ?? []);
   props.helpersRef?.(itemsArray);
 
-  const rowClassName = () => ['sf-field-array-row', styles.row, props.rowClass ?? ''].filter(Boolean).join(' ');
+  const rowClassName = () =>
+    ['sf-field-array-row', styles.row, props.rowClass ?? ''].filter(Boolean).join(' ');
 
   return (
     <For each={items()}>
       {(item, index) => {
         const fields = createScopedFields<Item>(itemsArray.pathAt(index));
         return (
-          <div class={rowClassName()}>{props.children(fields, item.defaultValue, () => itemsArray.remove(index()))}</div>
+          <div class={rowClassName()}>
+            {props.children(fields, item.defaultValue, () => itemsArray.remove(index()))}
+          </div>
         );
       }}
     </For>

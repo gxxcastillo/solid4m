@@ -1,4 +1,10 @@
-import { InputField, type StandardSchemaV1, type StandardSchemaV1Types, createFields, createForm } from 'solid4m';
+import {
+  InputField,
+  type StandardSchemaV1,
+  type StandardSchemaV1Types,
+  createFields,
+  createForm
+} from 'solid4m';
 
 // Compile-only regression fixture for deep-path field-name typing (dotted
 // object paths, array-index paths): a nested name infers the value type at

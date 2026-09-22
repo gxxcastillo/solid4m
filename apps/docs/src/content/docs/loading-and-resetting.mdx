@@ -79,7 +79,7 @@ Called with no arguments, `reset()` reverts every registered field to its own cu
 clears form-level errors, and clears each field's `hasChanged`/`hasBeenBlurred` — the "start over"
 case (a cancel button, or clearing the form after a failed submit).
 
-Pass `toValues` to rebaseline instead of merely reverting: each field named in `toValues` gets *that*
+Pass `toValues` to rebaseline instead of merely reverting: each field named in `toValues` gets _that_
 value as its new initial value, not just its current one. A later plain `reset()` or `resetField`
 goes back to this new baseline, not whatever the field held before `reset(toValues)` ran — which is
 exactly the "load, then let the user edit" sequence the demo above relies on. A key in `toValues` for
@@ -88,7 +88,7 @@ keeps its previous baseline untouched.
 
 ## `setValues(values)`
 
-`setValues` bulk-sets the *current* value of already-registered fields, the same as calling
+`setValues` bulk-sets the _current_ value of already-registered fields, the same as calling
 `setFieldValue` for each key — but unlike `reset`, it does not touch each field's initial-value
 baseline, and it does not clear that field's errors. Reach for it when you want to impose a value
 without asserting the form is now pristine — syncing one field from a websocket push, for instance,
@@ -98,7 +98,7 @@ Because `setValues` never moves the baseline, a value it sets still counts as a 
 flips true (unless the new value happens to equal what the field already held), and a later `reset()`
 reverts past it, back to the field's real initial value. The demo above's "Sync email from server"
 button demonstrates this against "Reset form": syncing the email leaves it changed, and resetting the
-form goes back to the *loaded* email, not the synced one.
+form goes back to the _loaded_ email, not the synced one.
 
 ## `resetField(name)`
 
@@ -121,23 +121,23 @@ mutations.reset({ items: [{ title: 'Widget' }] });
 mutations.reset({ 'items.0.title': 'Widget' });
 ```
 
-If a values object somehow has both — an exact literal key *and* a nested value that would also
+If a values object somehow has both — an exact literal key _and_ a nested value that would also
 resolve to the same path — the exact literal key wins outright; the nested value is never consulted.
 This only matters for a values object assembled from field name/value pairs directly (as `onSubmit`'s
-own `values` argument is *not* — it is always the real nested shape); reaching for it is rare enough
+own `values` argument is _not_ — it is always the real nested shape); reaching for it is rare enough
 that this is closer to a documented edge case than a decision you'll need to make.
 
 ## Effect on changed state
 
-| Mutation           | Reverts/sets value to                        | Rebaselines initial value | Clears errors           | `hasChanged` afterward                    |
-| ------------------- | ---------------------------------------------- | -------------------------- | ------------------------- | -------------------------------------------- |
-| `resetField(name)`  | the field's current initial value              | no                          | yes, then re-validates    | `false`                                       |
-| `reset(toValues?)`  | initial value, or `toValues`'s value if given  | yes, for fields in `toValues` | yes, then re-validates | `false`                                       |
-| `setValues(values)` | `values`'s value, for registered fields        | no                          | no (preserves existing)   | `true` if the value actually changed, else unchanged |
+| Mutation            | Reverts/sets value to                         | Rebaselines initial value     | Clears errors           | `hasChanged` afterward                               |
+| ------------------- | --------------------------------------------- | ----------------------------- | ----------------------- | ---------------------------------------------------- |
+| `resetField(name)`  | the field's current initial value             | no                            | yes, then re-validates  | `false`                                              |
+| `reset(toValues?)`  | initial value, or `toValues`'s value if given | yes, for fields in `toValues` | yes, then re-validates  | `false`                                              |
+| `setValues(values)` | `values`'s value, for registered fields       | no                            | no (preserves existing) | `true` if the value actually changed, else unchanged |
 
 Outside of `resetField`/`reset`, `hasChanged` only ever moves from `false` to `true` — `setValues`
 cannot clear it back to `false`, even when the value it sets happens to match the field's initial
-value again, because it only compares against what the field *currently* holds. The form-level
+value again, because it only compares against what the field _currently_ holds. The form-level
 `haveValuesChanged` (and the inspector panel above) is `true` whenever any registered field's
 `hasChanged` is `true`, so the same distinctions show up there too.
 

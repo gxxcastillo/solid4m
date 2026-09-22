@@ -1,6 +1,12 @@
 import { type Component, Show } from 'solid-js';
 
-import { FormContextProvider, type FieldValueMapping, useForm } from 'solid4m';
+import { type FieldValueMapping, FormContextProvider, useForm } from 'solid4m';
+// Pins `data-sf-theme='minimal'`, so the frame brings its own theme rather
+// than relying on the page to import it. No import needed for the structural
+// CSS or default tokens: the docs alias `solid4m` to its source, whose
+// components import their own styles.
+import 'solid4m/themes/minimal.css';
+
 import {
   ContactForm,
   DateParseForm,
@@ -11,12 +17,6 @@ import {
   LoadedProfileForm,
   TeamRosterForm
 } from '@gxxc/solid4m-examples';
-
-// Pins `data-sf-theme='minimal'`, so the frame brings its own theme rather
-// than relying on the page to import it. No import needed for the structural
-// CSS or default tokens: the docs alias `solid4m` to its source, whose
-// components import their own styles.
-import 'solid4m/themes/minimal.css';
 
 import styles from './Demo.module.css';
 import { FormStateInspector } from './FormStateInspector';

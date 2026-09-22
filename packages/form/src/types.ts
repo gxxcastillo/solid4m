@@ -1,7 +1,10 @@
 export type RequestProps = object;
 
 export type SubmitResponse = object | string | [] | null | void;
-export type SubmitResponseMapping<P extends RequestProps> = Record<string, OnSubmitHandler<P, SubmitResponse>>;
+export type SubmitResponseMapping<P extends RequestProps> = Record<
+  string,
+  OnSubmitHandler<P, SubmitResponse>
+>;
 export type OnSubmitHandler<P extends RequestProps, R extends SubmitResponse = void> = (
   props: P,
   buttonName: string

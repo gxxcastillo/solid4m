@@ -1,6 +1,12 @@
 import { Match, Switch } from 'solid-js';
 
-import { FieldPaletteForm, LineItemsForm, LoginForm, SignupForm, UserSettingsForm } from '@gxxc/solid4m-examples';
+import {
+  FieldPaletteForm,
+  LineItemsForm,
+  LoginForm,
+  SignupForm,
+  UserSettingsForm
+} from '@gxxc/solid4m-examples';
 
 import './App.css';
 import { resolveFixtureRoute } from './routes';

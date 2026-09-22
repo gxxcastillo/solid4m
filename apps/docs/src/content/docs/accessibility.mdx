@@ -20,7 +20,7 @@ it again.
 A button that disables itself while a form is invalid is removed from the tab order entirely — a
 screen reader or keyboard-only user tabbing through the page may never learn it exists — and it
 fires no events, so it cannot explain what is wrong even to a user who does find it. `SubmitButton`
-stays enabled regardless of `form.state.isFormValid`. Validity gates what a submit *does*, not
+stays enabled regardless of `form.state.isFormValid`. Validity gates what a submit _does_, not
 whether the control is reachable.
 
 Pass `isDisabled` instead when an action is genuinely unavailable for a reason of your own (an unmet
@@ -62,7 +62,7 @@ against the genuinely per-field alerts described below. Per-field errors are ann
 each in its own `role="alert"` next to the field it belongs to.
 
 The status region is also deliberately not surfaced as `aria-busy` on the `<form>`. `aria-busy="true"`
-tells assistive technology to *withhold* live-region updates beneath it until it flips back to
+tells assistive technology to _withhold_ live-region updates beneath it until it flips back to
 `false` — the opposite of what an announcement needs. See [async submission](../submission/) for the
 rest of the in-flight lifecycle these regions report on.
 
@@ -71,7 +71,7 @@ rest of the in-flight lifecycle these regions report on.
 While a submit is in flight (or `isLoading` is set), every submit button in the form is marked
 `aria-disabled="true"` instead of getting the `disabled` attribute. The distinction matters
 specifically for the button that was just pressed: the user who clicked or Enter-key-submitted it is
-focused on it, and disabling a *focused* element removes it from the tab order — the browser resets
+focused on it, and disabling a _focused_ element removes it from the tab order — the browser resets
 focus to `<body>`, and nothing restores it once the submit settles. A keyboard or screen-reader user
 would be silently dropped back to the top of the document mid-submit. `aria-disabled` conveys the
 same unavailability while leaving focus and tab position untouched.
@@ -98,7 +98,7 @@ spinner, since there is no single action to attribute it to.
 The rendered `<form>` sets `noValidate`, because the browser's own interactive validation would
 otherwise intercept the click and show a native validation bubble before this library's own
 validation, error display, or focus management ever runs. That turns off only the browser's
-*interactive* handling — constraint props such as `required`, `minLength`, `pattern`, `min`, and
+_interactive_ handling — constraint props such as `required`, `minLength`, `pattern`, `min`, and
 `max` are still rendered as real HTML attributes on the underlying control, so a `required` input
 still exposes `aria-required="true"` in the accessibility tree through the browser's own implicit
 HTML-to-ARIA mapping. See [validation](../validation/#native-browser-validation-is-off) for what
@@ -135,7 +135,7 @@ a real browser rather than a mocked DOM:
   `noValidate` turned off the browser's own check for it — this is the one exercise of that path in a
   real browser, where the gap `noValidate` opened actually existed.
 - The submit button keeps focus and switches to `aria-disabled` (not `disabled`) while a held promise
-  keeps a submit in flight, and the status region's text is confirmed present and *not* ignored in
+  keeps a submit in flight, and the status region's text is confirmed present and _not_ ignored in
   the real accessibility tree (read via a Chrome DevTools Protocol session) — the DOM alone cannot
   distinguish an invisible element from an absent one, which is exactly the regression this guards
   against.

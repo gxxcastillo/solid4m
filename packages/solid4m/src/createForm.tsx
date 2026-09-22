@@ -1,6 +1,6 @@
 import { type JSX } from 'solid-js';
 
-import { createFields, type FieldComponents } from '@gxxc/solid4m-fields';
+import { type FieldComponents, createFields } from '@gxxc/solid4m-fields';
 import {
   Form,
   type FormComponentProps,
@@ -35,9 +35,9 @@ export function createForm<M extends object = FieldValueMapping>(): FormComponen
  * `schema={...}` (still overridable per call).
  */
 // Mirrors useForm's schema overload.
-export function createForm<S extends StandardSchemaV1>(
-  options: { schema: S }
-): FormComponents<StandardSchemaFormValues<S>, StandardSchemaSubmitValues<S>>;
+export function createForm<S extends StandardSchemaV1>(options: {
+  schema: S;
+}): FormComponents<StandardSchemaFormValues<S>, StandardSchemaSubmitValues<S>>;
 export function createForm(options?: { schema?: StandardSchemaV1 }): FormComponents<FieldValueMapping> {
   const schema = options?.schema;
 

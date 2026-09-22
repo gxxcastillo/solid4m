@@ -1,6 +1,7 @@
 import { For, Show, createSignal, onCleanup, onMount } from 'solid-js';
 
 import { FormContextProvider, useForm } from 'solid4m';
+
 import {
   LineItemsForm,
   type LineItemsValues,
@@ -131,7 +132,11 @@ export function ThemeShowcase() {
         <legend class={styles.simulateLegend}>Simulate</legend>
 
         <label class={styles.simulateOption}>
-          <input type='checkbox' checked={isLoading()} onChange={(e) => setIsLoading(e.currentTarget.checked)} />
+          <input
+            type='checkbox'
+            checked={isLoading()}
+            onChange={(e) => setIsLoading(e.currentTarget.checked)}
+          />
           Loading
           <span class={styles.simulateHint}>disables every registered field</span>
         </label>
@@ -152,7 +157,11 @@ export function ThemeShowcase() {
           <div class={styles.card}>
             <h2 class={styles.cardTitle}>Create your account</h2>
             <FormContextProvider store={signupForm.store}>
-              <SignupForm onSubmit={onSimulatedSubmit} isLoading={isLoading()} actionsClass={styles.buttonRow} />
+              <SignupForm
+                onSubmit={onSimulatedSubmit}
+                isLoading={isLoading()}
+                actionsClass={styles.buttonRow}
+              />
             </FormContextProvider>
           </div>
 

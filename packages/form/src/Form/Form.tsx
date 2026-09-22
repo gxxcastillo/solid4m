@@ -29,7 +29,11 @@ export type SchemaFormProps<
 // differently-named implementation onto it gives callers identical overload
 // resolution with only one real function declaration in the module.
 type FormComponent = {
-  <S extends StandardSchemaV1, R extends SubmitResponse | SubmitResponseMapping<StandardSchemaSubmitValues<S>> = StandardSchemaSubmitValues<S>>(
+  <
+    S extends StandardSchemaV1,
+    R extends SubmitResponse | SubmitResponseMapping<StandardSchemaSubmitValues<S>> =
+      StandardSchemaSubmitValues<S>
+  >(
     props: SchemaFormProps<S, R>
   ): JSX.Element;
   <M extends object = FieldValueMapping, R extends SubmitResponse | SubmitResponseMapping<M> = M>(

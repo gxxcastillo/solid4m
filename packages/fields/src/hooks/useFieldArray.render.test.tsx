@@ -40,7 +40,7 @@ function LineItems(props: { onRowKeys: (keys: string[]) => void }) {
 describe('useFieldArray + InputField integration', () => {
   afterEach(cleanup);
 
-  it('preserves a later row\'s live DOM node, focus, and typed value when an earlier row is removed', () => {
+  it("preserves a later row's live DOM node, focus, and typed value when an earlier row is removed", () => {
     const store = createFormStore<TestFields>() as FormStore<TestFields>;
     let keys: string[] = [];
 

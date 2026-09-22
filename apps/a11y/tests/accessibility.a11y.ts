@@ -315,7 +315,8 @@ test('/minimal/lineItems stays accessible after adding and removing a row', asyn
 test('a multiple select keeps its default, the user’s picks, and a reset', async ({ page }) => {
   await page.goto('/minimal/palette');
   const topics = page.getByLabel('Topics you would attend');
-  const selected = () => topics.evaluate((select: HTMLSelectElement) => Array.from(select.selectedOptions, (o) => o.value));
+  const selected = () =>
+    topics.evaluate((select: HTMLSelectElement) => Array.from(select.selectedOptions, (o) => o.value));
 
   await expect.poll(selected).toEqual(['a11y']);
 

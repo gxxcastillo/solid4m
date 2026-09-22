@@ -4,12 +4,12 @@ import { createStore } from 'solid-js/store';
 import { getValueAtFieldPath } from './fieldPaths';
 import {
   type BaseFormState,
-  type InternalFormState,
   type FieldPath,
   type FieldValueFor,
   type FieldValueMapping,
   type FormField,
-  type FormStore
+  type FormStore,
+  type InternalFormState
 } from './types';
 
 function arraysEqual<T>(a: T[], b: T[]): boolean {
@@ -134,7 +134,11 @@ export function createFormStore<M extends object = FieldValueMapping>(
     // But the reset also forced hasBeenValid to false without knowing whether
     // the reverted value is valid, so that recomputed hasBeenValid must still
     // land even when nothing else changed.
-    if (currentValue === value && arraysEqual(effectiveErrors, currentErrors) && nextHasBeenValid === prevHasBeenValid) {
+    if (
+      currentValue === value &&
+      arraysEqual(effectiveErrors, currentErrors) &&
+      nextHasBeenValid === prevHasBeenValid
+    ) {
       return field;
     }
 
@@ -159,7 +163,11 @@ export function createFormStore<M extends object = FieldValueMapping>(
     const next = computeFieldValueUpdate(field, value, errors, bumpGeneration);
     if (next === field) return next;
 
-    setFormState('fields', (f) => f.name === field.name, () => next);
+    setFormState(
+      'fields',
+      (f) => f.name === field.name,
+      () => next
+    );
     return next;
   };
 
@@ -192,7 +200,11 @@ export function createFormStore<M extends object = FieldValueMapping>(
     value: FieldValueFor<M, FName> | undefined,
     initialValue: FieldValueFor<M, FName> | undefined
   ) => {
-    setFormState('fields', (f) => f.name === name, (field) => computeFieldReset(field, value, initialValue));
+    setFormState(
+      'fields',
+      (f) => f.name === name,
+      (field) => computeFieldReset(field, value, initialValue)
+    );
   };
 
   // Two independent sources for isLoading/isProcessing, each published as
@@ -240,7 +252,8 @@ export function createFormStore<M extends object = FieldValueMapping>(
       removeField: <N extends FName>(name: N, expectedGeneration?: number) =>
         setFormState('fields', (fields) =>
           fields.filter(
-            (f) => !(f.name === name && (expectedGeneration === undefined || f.generation === expectedGeneration))
+            (f) =>
+              !(f.name === name && (expectedGeneration === undefined || f.generation === expectedGeneration))
           )
         ),
 
@@ -314,7 +327,9 @@ export function createFormStore<M extends object = FieldValueMapping>(
           // an O(n) store scan) per field, which would make this O(n²).
           setFormState('fields', (fields) =>
             fields.map((field) => {
-              const lookup = toValues ? getValueAtFieldPath(toValues, field.name) : { found: false, value: undefined };
+              const lookup = toValues
+                ? getValueAtFieldPath(toValues, field.name)
+                : { found: false, value: undefined };
               const value = (lookup.found ? lookup.value : field.initialValue) as FieldValueFor<M, FName>;
               const initialValue = lookup.found ? value : field.initialValue;
 

@@ -9,9 +9,8 @@ export type PasswordFieldProps<
   N extends FieldPath<M> = FieldPath<M>
 > = Omit<InputFieldProps<M, N>, 'type'>;
 
-export function PasswordField<
-  M extends object = FieldValueMapping,
-  N extends FieldPath<M> = FieldPath<M>
->(props: PasswordFieldProps<M, N>) {
+export function PasswordField<M extends object = FieldValueMapping, N extends FieldPath<M> = FieldPath<M>>(
+  props: PasswordFieldProps<M, N>
+) {
   return <InputField {...mergeProps(props, { type: 'password' })} />;
 }

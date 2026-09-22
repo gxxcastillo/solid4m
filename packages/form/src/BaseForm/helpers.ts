@@ -1,10 +1,10 @@
 import { batch } from 'solid-js';
 
 import {
-  buildObjectFromFieldEntries,
   type FormFields,
   type FormState,
   type FormStateMutations,
+  buildObjectFromFieldEntries,
   isObjectLike,
   setOwnEnumerableProperty
 } from '@gxxc/solid4m-state';
@@ -27,7 +27,10 @@ export function isSubmitHandlerFn<P extends RequestProps, R extends SubmitRespon
   return typeof onSubmit === 'function';
 }
 
-export function isSubmitHandlersObject<P extends RequestProps, R extends SubmitResponse | SubmitResponseMapping<P>>(
+export function isSubmitHandlersObject<
+  P extends RequestProps,
+  R extends SubmitResponse | SubmitResponseMapping<P>
+>(
   onSubmit: BaseFormOnSubmit<P, R>
 ): onSubmit is R extends SubmitResponseMapping<P> ? OnSubmitHandlers<P, R> : never {
   return isObjectLike(onSubmit);
@@ -74,7 +77,10 @@ export function haveFieldValuesChangedSinceSnapshot<M extends object>(
   );
 }
 
-export function resolveSubmitHandler<P extends RequestProps, R extends SubmitResponse | SubmitResponseMapping<P>>(
+export function resolveSubmitHandler<
+  P extends RequestProps,
+  R extends SubmitResponse | SubmitResponseMapping<P>
+>(
   onSubmit: BaseFormOnSubmit<P, R> | undefined,
   buttonName: string | undefined
 ): OnSubmitHandler<P, R> | undefined {

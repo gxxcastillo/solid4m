@@ -18,7 +18,7 @@ function field components already scoped to that row.
 <Demo client:only='solid-js' demo='lineItems' title='Line items' inspect />
 
 ```tsx
-import { type FieldArrayHelpers, FieldArray, SubmitButton, createForm } from 'solid4m';
+import { FieldArray, type FieldArrayHelpers, SubmitButton, createForm } from 'solid4m';
 
 export interface LineItem {
   description: string;
@@ -40,10 +40,19 @@ function LineItemFields() {
 
   return (
     <>
-      <FieldArray<LineItem> name='items' defaultValue={[emptyItem]} helpersRef={(helpers) => (itemsArray = helpers)}>
+      <FieldArray<LineItem>
+        name='items'
+        defaultValue={[emptyItem]}
+        helpersRef={(helpers) => (itemsArray = helpers)}
+      >
         {(fields, item, remove) => (
           <>
-            <fields.InputField name='description' label='Description' defaultValue={item.description} required />
+            <fields.InputField
+              name='description'
+              label='Description'
+              defaultValue={item.description}
+              required
+            />
             <fields.InputField name='quantity' label='Quantity' defaultValue={item.quantity} required />
             <SubmitButton variant='approve' onClick={remove}>
               Remove
@@ -80,13 +89,13 @@ The render prop hands you three things per row:
 "add" affordance of your own outside the render prop, since `append`'s seed value (what a fresh row
 starts with) is a decision only the caller can make.
 
-| Prop           | Type                                                          | Description                                                          |
-| -------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| `name`         | `string`                                                        | The array's base name; rows register under `${name}.<index>.*`         |
-| `defaultValue` | `readonly Item[]`                                               | Seeds the initial rows                                                 |
-| `children`     | `(fields, item, remove) => JSX.Element`                         | Renders one row                                                        |
-| `helpersRef`   | `(helpers: FieldArrayHelpers<Item>) => void`                    | Exposes this array's helpers outside the render prop                   |
-| `rowClass`     | `string`                                                        | Extra class composed onto each row's own wrapping element              |
+| Prop           | Type                                         | Description                                                    |
+| -------------- | -------------------------------------------- | -------------------------------------------------------------- |
+| `name`         | `string`                                     | The array's base name; rows register under `${name}.<index>.*` |
+| `defaultValue` | `readonly Item[]`                            | Seeds the initial rows                                         |
+| `children`     | `(fields, item, remove) => JSX.Element`      | Renders one row                                                |
+| `helpersRef`   | `(helpers: FieldArrayHelpers<Item>) => void` | Exposes this array's helpers outside the render prop           |
+| `rowClass`     | `string`                                     | Extra class composed onto each row's own wrapping element      |
 
 Like every field component, `FieldArray` must be rendered from a component that is itself a
 descendant of `<Form>` — not from the component that renders `<Form>` as its own child, which is why
@@ -148,7 +157,11 @@ function RosterFields() {
         return (
           <div>
             <fields.InputField name='name' label='Name' defaultValue={member.defaultValue.name} />
-            <SubmitButton isDisabled={index() === 0} onClick={() => roster.move(index(), index() - 1)} variant='approve'>
+            <SubmitButton
+              isDisabled={index() === 0}
+              onClick={() => roster.move(index(), index() - 1)}
+              variant='approve'
+            >
               Move up
             </SubmitButton>
           </div>
@@ -161,7 +174,7 @@ function RosterFields() {
 
 `useFieldArray(name, defaultValue?)` returns `[items, helpers]`: `items` is an accessor over
 `{ key, defaultValue }[]` (the same shape `FieldArray` hands to `<For>` internally), and `helpers` is
-everything below. `createScopedFields<Item>(base)` takes a *reactive* base path (an accessor, not a
+everything below. `createScopedFields<Item>(base)` takes a _reactive_ base path (an accessor, not a
 plain string) and returns field components that prefix every `name`/`match` they're given with
 `base()` — reactive so a row that shifts index on remove/insert/move keeps addressing wherever it
 currently lives.
@@ -174,15 +187,15 @@ that can't be checked against `Item`, so the field falls back to its untyped def
 
 ## Helpers
 
-| Helper    | Signature                                        | Effect                                                             |
-| --------- | ------------------------------------------------- | ------------------------------------------------------------------- |
-| `append`  | `(value: T) => void`                              | Adds a row at the end; nothing else shifts                          |
-| `prepend` | `(value: T) => void`                              | Adds a row at the front; every existing row shifts up by one        |
-| `insert`  | `(index: number, value: T) => void`               | Adds a row at `index`; rows at or after `index` shift up by one     |
-| `remove`  | `(index: number) => void`                         | Removes the row at `index`; later rows shift down by one            |
-| `move`    | `(from: number, to: number) => void`              | Moves the row at `from` to `to`, shifting rows between them         |
-| `swap`    | `(a: number, b: number) => void`                  | Exchanges exactly the two rows at `a` and `b`                       |
-| `pathAt`  | `(index: Accessor<number>) => Accessor<string>`   | This row's own base field-name path, e.g. `'items.0'`               |
+| Helper    | Signature                                       | Effect                                                          |
+| --------- | ----------------------------------------------- | --------------------------------------------------------------- |
+| `append`  | `(value: T) => void`                            | Adds a row at the end; nothing else shifts                      |
+| `prepend` | `(value: T) => void`                            | Adds a row at the front; every existing row shifts up by one    |
+| `insert`  | `(index: number, value: T) => void`             | Adds a row at `index`; rows at or after `index` shift up by one |
+| `remove`  | `(index: number) => void`                       | Removes the row at `index`; later rows shift down by one        |
+| `move`    | `(from: number, to: number) => void`            | Moves the row at `from` to `to`, shifting rows between them     |
+| `swap`    | `(a: number, b: number) => void`                | Exchanges exactly the two rows at `a` and `b`                   |
+| `pathAt`  | `(index: Accessor<number>) => Accessor<string>` | This row's own base field-name path, e.g. `'items.0'`           |
 
 ## Typed nested field names
 

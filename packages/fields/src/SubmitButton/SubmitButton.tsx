@@ -1,6 +1,18 @@
-import { type JSX, Show, createMemo, createUniqueId, children as prepareChildren, splitProps } from 'solid-js';
+import {
+  type JSX,
+  Show,
+  createMemo,
+  createUniqueId,
+  children as prepareChildren,
+  splitProps
+} from 'solid-js';
 
-import { type FieldPath, type FieldValueMapping, type InternalFormState, useFormContext } from '@gxxc/solid4m-state';
+import {
+  type FieldPath,
+  type FieldValueMapping,
+  type InternalFormState,
+  useFormContext
+} from '@gxxc/solid4m-state';
 
 import { Button, type ButtonElementProps } from '../elements';
 import { createField } from '../hooks';

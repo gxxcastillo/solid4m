@@ -30,11 +30,7 @@ function copyThemes(): Plugin {
 // hydratable DOM output, without which this build's markup would mismatch
 // what the server build renders.
 export default defineConfig({
-  plugins: [
-    solid({ ssr: true }),
-    dts({ exclude: ['src/**/*.test.ts', 'src/**/*.test.tsx'] }),
-    copyThemes()
-  ],
+  plugins: [solid({ ssr: true }), dts({ exclude: ['src/**/*.test.ts', 'src/**/*.test.tsx'] }), copyThemes()],
   build: {
     minify: false,
     terserOptions: {

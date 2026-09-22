@@ -15,10 +15,9 @@ export type TextAreaFieldProps<
   title?: string;
 };
 
-export function TextAreaField<
-  M extends object = FieldValueMapping,
-  N extends FieldPath<M> = FieldPath<M>
->(initialProps: TextAreaFieldProps<M, N>) {
+export function TextAreaField<M extends object = FieldValueMapping, N extends FieldPath<M> = FieldPath<M>>(
+  initialProps: TextAreaFieldProps<M, N>
+) {
   const [formState] = useFormContext<M>();
   const [localProps, parsedProps] = splitProps(initialProps, ['title']);
 
@@ -40,12 +39,7 @@ export function TextAreaField<
         </label>
       )}
       <div class={styles.textAreaContainer}>
-        <Textarea
-          {...props}
-          placeholder={placeholder()}
-          class={styles.textAreaEl}
-          {...error.aria}
-        />
+        <Textarea {...props} placeholder={placeholder()} class={styles.textAreaEl} {...error.aria} />
       </div>
       <error.Message />
     </div>

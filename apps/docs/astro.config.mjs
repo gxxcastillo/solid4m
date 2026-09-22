@@ -66,7 +66,7 @@ export default defineConfig({
       alias: {
         '@gxxc/solid4m-examples': resolve(__dirname, '../../packages/examples/src/index.ts'),
         'solid4m/themes': resolve(__dirname, '../../packages/solid4m/themes'),
-        'solid4m': resolve(__dirname, '../../packages/solid4m/src/index.ts')
+        solid4m: resolve(__dirname, '../../packages/solid4m/src/index.ts')
       }
     },
     build: {

@@ -279,7 +279,7 @@ describe('createValueSetter', () => {
     expect(mutations.setFieldValue).toHaveBeenLastCalledWith('items.0.title', 'second', []);
   });
 
-  it('reattaches an in-flight async validator result under the field\'s current name after a shift', () => {
+  it("reattaches an in-flight async validator result under the field's current name after a shift", () => {
     // remapFieldNames preserves a field's generation across a rename, so the
     // staleness guard still finds the same record and applies the result once
     // resolved — proven here with a fixed generation and props.name changed

@@ -1,4 +1,4 @@
-import { createForm, type StandardSchemaV1 } from 'solid4m';
+import { type StandardSchemaV1, createForm } from 'solid4m';
 
 // Compile-only regression fixture: proves createForm binds M once for both
 // Form and the field components, so neither needs <M, ...> generics at the

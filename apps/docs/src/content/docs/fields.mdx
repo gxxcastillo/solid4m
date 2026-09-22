@@ -17,13 +17,13 @@ For a plain string, a password, a longer string, or a boolean, reach for the fie
 in the [API reference](../api/): `InputField`, `PasswordField`, `TextAreaField`, and `CheckboxField`.
 This page covers the rest:
 
-| Field         | Stores                                     |
-| ------------- | ------------------------------------------- |
-| `SelectField` | A string, or a string array with `multiple` |
-| `RadioGroup`  | A single string, chosen from `options`      |
-| `NumberField` | A raw string by default; a number with `parse` |
+| Field         | Stores                                                           |
+| ------------- | ---------------------------------------------------------------- |
+| `SelectField` | A string, or a string array with `multiple`                      |
+| `RadioGroup`  | A single string, chosen from `options`                           |
+| `NumberField` | A raw string by default; a number with `parse`                   |
 | `DateField`   | A `yyyy-mm-dd` string by default; a `Date` with `parse`/`format` |
-| `FileField`   | A `FileList`, or `undefined` when cleared   |
+| `FileField`   | A `FileList`, or `undefined` when cleared                        |
 
 All nine are exported from [`createForm()` and `createFields()`](../api/#createformm) alongside the
 ones above — there is nothing extra to import or register.
@@ -162,7 +162,7 @@ declared in the same `yyyy-mm-dd` strings either way:
 Type the same out-of-range or off-week date into both fields above. The plain string field reports an
 error; the `Date`-backed one does not. `min`/`max`/`step` still render as real HTML attributes on both
 inputs — the native date picker still refuses to scroll past them — but this library's own bounds and
-step checks compare the field's *stored* value, and a date/time bound can only be compared against the
+step checks compare the field's _stored_ value, and a date/time bound can only be compared against the
 DOM string it was written in. Once `parse` turns that string into a `Date`, there is no longer a string
 for `min`/`max`/`step` to compare against, so those constraints are silently skipped rather than
 checked against the `Date`. Keep bounds checking by leaving the value as a string, or check a parsed
@@ -196,7 +196,7 @@ Renders `<input type="file">` and stores the selected `FileList`:
 Clearing the native selection stores `undefined`, not an empty `FileList`, so `required` rejects it the
 same way it rejects any other missing value. Browsers refuse to let script set a file input's value at
 all — not even to blank it out — which is also why `FileField` accepts no `value`, `parse`, or `format`
-props; there is nothing meaningful for them to do. `reset()` and `resetField()` still clear the *native*
+props; there is nothing meaningful for them to do. `reset()` and `resetField()` still clear the _native_
 control (the browser's own "no file chosen" state), by holding a direct reference to the input rather
 than going through the usual reactive value binding. The "Clear resume" and "Reset form" buttons in the
 [registration demo](#try-them-together) near the top of this page call `resetField('resume')` and

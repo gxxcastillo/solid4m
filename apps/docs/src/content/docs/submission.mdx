@@ -45,7 +45,7 @@ Fields stay editable while a submit is in flight — locking the form would take
 whatever the user is typing in. With a `schema`, that creates a race: validation runs against the
 values captured when submit was pressed, so if any of them change before it resolves, the result
 describes a form that no longer exists. That submit is discarded rather than sent, and
-`form.state.errors` reports *The form changed while it was being submitted. Please submit again.* so
+`form.state.errors` reports _The form changed while it was being submitted. Please submit again._ so
 the discard is visible instead of looking like a button that did nothing.
 
 Without a `schema` there is no async gap to race, and the handler receives the values captured at
@@ -69,7 +69,7 @@ treatment while an actual submit is in flight, with its own `processingLabel` an
 no button initiated either kind of work, every submit button shows the spinner — a real submit
 shows it only on the button that was pressed.
 
-Both are *additional* sources rather than overrides — the form is processing when you say so **or**
+Both are _additional_ sources rather than overrides — the form is processing when you say so **or**
 when it is running a submit of its own. Passing `isProcessing={false}` therefore cannot cut a real
 submit short. That is deliberate: the same flag guards against a second submit starting on top of
 one already in flight, so a `false` that won outright would let a double submit through.
@@ -93,7 +93,7 @@ const form = useForm<LoginValues>();
 ## Naming submit buttons for more than one action
 
 `onSubmit` can be an object instead of a single function — a map from a button's `name` to the
-handler that should run when *that* button submits the form. Give each `SubmitButton` a matching
+handler that should run when _that_ button submits the form. Give each `SubmitButton` a matching
 `name` and the right handler runs, whichever one the user pressed.
 
 Press either button below and watch which handler reports back — both are `async`, so there is a

@@ -333,9 +333,12 @@ describe('type', () => {
     }
   );
 
-  it.each(['mailto:a@b.com', 'ftp://files.example.com'])('accepts the non-http URL %s, as the browser does', (value) => {
-    expect(validate('username', value, { type: 'url' }, makeFormState())).toEqual([]);
-  });
+  it.each(['mailto:a@b.com', 'ftp://files.example.com'])(
+    'accepts the non-http URL %s, as the browser does',
+    (value) => {
+      expect(validate('username', value, { type: 'url' }, makeFormState())).toEqual([]);
+    }
+  );
 
   it("skips an empty value (emptiness is required's concern)", () => {
     expect(validate('username', '', { type: 'email' }, makeFormState())).toEqual([]);

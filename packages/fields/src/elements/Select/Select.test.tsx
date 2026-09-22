@@ -27,7 +27,11 @@ describe('Select', () => {
   });
 
   it('strips internal field-only props before reaching the DOM', () => {
-    const props = { id: 'role', errors: ['Required'], parse: (v: string) => v } as unknown as SelectElementProps;
+    const props = {
+      id: 'role',
+      errors: ['Required'],
+      parse: (v: string) => v
+    } as unknown as SelectElementProps;
     const { container } = render(() => <Select {...props} />);
 
     const select = container.querySelector('select');

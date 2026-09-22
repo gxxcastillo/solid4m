@@ -1,10 +1,6 @@
 import { type ErrorMessages, type FormFields } from '@gxxc/solid4m-state';
 
-import {
-  type SchemaValidationResult,
-  type StandardSchemaV1,
-  type StandardSchemaV1Issue
-} from './types';
+import { type SchemaValidationResult, type StandardSchemaV1, type StandardSchemaV1Issue } from './types';
 
 function isPathSegment(
   segment: PropertyKey | { readonly key: PropertyKey }

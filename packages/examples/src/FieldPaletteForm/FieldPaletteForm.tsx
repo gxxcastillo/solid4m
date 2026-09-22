@@ -62,7 +62,13 @@ export function FieldPaletteForm() {
         format={(value) => (value === undefined ? '' : String(value))}
       />
 
-      <DateField name='sessionDate' label='Preferred session date' min='2026-01-05' max='2026-02-23' step={7} />
+      <DateField
+        name='sessionDate'
+        label='Preferred session date'
+        min='2026-01-05'
+        max='2026-02-23'
+        step={7}
+      />
 
       <FileField name='resume' label='Resume' required />
 
