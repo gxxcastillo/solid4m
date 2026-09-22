@@ -1,6 +1,6 @@
 {
   "name": "solid4m",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "description": "Typed, reactive forms for SolidJS",
   "keywords": [
